@@ -63,7 +63,7 @@ class V4List(models.Model):
     ds_record = models.CharField("DSレコード", max_length=100, null=True, blank=True)
     notify_address = models.CharField("通知アドレス", max_length=100, null=True, blank=True)
     asn = models.ForeignKey("jpnic_gui.JPNIC", related_name="v4lists", on_delete=models.PROTECT)
-    admin_jpnic = models.ForeignKey("result.JPNICHandle", related_name="v4lists", on_delete=models.PROTECT)
+    admin_jpnic = models.ForeignKey("result.JPNICHandle", related_name="v4lists", null=True, on_delete=models.PROTECT)
     tech_jpnic = models.ManyToManyField(JPNICHandle)
 
     def __str__(self):
@@ -100,7 +100,7 @@ class V6List(models.Model):
     ds_record = models.CharField("DSレコード", max_length=100, null=True, blank=True)
     notify_address = models.CharField("通知アドレス", max_length=100, null=True, blank=True)
     asn = models.ForeignKey("jpnic_gui.JPNIC", related_name="v6lists", on_delete=models.PROTECT)
-    admin_jpnic = models.ForeignKey("result.JPNICHandle", related_name="v6lists", on_delete=models.PROTECT)
+    admin_jpnic = models.ForeignKey("result.JPNICHandle", related_name="v6lists", null=True, on_delete=models.PROTECT)
     tech_jpnic = models.ManyToManyField(JPNICHandle)
 
     def __str__(self):
