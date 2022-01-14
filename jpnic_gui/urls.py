@@ -1,6 +1,6 @@
 """jpnic_gui URL Configuration
 
-The `urlpatterns` list routes URLs to views. For more information please see:
+The `urlpatterns` result routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.0/topics/http/urls/
 Examples:
 Function views
@@ -14,8 +14,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+
+from jpnic_gui import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', views.index, name='index'),
+    path('test/', views.get_jpnic_info, name='get_jpnic_info'),
+    path('__debug__/', include('debug_toolbar.urls')),
+    # path('event_viewer/', views.event_viewer, name='event_viewer'),
 ]
