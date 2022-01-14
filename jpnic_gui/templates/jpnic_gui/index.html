@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load extra %}
+{% load mathfilters %}
 
 {% block title %}Articles for {{ year }}{% endblock %}
 
@@ -70,6 +71,8 @@
         <label class="row_filter-label" for="flexCheckDefault">E-Mail(技術)</label>
     </div>
     <span class="badge bg-dark">全数: {{ jpnic_page.paginator.count }}</span>
+    <span class="badge bg-success">取得済: {{ jpnic_page.paginator.count|sub:count_no_data }}</span>
+    <span class="badge bg-danger">未取得: {{ count_no_data }}</span>
     <br/>
 
     <table class="table table-striped table-hover">

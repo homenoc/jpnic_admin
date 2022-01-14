@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'jpnic_gui',
     'jpnic_gui.result',
+    'mathfilters'
 ]
 
 MIDDLEWARE = [
