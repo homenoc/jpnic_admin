@@ -6,12 +6,10 @@ from jpnic_gui.form import SearchForm
 
 
 def index(request):
-    # result = V4List.objects.filter()
     form = SearchForm(request.GET)
     result = form.get_queryset().order_by()
 
     count_no_data = result.filter(Q(address='', address_en='')).count()
-    print(count_no_data)
 
     paginator = Paginator(result, int(request.GET.get("per_page", "30")))
     page = int(request.GET.get("page", "1"))
@@ -21,6 +19,7 @@ def index(request):
         events_page = paginator.page(paginator.num_pages)
 
     context = {
+        "date": result[0].get_date.strftime('%Y/%m/%d'),
         "jpnic_page": events_page,
         "count_no_data": count_no_data,
         "search_form": form,

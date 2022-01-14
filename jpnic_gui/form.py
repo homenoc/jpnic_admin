@@ -1,3 +1,5 @@
+import datetime
+
 from django import forms
 from django.db.models import Q
 
@@ -16,12 +18,13 @@ class SearchForm(forms.Form):
         required=False,
     )
 
-    # select_time = forms.DateField(
-    #     label='データ日時',
-    #     input_formats=['%Y-%m-%d'],
-    #     widget=forms.DateTimeInput(format='%Y-%m-%d'),
-    #     required=False
-    # )
+    select_date = forms.DateField(
+        label='データ日時',
+        input_formats=['%Y-%m-%d'],
+        initial=datetime.date.today,
+        widget=forms.DateTimeInput(format='%Y-%m-%d'),
+        required=False
+    )
 
     def get_queryset(self):
         if not self.is_valid():
@@ -32,25 +35,26 @@ class SearchForm(forms.Form):
         # 条件
         conditions = {}
 
-        select_time = cleaned_data.get('select_time')
+        select_date = cleaned_data.get('select_date')
         addr_type = cleaned_data.get('addr_type')
         address = cleaned_data.get('address')
-        disp_filter = cleaned_data.get('display_filter')
 
         if addr_type == "v6":
             conditions["is_ipv6"] = True
         q = Q(**conditions)
 
-        print(address)
         # 住所/住所(English)一部含むフィルタ
         if address != "":
             q &= Q(address__contains=address) | Q(address_en__contains=address)
 
-        # のフィルタ
-        if select_time is not None:
-            q &= ~Q(start_at__gt=select_time)
+        # 日付フィルタ
+        # フィルタなし時現在の日付にする
+        if select_date is None:
+            select_date = datetime.date.today()
+        if select_date is not None:
+            q &= Q(get_date__gte=select_date) & Q(get_date__lte=select_date + datetime.timedelta(days=1))
 
-        if addr_type == True:
+        if addr_type:
             return V6List.objects.select_related('admin_jpnic').prefetch_related('tech_jpnic').filter(q)
         else:
             return V4List.objects.select_related('admin_jpnic').prefetch_related('tech_jpnic').filter(q)

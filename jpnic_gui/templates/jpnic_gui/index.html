@@ -1,54 +1,70 @@
 {% extends "base.html" %}
 {% load extra %}
 {% load mathfilters %}
+{% load widget_tweaks %}
 
 {% block title %}Articles for {{ year }}{% endblock %}
 
 {% block content %}
-    <h1>JPNIC</h1>
-    <form method="get" class="needs-validation" novalidate>
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox"
-                   value="True"
-                   name="{{ search_form.addr_type.name }}"
-                    {% if search_form.addr_type.value == True %} checked {% endif %}
-                   id="{{ search_form.addr_type.id_for_label }}">
-            <label class="form-check-label" for="flexSwitchCheckDefault">{{ search_form.addr_type.label }}</label>
-        </div>
-        <div class="col-md-3 mb-3">
-            <label for="{{ search_form.address.id_for_label }}">{{ search_form.address.label }}</label>
-            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                   value="{{ search_form.address.value|default:"" }}"
-                   name="{{ search_form.address.name }}" id="{{ search_form.address.id_for_label }}">
-        </div>
+    <h2>JPNIC <span class="badge bg-secondary">{{ date }}時点</span></h2>
+    <div class="container">
+        <div class="p-3 border bg-light">
+            <form method="get" class="needs-validation" novalidate>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox"
+                           value="True"
+                           name="{{ search_form.addr_type.name }}"
+                            {% if search_form.addr_type.value == True %} checked {% endif %}
+                           id="{{ search_form.addr_type.id_for_label }}">
+                    <label class="form-check-label"
+                           for="flexSwitchCheckDefault">{{ search_form.addr_type.label }}</label>
+                </div>
+                <div class="row g-2">
+                    <div class="col-2">
+                        <label for="id_select_date">{{ search_form.select_date.label }}</label>
+                        {{ search_form.select_date|add_class:'form-control' }}
+                    </div>
+                    <div class="col-4">
+                        <label for="{{ search_form.address.id_for_label }}">{{ search_form.address.label }}</label>
+                        <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                               value="{{ search_form.address.value|default:"" }}"
+                               name="{{ search_form.address.name }}" id="{{ search_form.address.id_for_label }}">
+                    </div>
+                    <div class="col-6">
+                    </div>
+                    <div class="col-6">
+                    </div>
+                </div>
 
-        {#        <div class="form-row">#}
-        {#            <div class="col-md-3 mb-3">#}
-        {#                <label for="{{ search_form.addr_type.id_for_label }}">{{ search_form.addr_type.label }}</label>#}
-        {#                <input type="text" autocomplete="off" list="addr_type" class="form-control"#}
-        {#                       value="{{ search_form.addr_type.value|default:"" }}"#}
-        {#                       name="{{ search_form.addr_type.name }}"#}
-        {#                       id="{{ search_form.addr_type.id_for_label }}">#}
-        {#            </div>#}
-        {#        </div>#}
-        {#        <div class="form-row">#}
-        {#            <div class="col-md-3 mb-3">#}
-        {#                <label for="id_start_time">{{ search_form.start_time.label }}</label>#}
-        {#                {{ search_form.start_time|add_class:'form-control' }}#}
-        {#            </div>#}
-        {#        </div>#}
+                {#        <div class="form-row">#}
+                {#            <div class="col-md-3 mb-3">#}
+                {#                <label for="{{ search_form.addr_type.id_for_label }}">{{ search_form.addr_type.label }}</label>#}
+                {#                <input type="text" autocomplete="off" list="addr_type" class="form-control"#}
+                {#                       value="{{ search_form.addr_type.value|default:"" }}"#}
+                {#                       name="{{ search_form.addr_type.name }}"#}
+                {#                       id="{{ search_form.addr_type.id_for_label }}">#}
+                {#            </div>#}
+                {#        </div>#}
+                {#        <div class="form-row">#}
+                {#            <div class="col-md-3 mb-3">#}
+                {#                <label for="id_start_time">{{ search_form.start_time.label }}</label>#}
+                {#                {{ search_form.start_time|add_class:'form-control' }}#}
+                {#            </div>#}
+                {#        </div>#}
 
-        {#        <div class="form-row">#}
-        {#            <div class="col-md-3 mb-3">#}
-        {#                <label for="id_display_filter">{{ search_form.display_filter.label }}</label>#}
-        {#                {{ search_form.display_filter|add_class:'custom-select' }}#}
-        {#            </div>#}
-        {#        </div>#}
-        <button class="btn btn-primary" type="submit">検索</button>
-        <a href="./">
-            <button class="btn btn-light" type="button">条件クリア</button>
-        </a>
-    </form>
+                {#        <div class="form-row">#}
+                {#            <div class="col-md-3 mb-3">#}
+                {#                <label for="id_display_filter">{{ search_form.display_filter.label }}</label>#}
+                {#                {{ search_form.display_filter|add_class:'custom-select' }}#}
+                {#            </div>#}
+                {#        </div>#}
+                <button class="btn btn-primary" type="submit">検索</button>
+                <a href="./">
+                    <button class="btn btn-light" type="button">条件クリア</button>
+                </a>
+            </form>
+        </div>
+    </div>
     <br/>
     <div class="form-check">
         <input class="row_filter" type="checkbox" value="0" id="flexCheckDefault" checked>
@@ -206,6 +222,18 @@
             remove_row(10)
             remove_row(11)
 
+            // flatpickr
+            const config_date = {
+                {#enableSeconds: true,#}
+                enableTime: false,
+                dateFormat: "Y-m-d",
+                maxDate: "today",
+                {#time_24hr: true,#}
+                "locale": "ja"
+            };
+
+            flatpickr("#id_select_date", config_date);
+
             // チェックボックスをDOMに追加
             $('body').prepend();
 
@@ -223,18 +251,5 @@
                 $('th').eq(index).toggle();
             }
         };
-        $(function () {
-            const config_date = {
-                enableSeconds: true,
-                enableTime: true,
-                dateFormat: "Y-m-d H:i:S",
-                maxDate: "today",
-                time_24hr: true,
-                "locale": "ja"
-            };
-
-            flatpickr("#id_start_time", config_date);
-            flatpickr("#id_end_time", config_date);
-        });
     </script>
 {% endblock %}
