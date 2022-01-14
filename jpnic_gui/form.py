@@ -44,7 +44,7 @@ class SearchForm(forms.Form):
         print(address)
         # 住所/住所(English)一部含むフィルタ
         if address != "":
-            q &= Q(address__contains=address)
+            q &= Q(address__contains=address) | Q(address_en__contains=address)
 
         # のフィルタ
         if select_time is not None:
