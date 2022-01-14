@@ -86,7 +86,8 @@
         </tr>
         {% for j_p in jpnic_page %}
             <tr>
-                <td>{{ j_p.get_date }}</td>
+                <td  {% if j_p.org == "" and j_p.address == "" %}
+                    class="table-danger" {% else %} class="table-success" {% endif %}> {{ j_p.get_date }}</td>
                 <td>{{ j_p.ip_address }}</td>
                 <td>{{ j_p.network_name }}</td>
                 <td>{{ j_p.org }}</td>
