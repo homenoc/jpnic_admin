@@ -15,6 +15,12 @@
                    id="{{ search_form.addr_type.id_for_label }}">
             <label class="form-check-label" for="flexSwitchCheckDefault">{{ search_form.addr_type.label }}</label>
         </div>
+        <div class="col-md-3 mb-3">
+            <label for="{{ search_form.address.id_for_label }}">{{ search_form.address.label }}</label>
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ search_form.address.value|default:"" }}"
+                   name="{{ search_form.address.name }}" id="{{ search_form.address.id_for_label }}">
+        </div>
 
         {#        <div class="form-row">#}
         {#            <div class="col-md-3 mb-3">#}
