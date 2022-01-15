@@ -19,7 +19,6 @@ def index(request):
         events_page = paginator.page(paginator.num_pages)
 
     context = {
-        "date": result[0].get_date.strftime('%Y/%m/%d'),
         "jpnic_page": events_page,
         "count_no_data": count_no_data,
         "search_form": form,
