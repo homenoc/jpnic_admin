@@ -13,6 +13,11 @@ class SearchForm(forms.Form):
         required=False,
     )
 
+    as_number = forms.CharField(
+        label="AS番号",
+        required=False,
+    )
+
     address = forms.CharField(
         label="住所/住所(English)(一部含む)",
         required=False,
@@ -38,10 +43,15 @@ class SearchForm(forms.Form):
         select_date = cleaned_data.get('select_date')
         addr_type = cleaned_data.get('addr_type')
         address = cleaned_data.get('address')
+        as_number = cleaned_data.get('as_number')
 
         if addr_type == "v6":
             conditions["is_ipv6"] = True
         q = Q(**conditions)
+
+        # AS番号フィルタ
+        if as_number != "":
+            q &= Q(asn__id__contains=as_number)
 
         # 住所/住所(English)一部含むフィルタ
         if address != "":
