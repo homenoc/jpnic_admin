@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -19,9 +18,11 @@ class Migration(migrations.Migration):
                 ('is_active', models.BooleanField(blank=True, verbose_name='有効')),
                 ('is_ipv6', models.BooleanField(verbose_name='IPv6')),
                 ('asn', models.IntegerField(verbose_name='ASN')),
-                ('ca_path', models.CharField(max_length=200, unique=True, verbose_name='中間CA証明書')),
-                ('cert_path', models.CharField(max_length=200, unique=True, verbose_name='Cert')),
-                ('key_path', models.CharField(max_length=200, unique=True, verbose_name='key')),
+                ('ca_path', models.CharField(default='', max_length=200, verbose_name='中間CA証明書')),
+                ('cert_path', models.CharField(default='', max_length=200, verbose_name='Cert')),
+                ('key_path', models.CharField(default='', max_length=200, verbose_name='key')),
+                ('p12_path', models.CharField(default='', max_length=200, verbose_name='P12')),
+                ('p12_pass', models.CharField(default='', max_length=200, verbose_name='P12 Pass')),
             ],
             options={
                 'verbose_name': 'AS',

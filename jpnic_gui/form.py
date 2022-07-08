@@ -51,6 +51,7 @@ class SearchForm(forms.Form):
         # フィルタなし時現在の日付にする
         if select_date is None:
             select_date = datetime.date.today()
+            print(select_date)
         if select_date is not None:
             q &= Q(get_date__gte=select_date) & Q(get_date__lte=select_date + datetime.timedelta(days=1))
 
