@@ -21,7 +21,9 @@ class JPNICAdmin(admin.ModelAdmin):
         "asn",
         "ca_path",
         "cert_path",
-        "key_path"
+        "key_path",
+        "p12_path",
+        "p12_pass"
     )
     list_filter = ("is_active",)
     search_fields = ("name",)

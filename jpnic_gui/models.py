@@ -10,10 +10,11 @@ class JPNIC(models.Model):
     is_ipv6 = models.BooleanField("IPv6", blank=False)
 
     asn = models.IntegerField("ASN")
-    ca_path = models.CharField("中間CA証明書", unique=True, max_length=200)
-    cert_path = models.CharField("Cert", unique=True, max_length=200)
-    key_path = models.CharField("key", unique=True, max_length=200)
+    ca_path = models.CharField("中間CA証明書", max_length=200, default="")
+    cert_path = models.CharField("Cert", max_length=200, default="")
+    key_path = models.CharField("key", max_length=200, default="")
+    p12_path = models.CharField("P12", max_length=200, default="")
+    p12_pass = models.CharField("P12 Pass", max_length=200, default="")
 
     def __str__(self):
         return self.name
-
