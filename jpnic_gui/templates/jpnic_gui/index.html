@@ -26,13 +26,18 @@
                         <label for="id_select_date">{{ search_form.select_date.label }}</label>
                         {{ search_form.select_date|add_class:'form-control' }}
                     </div>
+                    <div class="col-2">
+                        <label for="{{ search_form.as_number.id_for_label }}">{{ search_form.as_number.label }}</label>
+                        <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                               value="{{ search_form.as_number.value|default:"" }}"
+                               name="{{ search_form.as_number.name }}" id="{{ search_form.as_number.id_for_label }}">
+
+                    </div>
                     <div class="col-4">
                         <label for="{{ search_form.address.id_for_label }}">{{ search_form.address.label }}</label>
                         <input type="text" autocomplete="off" list="agent_region" class="form-control"
                                value="{{ search_form.address.value|default:"" }}"
                                name="{{ search_form.address.name }}" id="{{ search_form.address.id_for_label }}">
-                    </div>
-                    <div class="col-6">
                     </div>
                     <div class="col-6">
                     </div>
@@ -205,6 +210,7 @@
         window.onload = function () {
             const $ = window.jQuery;
 
+            remove_row(5)
             remove_row(8)
             remove_row(9)
             remove_row(11)
