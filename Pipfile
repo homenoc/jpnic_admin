@@ -12,6 +12,7 @@ requests = "*"
 django-debug-toolbar = "*"
 django-mathfilters = "*"
 django-widget-tweaks = "*"
+mysqlclient = "*"
 
 [requires]
 python_version = "3.8"

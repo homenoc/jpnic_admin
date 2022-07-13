@@ -1,0 +1,33 @@
+version: '3'
+services:
+  jpnic-admin:
+    container_name: jpnic-admin
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - SKIP_SUPERUSER=false
+      - SUPERUSER_EMAIL=admin@example.com
+      - SUPERUSER_NAME=admin
+      - SUPERUSER_PASSWORD=test123#
+      - DB_NAME=jpnic-admin
+      - DB_USER=jpnic-admin
+      - DB_PASSWORD=passWord123#
+    links:
+      - db
+    restart:
+      always
+  db:
+    image: mariadb:10.7.4
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - "/var/lib/mysql-jpnic-admin:/var/lib/mysql"
+    environment:
+      - MYSQL_ROOT_PASSWORD=PassWOrd123#
+      - MYSQL_DATABASE=jpnic-admin
+      - MYSQL_USER=jpnic-admin
+      - MYSQL_PASSWORD=passWord123#
