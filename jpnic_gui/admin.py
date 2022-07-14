@@ -8,9 +8,6 @@ admin.site.site_header = settings.SITE_HEADER
 admin.site.index_title = 'メニュー'
 
 
-# admin.site.login_template = "measure/admin/login.html"
-
-
 @admin.register(JPNIC)
 class JPNICAdmin(admin.ModelAdmin):
     list_display = (
@@ -19,10 +16,8 @@ class JPNICAdmin(admin.ModelAdmin):
         "is_active",
         "is_ipv6",
         "asn",
-        "ca_path",
-        "cert_path",
-        "key_path",
-        "p12_path",
+        "ca",
+        "p12_base64",
         "p12_pass"
     )
     list_filter = ("is_active",)
