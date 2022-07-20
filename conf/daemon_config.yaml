@@ -1,0 +1,10 @@
+---
+next_time: 15
+db:
+  #  type: sqlite, mysql
+  type: mysql
+  ip: db
+  port: 3306
+  name: jpnic-admin
+  user: jpnic-admin
+  pass: passWord123#
