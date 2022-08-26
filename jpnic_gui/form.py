@@ -1,6 +1,7 @@
 import datetime
 
 from django import forms
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 
 from jpnic_gui.result.models import V4List, V6List
@@ -69,3 +70,174 @@ class SearchForm(forms.Form):
             return V6List.objects.select_related('admin_jpnic').prefetch_related('tech_jpnic').filter(q)
         else:
             return V4List.objects.select_related('admin_jpnic').prefetch_related('tech_jpnic').filter(q)
+
+
+class AddAssignment(forms.Form):
+    network_name = forms.CharField(
+        label="ネットワーク名",
+        required=False,
+    )
+
+    org = forms.CharField(
+        label="組織名",
+        required=False,
+    )
+
+    org_en = forms.CharField(
+        label="組織名(English)",
+        required=False,
+    )
+
+    postcode = forms.CharField(
+        label="郵便番号",
+        min_length=8,
+        max_length=8,
+        required=False,
+    )
+
+    address = forms.CharField(
+        label="住所",
+        required=False,
+    )
+
+    address_en = forms.CharField(
+        label="住所(English)",
+        required=False,
+    )
+
+    name_server = forms.CharField(
+        label="ネームサーバ",
+        required=False,
+    )
+
+    deli_no = forms.CharField(
+        label="審議番号",
+        required=False,
+    )
+
+    return_date = forms.DateField(
+        label='返却年月日',
+        input_formats=['%Y-%m-%d'],
+        # initial=datetime.date.today,
+        widget=forms.DateTimeInput(format='%Y-%m-%d'),
+        required=False
+    )
+
+    apply_email = forms.EmailField(
+        label="申請者メールアドレス",
+        required=False,
+    )
+
+    file = forms.FileField(
+        label='ファイル(json)',
+        required=False
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cc_myself = cleaned_data.get("cc_myself")
+        subject = cleaned_data.get("subject")
+
+        if cc_myself and subject:
+            # Only do something if both fields are valid so far.
+            if "help" not in subject:
+                raise ValidationError(
+                    "Did not send for 'help' in the subject despite "
+                    "CC'ing yourself."
+                )
+
+
+
+class AddGroupContact(forms.Form):
+    HANDLE_GROUP = 'グループハンドル'
+    HANDLE_JPNIC = "JPNICハンドル"
+    HANDLE_CHOICE = [
+        (HANDLE_GROUP, 'グループハンドル'),
+        (HANDLE_JPNIC, 'JPNICハンドル'),
+    ]
+
+    handle_type = forms.ChoiceField(
+        label='グループ/JPNICハンドル',
+        choices=HANDLE_CHOICE,
+        initial=HANDLE_JPNIC,
+        # empty_value=HANDLE_JPNIC,
+        show_hidden_initial=False,
+        required=False,
+    )
+
+    handle = forms.CharField(
+        label="ハンドル",
+        required=False,
+    )
+
+    group_name = forms.CharField(
+        label="グループ名",
+        required=False,
+    )
+
+    group_name_en = forms.CharField(
+        label="グループ名(English)",
+        required=False,
+    )
+
+    email = forms.EmailField(
+        label="E-Mail",
+        required=False,
+    )
+
+    postcode = forms.CharField(
+        label="郵便番号",
+        min_length=8,
+        max_length=8,
+        required=False,
+    )
+
+    address = forms.CharField(
+        label="住所",
+        required=False,
+    )
+
+    address_en = forms.CharField(
+        label="住所(English)",
+        required=False,
+    )
+
+    division = forms.CharField(
+        label="部署",
+        required=False,
+    )
+
+    division_en = forms.CharField(
+        label="部署(English)",
+        required=False,
+    )
+
+    title = forms.CharField(
+        label="肩書",
+        required=False,
+    )
+
+    title_en = forms.CharField(
+        label="肩書(English)",
+        required=False,
+    )
+
+    tel = forms.CharField(
+        label="電話番号",
+        required=False,
+    )
+
+    fax = forms.CharField(
+        label="FAX番号",
+        required=False,
+    )
+
+    notify_address = forms.EmailField(
+        label="通知アドレス",
+        required=False,
+    )
+
+    file = forms.FileField(
+        label='ファイル(json)',
+        required=False
+    )
