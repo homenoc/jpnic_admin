@@ -1,8 +1,12 @@
+import io
+import json
+
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.db.models import Q
 from django.shortcuts import render
 
-from jpnic_gui.form import SearchForm
+from jpnic_gui.form import SearchForm, AddAssignment, AddGroupContact
+from jpnic_gui.jpnic import JPNIC
 
 
 def index(request):
@@ -31,3 +35,46 @@ def get_jpnic_info(request):
     # result = JPNIC.objects.filter()
     context = {'year': "year"}
     return render(request, 'jpnic_gui/index.html', context)
+
+
+def add_assignment(request):
+    if request.method == 'POST':
+        form = AddAssignment(request.POST, request.FILES)
+        print("POST!!")
+        if form.is_valid():
+            print("OK")
+            print(form.cleaned_data)
+            print(request.FILES)
+            datas = []
+            if form.cleaned_data['file']:
+                print(form.cleaned_data['file'])
+                datas = json.loads(form.cleaned_data['file'].read().decode('utf-8'))
+
+            for data in datas:
+                j = JPNIC(
+                    asn=data['as'],
+                )
+                j.ipv4_assignment_user(**data)
+
+    else:
+        form = AddAssignment()
+
+    context = {
+        "form": form,
+    }
+    return render(request, 'add_assignment.html', context)
+
+
+def handle_uploaded_file(f):
+    print("upload")
+    # with open('some/file/name.txt', 'wb+') as destination:
+    #     for chunk in f.chunks():
+    #         destination.write(chunk)
+
+
+def add_person(request):
+    form = AddGroupContact(request.GET)
+    context = {
+        "form": form,
+    }
+    return render(request, 'add_person.html', context)

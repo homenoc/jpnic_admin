@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>JPNIC 担当者追加</h2>
+    <br/>
+    <h5>File Uploader</h5>
+    <div class="row g-2">
+        {{ form.file }}
+    </div>
+    <br/>
+    <h5>Manual</h5>
+    <div class="row g-2">
+        <div class="col-2">
+            {{ form.handle_type.label }}
+            <select class="form-select" aria-label="Default select example">
+                <option selected>Open this select menu</option>
+                {% for field in form.handle_type %}
+                    {{ field }}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-2">
+            {{ form.handle.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.handle.value|default:"" }}" name="{{ form.handle.name }}"
+                   id="{{ form.handle.id_for_label }}">
+        </div>
+    </div>
+    <div class="row g-2">
+        <div class="col-3">
+            {{ form.group_name.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.group_name.value|default:"" }}" name="{{ form.group_name.name }}"
+                   id="{{ form.group_name.id_for_label }}">
+        </div>
+        <div class="col-3">
+            {{ form.group_name_en.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.group_name_en.value|default:"" }}" name="{{ form.group_name_en.name }}"
+                   id="{{ form.group_name_en.id_for_label }}">
+        </div>
+    </div>
+    <div class="row g-2">
+        <div class="col-2">
+            {{ form.postcode.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.postcode.value|default:"" }}" name="{{ form.postcode.name }}"
+                   id="{{ form.postcode.id_for_label }}">
+        </div>
+        <div class="col-4">
+            {{ form.address.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.address.value|default:"" }}" name="{{ form.address.name }}"
+                   id="{{ form.address.id_for_label }}">
+        </div>
+        <div class="col-4">
+            {{ form.address_en.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.address_en.value|default:"" }}" name="{{ form.address_en.name }}"
+                   id="{{ form.address_en.id_for_label }}">
+        </div>
+    </div>
+    <div class="row g-2">
+        <div class="col-2">
+            {{ form.division.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.division.value|default:"" }}" name="{{ form.division.name }}"
+                   id="{{ form.division.id_for_label }}">
+        </div>
+        <div class="col-2">
+            {{ form.division_en.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.division_en.value|default:"" }}" name="{{ form.division_en.name }}"
+                   id="{{ form.division_en.id_for_label }}">
+        </div>
+        <div class="col-2">
+            {{ form.title.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.title.value|default:"" }}" name="{{ form.title.name }}"
+                   id="{{ form.title.id_for_label }}">
+        </div>
+        <div class="col-2">
+            {{ form.title_en.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.title_en.value|default:"" }}" name="{{ form.title_en.name }}"
+                   id="{{ form.title_en.id_for_label }}">
+        </div>
+    </div>
+    <div class="row g-2">
+        <div class="col-2">
+            {{ form.tel.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.tel.value|default:"" }}" name="{{ form.tel.name }}"
+                   id="{{ form.tel.id_for_label }}">
+        </div>
+        <div class="col-2">
+            {{ form.fax.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.fax.value|default:"" }}" name="{{ form.fax.name }}"
+                   id="{{ form.fax.id_for_label }}">
+        </div>
+    </div>
+    <div class="row g-2">
+        <div class="col-4">
+            {{ form.email.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.email.value|default:"" }}" name="{{ form.email.name }}"
+                   id="{{ form.email.id_for_label }}">
+        </div>
+        <div class="col-4">
+            {{ form.notify_address.label }}
+            <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                   value="{{ form.notify_address.value|default:"" }}" name="{{ form.notify_address.name }}"
+                   id="{{ form.notify_address.id_for_label }}">
+        </div>
+    </div>
+{% endblock %}
