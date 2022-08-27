@@ -22,7 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
     path('add_assignment/', views.add_assignment, name='add_assignment'),
-    # path('add_assignment/verify', views.verify_add_assignment, name='verify_add_assignment'),
+    path('result', views.result, name='result'),
     path('add_person/', views.add_person, name='add_person'),
     path('test/', views.get_jpnic_info, name='get_jpnic_info'),
     path('__debug__/', include('debug_toolbar.urls')),
