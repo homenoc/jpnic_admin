@@ -16,6 +16,10 @@ from ssl import PROTOCOL_TLS as default_ssl_protocol
 from jpnic_gui.models import JPNIC as JPNICModel
 
 
+class JPNICReqError(Exception):
+    pass
+
+
 class SSLAdapter(HTTPAdapter):
     def __init__(self, *args, **kwargs):
         cert_path = kwargs.pop('cert_path', None)
@@ -268,13 +272,12 @@ class JPNIC():
         res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
         res.encoding = 'Shift_JIS'
         soup = BeautifulSoup(res.text, 'html.parser')
-        print(soup)
         all_error = soup.findAll('font', attrs={'color': 'red'})
         if all_error:
             error = ''
             for one_error in all_error:
-                error += one_error.text + " "
-            raise Exception(error)
+                error += one_error.text + "\n"
+            raise JPNICReqError(error, res.text)
         req = {
             'org.apache.struts.taglib.html.TOKEN':
                 soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})['value'],
@@ -296,16 +299,16 @@ class JPNIC():
         if not '申請完了' in soup.find('title').text:
             raise Exception('Error: request error')
         data = {
-            'receipt_no': '',
-            'email': ''
+            '受付番号': '',
+            '電子メールアドレス': '',
         }
         tmp_lists = soup.select('table > tr > td > table')[0].findAll('td')
         for idx in range(len(tmp_lists)):
             if '受付番号：' in tmp_lists[idx]:
-                data['receipt_no'] = tmp_lists[idx + 1].text
+                data['受付番号'] = tmp_lists[idx + 1].text
             if '電子メールアドレス：' in tmp_lists[idx]:
-                data['email'] = tmp_lists[idx + 1].text
-        return data
+                data['電子メールアドレス'] = tmp_lists[idx + 1].text
+        return {data: data, 'html': res.text}
 
     def contact_register(self, **kwargs):
         self.init_get()

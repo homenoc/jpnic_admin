@@ -136,3 +136,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = '/opt/app/static/'
+
+CA_PATH = '/Users/y-yoneda/Documents/doornoc-cert/rootcacert_r3.cer'
+JPNIC_BASE_URL = 'https://iphostmaster.nic.ad.jp'

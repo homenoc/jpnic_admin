@@ -1,12 +1,15 @@
 import io
 import json
+from html import escape
 
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.db.models import Q
-from django.shortcuts import render
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
 
 from jpnic_gui.form import SearchForm, AddAssignment, AddGroupContact
-from jpnic_gui.jpnic import JPNIC
+from jpnic_gui.jpnic import JPNIC, JPNICReqError
 
 
 def index(request):
@@ -39,22 +42,58 @@ def get_jpnic_info(request):
 
 def add_assignment(request):
     if request.method == 'POST':
+        print("POST")
+        if 'test' in request.POST:
+            print("test")
+            context = {
+                "name": "JPNIC 割り当て追加　結果",
+                "error": "err",
+            }
+            html = render_to_string('result.html', context)
+            return HttpResponse(html)
         form = AddAssignment(request.POST, request.FILES)
-        print("POST!!")
         if form.is_valid():
-            print("OK")
             print(form.cleaned_data)
             print(request.FILES)
-            datas = []
+            input_data = {}
             if form.cleaned_data['file']:
                 print(form.cleaned_data['file'])
-                datas = json.loads(form.cleaned_data['file'].read().decode('utf-8'))
+                input_data = json.loads(form.cleaned_data['file'].read().decode('utf-8'))
+            else:
+                print(request.POST)
+                print(json.loads(request.POST['data']))
+                input_data = json.loads(request.POST['data'])
 
-            for data in datas:
+            context = {
+                "req_data": json.dumps(input_data, ensure_ascii=False, indent=4, sort_keys=True,
+                                       separators=(',', ':'))
+            }
+
+            if not 'as' in input_data:
+                context['error'] = "AS番号が指定されていません"
+                return JsonResponse(context)
+
+            try:
                 j = JPNIC(
-                    asn=data['as'],
+                    asn=input_data['as'],
                 )
-                j.ipv4_assignment_user(**data)
+                res_data = j.ipv4_assignment_user(**input_data)
+                context['data'] = res_data['data']
+                context['result_html'] = escape(res_data['html'])
+                context['response'] = res_data
+            except JPNICReqError as exc:
+                result_html = ''
+                if len(exc.args) > 1:
+                    result_html = exc.args[1]
+                context = {
+                    "error": exc.args[0],
+                    "result_html": escape(result_html),
+                }
+            except TypeError as err:
+                print(err)
+                context['error'] = str(err)
+
+            return JsonResponse(context)
 
     else:
         form = AddAssignment()
@@ -63,6 +102,14 @@ def add_assignment(request):
         "form": form,
     }
     return render(request, 'add_assignment.html', context)
+
+
+def result(request):
+    context = {
+
+    }
+    context = request.GET.get('context')
+    return render(request, 'result.html', context=context)
 
 
 def handle_uploaded_file(f):
