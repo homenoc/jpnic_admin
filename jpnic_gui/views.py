@@ -10,6 +10,7 @@ from django.template.loader import render_to_string
 
 from jpnic_gui.form import SearchForm, AddAssignment, AddGroupContact
 from jpnic_gui.jpnic import JPNIC, JPNICReqError
+from jpnic_gui.models import JPNIC as JPNICModel
 
 
 def index(request):
@@ -76,19 +77,20 @@ def add_assignment(request):
             try:
                 j = JPNIC(
                     asn=input_data['as'],
+                    ipv6=input_data.get('ipv6', False)
                 )
-                res_data = j.ipv4_assignment_user(**input_data)
-                context['data'] = res_data['data']
+                res_data = j.assignment(**input_data)
+                print(res_data)
+                context['data'] = json.dumps(res_data['data'], ensure_ascii=False, indent=4, sort_keys=True,
+                                             separators=(',', ':'))
+                # context['data'] = res_data['data']
                 context['result_html'] = escape(res_data['html'])
-                context['response'] = res_data
             except JPNICReqError as exc:
                 result_html = ''
                 if len(exc.args) > 1:
                     result_html = exc.args[1]
-                context = {
-                    "error": exc.args[0],
-                    "result_html": escape(result_html),
-                }
+                context['error'] = exc.args[0]
+                context['result_html'] = escape(result_html)
             except TypeError as err:
                 print(err)
                 context['error'] = str(err)
@@ -100,6 +102,7 @@ def add_assignment(request):
 
     context = {
         "form": form,
+        "as": JPNICModel.objects.all(),
     }
     return render(request, 'add_assignment.html', context)
 

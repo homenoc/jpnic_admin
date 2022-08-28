@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 import ssl
 import tempfile
@@ -13,6 +14,7 @@ from cryptography.hazmat.primitives.serialization.pkcs12 import load_key_and_cer
 from django.conf import settings
 from requests.adapters import HTTPAdapter
 from ssl import PROTOCOL_TLS as default_ssl_protocol
+
 from jpnic_gui.models import JPNIC as JPNICModel
 
 
@@ -38,17 +40,18 @@ class SSLAdapter(HTTPAdapter):
 
 
 class JPNIC():
-    def __init__(self, asn=None):
+    def __init__(self, asn=None, ipv6=False):
         self.base_url = settings.JPNIC_BASE_URL
+        self.is_ipv6 = ipv6
         if asn is None:
             raise Exception("AS number is undefined.")
-        as_base_object = JPNICModel.objects.get(asn=asn)
-        if as_base_object is None:
+        as_base_object = JPNICModel.objects.filter(asn=asn, is_ipv6=ipv6)
+        if not as_base_object.exists():
             raise Exception("[database] no data")
-        p12_base64 = as_base_object.p12_base64
+        p12_base64 = as_base_object.first().p12_base64
         p12_base64 += "=" * ((4 - len(p12_base64) % 4) % 4)
         p12 = base64.b64decode(p12_base64)
-        p12_pass_bytes = bytes(as_base_object.p12_pass, 'utf-8')
+        p12_pass_bytes = bytes(as_base_object.first().p12_pass, 'utf-8')
         pk, cert, option_cert = load_key_and_certificates(
             p12,
             p12_pass_bytes
@@ -218,23 +221,35 @@ class JPNIC():
         for contact in contacts:
             con = self.generate_req_contact(**contact)
             for key, value in con.items():
-                data['emp[' + str(index) + '].' + key] = value
+                if self.is_ipv6:
+                    data['emps[' + str(index) + '].' + key] = value
+                else:
+                    data['emp[' + str(index) + '].' + key] = value
             index += 1
 
         return data
 
-    def ipv4_assignment_user(self, **kwargs):
+    def assignment(self, **kwargs):
         self.init_get()
-        self.get_contents_url('IPv4割り当て報告申請　〜ユーザ用〜')
+        form_name = ""
+        if self.is_ipv6:
+            self.get_contents_url('IPv6割り当て報告申請　〜ユーザ用〜')
+            form_name = "K01640Form"
+        else:
+            self.get_contents_url('IPv4割り当て報告申請　〜ユーザ用〜')
+            form_name = "AssiAplyv4Regist"
         print("Menu URL:", self.url)
         contacts = kwargs.get('contacts', [])
         res = self.session.get(self.url, headers=self.header)
         res.encoding = 'Shift_JIS'
         soup = BeautifulSoup(res.text, 'html.parser')
-        token = soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})
+        token = ""
+        aplyid = ""
+        if not self.is_ipv6:
+            token = soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})['value']
+            aplyid = soup.find('input', attrs={'name': 'aplyid'})['value']
         destdisp = soup.find('input', attrs={'name': 'destdisp'})
-        aplyid = soup.find('input', attrs={'name': 'aplyid'})
-        post_url = soup.find('form', attrs={'name': 'AssiAplyv4Regist'})['action'].split('/')[-1]
+        post_url = soup.find('form', attrs={'name': form_name})['action'].split('/')[-1]
         contact_count = 0
         for num in range(len(contacts)):
             contact_count += 1
@@ -242,9 +257,10 @@ class JPNIC():
             for num in range(contact_count):
                 contact_lists.append({})
             req = self.generate_req_assignment(**{'contacts': contact_lists})
-            req['org.apache.struts.taglib.html.TOKEN'] = token['value']
+            if not self.is_ipv6:
+                req['org.apache.struts.taglib.html.TOKEN'] = token
+                req['aplyid'] = aplyid
             req['destdisp'] = destdisp['value']
-            req['aplyid'] = aplyid['value']
             req['action'] = '[担当者情報]追加'
             req_data = ''
             for key, value in req.items():
@@ -254,21 +270,21 @@ class JPNIC():
             res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
             res.encoding = 'Shift_JIS'
             soup = BeautifulSoup(res.text, 'html.parser')
-            token = soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})
+            if not self.is_ipv6:
+                token = soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})['value']
+                aplyid = soup.find('input', attrs={'name': 'aplyid'})['value']
             destdisp = soup.find('input', attrs={'name': 'destdisp'})
-            aplyid = soup.find('input', attrs={'name': 'aplyid'})
-
         req = self.generate_req_assignment(**kwargs)
-        req['org.apache.struts.taglib.html.TOKEN'] = token['value']
+        if not self.is_ipv6:
+            req['org.apache.struts.taglib.html.TOKEN'] = token
+            req['aplyid'] = aplyid
         req['destdisp'] = destdisp['value']
-        req['aplyid'] = aplyid['value']
         req['action'] = '申請'
         req_data = ''
         for key, value in req.items():
             req_data += parse.quote_plus(key, encoding='shift-jis') + '=' + \
                         parse.quote_plus(str(value), encoding='shift-jis') + '&'
         req_data = req_data[:-1]
-        print(req_data)
         res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
         res.encoding = 'Shift_JIS'
         soup = BeautifulSoup(res.text, 'html.parser')
@@ -278,21 +294,27 @@ class JPNIC():
             for one_error in all_error:
                 error += one_error.text + "\n"
             raise JPNICReqError(error, res.text)
-        req = {
-            'org.apache.struts.taglib.html.TOKEN':
-                soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})['value'],
-            'prevDispId': soup.find('input', attrs={'name': 'prevDispId'})['value'],
-            'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
-            'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
-            'inputconf': '確認'
-        }
+        req = {}
+        if not self.is_ipv6:
+            req['destdisp'] = soup.find('input', attrs={'name': 'destdisp'})['value'],
+            req['org.apache.struts.taglib.html.TOKEN'] = \
+                soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})['value']
+            req['aplyid'] = soup.find('input', attrs={'name': 'aplyid'})['value'],
+            req['prevDispId'] = soup.find('input', attrs={'name': 'prevDispId'})['value'],
+            req['inputconf'] = '確認'
+        else:
+            req['action'] = '確認'
+
         req_data = ''
         for key, value in req.items():
             req_data += parse.quote_plus(key, encoding='shift-jis') + '=' + \
                         parse.quote_plus(str(value), encoding='shift-jis') + '&'
         req_data = req_data[:-1]
-        print(req_data)
-        post_url = soup.find('form', attrs={'name': 'ConfApplyForInsider'})['action'].split('/')[-1]
+        if self.is_ipv6:
+            post_url = soup.find('form', attrs={'name': 'K01640Form'})['action'].split('/')[-1]
+        else:
+            post_url = soup.find('form', attrs={'name': 'ConfApplyForInsider'})['action'].split('/')[-1]
+        print(self.base_url + '/' + post_url)
         res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
         res.encoding = 'Shift_JIS'
         soup = BeautifulSoup(res.text, 'html.parser')
@@ -308,7 +330,7 @@ class JPNIC():
                 data['受付番号'] = tmp_lists[idx + 1].text
             if '電子メールアドレス：' in tmp_lists[idx]:
                 data['電子メールアドレス'] = tmp_lists[idx + 1].text
-        return {data: data, 'html': res.text}
+        return {'data': data, 'html': res.text}
 
     def contact_register(self, **kwargs):
         self.init_get()

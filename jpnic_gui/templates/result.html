@@ -6,88 +6,42 @@
 {% block title %}Articles for {{ year }}{% endblock %}
 
 {% block content %}
-    <h2>JPNIC 割り当て追加</h2>
+    <h2>{{ name }}</h2>
     <br/>
-    <form method="post" id="login-form" enctype="multipart/form-data">
-        {% csrf_token %}
-        <h4>File Uploader</h4>
-        <div class="row g-2">
-            {{ form.file }}
+    <nav class="nav nav-pills">
+        <button class="nav-link active btn btn-primary" onclick="window.print();">印刷 <i class="bi bi-printer-fill"></i></button>
+        &nbsp;
+    </nav>
+    <br/>
+    {% if error %}
+        <h4>エラー</h4>
+        <div class="alert alert-danger" role="alert">
+            {{ error | linebreaksbr }}
         </div>
-        <br/>
-        <h4>Manual</h4>
-        <div class="row g-2">
-            <div class="col-2">
-                {{ form.network_name.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.network_name.value|default:"" }}" name="{{ form.network_name.name }}"
-                       id="{{ form.network_name.id_for_label }}">
-            </div>
-            <div class="col-3">
-                {{ form.org.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.org.value|default:"" }}" name="{{ form.org.name }}"
-                       id="{{ form.org.id_for_label }}">
-            </div>
-            <div class="col-3">
-                {{ form.org_en.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.org_en.value|default:"" }}" name="{{ form.org_en.name }}"
-                       id="{{ form.org_en.id_for_label }}">
-            </div>
+    {% else %}
+        <h4>Response(成功)</h4>
+        <div class="alert alert-success" role="alert">
+            <dl class="row">
+                {% for key, value in data.items %}
+                    <dt class="col-sm-3">{{ key }}</dt>
+                    <dd class="col-sm-9">{{ value }}</dd>
+                {% endfor %}
+            </dl>
         </div>
-        <div class="row g-2">
-            <div class="col-2">
-                {{ form.postcode.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.postcode.value|default:"" }}" name="{{ form.postcode.name }}"
-                       id="{{ form.postcode.id_for_label }}">
-            </div>
-            <div class="col-4">
-                {{ form.address.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.address.value|default:"" }}" name="{{ form.address.name }}"
-                       id="{{ form.address.id_for_label }}">
-            </div>
-            <div class="col-4">
-                {{ form.address_en.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.address_en.value|default:"" }}" name="{{ form.address_en.name }}"
-                       id="{{ form.address_en.id_for_label }}">
+    {% endif %}
+    <br/>
+    {% if result_html %}
+        <h4>Response(html)</h4>
+        <iframe name="error_html" srcdoc="{{ result_html }}" width="1200" height="700"></iframe>
+    {% endif %}
+    <br/>
+    {% if req_data %}
+        <h4>Request Data(json)</h4>
+        <div class="card">
+            <div class="card-body">
+                {{ req_data | linebreaksbr }}
             </div>
         </div>
-        <div class="row g-2">
-            <div class="col-5">
-                {{ form.name_server.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.name_server.value|default:"" }}" name="{{ form.name_server.name }}"
-                       id="{{ form.name_server.id_for_label }}">
-            </div>
-        </div>
-        <div class="row g-2">
-            <div class="col-2">
-                {{ form.deli_no.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.deli_no.value|default:"" }}" name="{{ form.deli_no.name }}"
-                       id="{{ form.deli_no.id_for_label }}">
-            </div>
-            <div class="col-2">
-                {{ form.return_date.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.return_date.value|default:"" }}" name="{{ form.return_date.name }}"
-                       id="{{ form.return_date.id_for_label }}">
-            </div>
-        </div>
-        <div class="row g-2">
-            <div class="col-3">
-                {{ form.apply_email.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.apply_email.value|default:"" }}" name="{{ form.apply_email.name }}"
-                       id="{{ form.apply_email.id_for_label }}">
-            </div>
-        </div>
-        <br/>
-        <button class="btn btn-primary" type="submit">登録</button>
-    </form>
+    {% endif %}
     <br/>
 {% endblock %}

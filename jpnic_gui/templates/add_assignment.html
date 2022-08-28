@@ -44,13 +44,30 @@
                 <h4>Manual</h4>
                 <form class="row g-3 needs-validation" id="assignment_form" novalidate>
                     <div class="row g-2">
+                        <div class="col-2">
+                            AS番号
+                            <input type="number" autocomplete="off" list="agent_region" class="form-control"
+                                   name="as" id="as" required>
+                        </div>
+                        <div class="col-5">
+                            IPv6であるか否か
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="ipv6" name="ipv6"
+                                       onclick="check_is_ipv6()">
+                                <label class="form-check-label" for="flexCheckChecked">
+                                    IPv6
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-2">
                         <div class="col-5">
                             インフラ・ユーザ区分
                             <select class="form-select" aria-label="Default select example" name="infra_usr_kind"
                                     id="infra_usr_kind">
                                 <option value=0>インフラストラクチャ</option>
                                 <option value=1 selected>ユーザーネットワーク</option>
-                                <option value=2>SUBA</option>
+                                <option value=2>(v4)SUBA</option>
                             </select>
                         </div>
                     </div>
@@ -323,6 +340,28 @@
             $('#parent_contact > div').eq(index).remove();
         })
 
+        function check_is_ipv6() {
+
+            $('#infra_usr_kind').empty();
+
+            let infra_usr_kind_html = ''
+            console.log(infra_usr_kind_html)
+            if ((document.getElementById('ipv6')).checked) {
+                infra_usr_kind_html += '<option value=0>インフラストラクチャ</option>'
+                infra_usr_kind_html += '<option value=1 selected>ユーザ</option>'
+                infra_usr_kind_html += '<option value=2>再割り振り</option>'
+                infra_usr_kind_html += '<option value=3>再割り振りからの割り当て</option>'
+                $('#plan_data').prop("disabled", true);
+            } else {
+                infra_usr_kind_html += '<option value=0>インフラストラクチャ</option>'
+                infra_usr_kind_html += '<option value=1 selected>ユーザーネットワーク</option>'
+                infra_usr_kind_html += '<option value=2>SUBA</option>'
+                $('#plan_data').prop("disabled", false);
+            }
+
+            $('#infra_usr_kind').append(infra_usr_kind_html);
+        }
+
         function get_form_data() {
             let data = {}
             let forms_array = $('form').serializeArray()
@@ -432,14 +471,9 @@
                 html += data.error
                 html += '</div>'
             } else {
-                html += '    <h4>Response(成功)</h4>'
+                html += '<h4>Response(成功)</h4>'
                 html += '<div class="alert alert-success" role="alert">'
-                html += '<dl class="row">'
-                for (const [key, value] of data.items) { // ★
-                    html += '<dt class="col-sm-3">' + key + '</dt>'
-                    html += '<dd class="col-sm-9">' + value + '</dd>'
-                }
-                html += '</dl>'
+                html += data['data']
                 html += '</div>'
             }
 
