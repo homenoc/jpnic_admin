@@ -229,7 +229,7 @@ class JPNIC():
 
         return data
 
-    def assignment(self, **kwargs):
+    def add_assignment(self, **kwargs):
         self.init_get()
         form_name = ""
         if self.is_ipv6:
@@ -331,6 +331,107 @@ class JPNIC():
             if '電子メールアドレス：' in tmp_lists[idx]:
                 data['電子メールアドレス'] = tmp_lists[idx + 1].text
         return {'data': data, 'html': res.text}
+
+    def get_ip_address(self, ip_address="", kind=3):
+        self.init_get()
+        form_name = ""
+        if self.is_ipv6:
+            self.get_contents_url('登録情報検索(IPv6)')
+        else:
+            self.get_contents_url('登録情報検索(IPv4)')
+        print("Menu URL:", self.url)
+        res = self.session.get(self.url, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        req = {
+            'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
+            'ipaddr': ip_address,
+            'sizeS': '', 'sizeE': '', 'netwrkName': '', 'regDateS': '', 'regDateE': '', 'rtnDateS': '',
+            'rtnDateE': '', 'organizationName': '',
+            'resceAdmSnm': soup.find('input', attrs={'name': 'resceAdmSnm'})['value'],
+            'recepNo': '', 'deliNo': '',
+        }
+        if kind == 1:
+            req['regKindAllo'] = 'on'
+        elif kind == 2:
+            req['regKindEvent'] = 'on'
+        elif kind == 3:
+            req['regKindUser'] = 'on'
+        elif kind == 4:
+            req['regKindSubA'] = 'on'
+        req['action'] = '　検索　'
+        req_data = ''
+        for key, value in req.items():
+            req_data += parse.quote_plus(key, encoding='shift-jis') + '=' + \
+                        parse.quote_plus(str(value), encoding='shift-jis') + '&'
+        req_data = req_data[:-1]
+        post_url = soup.find('form')['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        # print(soup)
+        infos = []
+        info = {}
+        # print(soup.findAll('td', attrs={'class': 'dataRow_mnt04'}))
+
+        for idx, td in enumerate(soup.findAll('td', attrs={'class': 'dataRow_mnt04'})):
+            text = td.text.strip()
+            if self.is_ipv6:
+                if ((idx + 1) // 9 == 0) or (idx == 8):
+                    continue
+                if (idx + 1) % 9 == 0:
+                    info['kind'] = text
+                    infos.append(info)
+                    info = {}
+                elif (idx + 1) % 9 == 1:
+                    info['ip_address'] = text
+                    info['ip_address_url'] = td.find('a')['href']
+                elif (idx + 1) % 9 == 2:
+                    info['network_name'] = text
+                elif (idx + 1) % 9 == 3:
+                    info['assign_date'] = text
+                elif (idx + 1) % 9 == 4:
+                    info['return_date'] = text
+                elif (idx + 1) % 9 == 5:
+                    info['org'] = text
+                elif (idx + 1) % 9 == 6:
+                    info['admin_org'] = text
+                elif (idx + 1) % 9 == 7:
+                    info['recept_no'] = text
+                elif (idx + 1) % 9 == 8:
+                    info['deli_no'] = text
+            else:
+                if ((idx + 1) // 11 == 0) or (idx == 10):
+                    continue
+                if (idx + 1) % 11 == 0:
+                    info['kind2'] = text
+                    infos.append(info)
+                    info = {}
+                elif (idx + 1) % 11 == 1:
+                    info['ip_address'] = text
+                    info['ip_address_url'] = td.find('a')['href']
+                elif (idx + 1) % 11 == 2:
+                    info['size'] = text
+                elif (idx + 1) % 11 == 3:
+                    info['network_name'] = text
+                elif (idx + 1) % 11 == 4:
+                    info['assign_date'] = text
+                elif (idx + 1) % 11 == 5:
+                    info['return_date'] = text
+                elif (idx + 1) % 11 == 6:
+                    info['org'] = text
+                elif (idx + 1) % 11 == 7:
+                    info['admin_org'] = text
+                elif (idx + 1) % 11 == 8:
+                    info['recept_no'] = text
+                elif (idx + 1) % 11 == 9:
+                    info['deli_no'] = text
+                elif (idx + 1) % 11 == 10:
+                    info['kind1'] = text
+
+        if len(infos) == 0:
+            raise JPNICReqError('該当するデータが見つかりませんでした。', res.text)
+        return {'infos': infos, 'html': res.text}
 
     def contact_register(self, **kwargs):
         self.init_get()
