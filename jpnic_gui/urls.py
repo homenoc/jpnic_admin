@@ -21,7 +21,9 @@ from jpnic_gui import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.index, name='index'),
+    path('search/', views.search, name='search'),
     path('add_assignment/', views.add_assignment, name='add_assignment'),
+    path('change_assignment/', views.change_assignment, name='change_assignment'),
     path('result', views.result, name='result'),
     path('add_person/', views.add_person, name='add_person'),
     path('test/', views.get_jpnic_info, name='get_jpnic_info'),
