@@ -31,3 +31,5 @@ services:
       - MYSQL_DATABASE=jpnic-admin
       - MYSQL_USER=jpnic-admin
       - MYSQL_PASSWORD=passWord123#
+  agent:
+    image: jpnic-daemon:develop

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>JPNIC 割り当て変更</h2>
+    <br/>
+    <form method="post">
+        {% csrf_token %}
+        {% if base_form.errors %}
+            {{ base_form.errors }}
+        {% endif %}
+        <div class="row g-2">
+            <div class="col-1">
+                {{ base_form.ipv6.label }}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value={{ base_form.ipv6.value }}
+                            name="{{ base_form.ipv6.name }}" id="{{ base_form.ipv6.id_for_label }} is_ipv6"
+                           onclick="check_ipv6(this.value)" readonly="readonly" checked
+                    >
+                </div>
+            </div>
+            <div class="col-2">
+                {{ base_form.asn.label }}
+                <input type="number" autocomplete="off" list="agent_region" class="form-control"
+                       value={{ base_form.asn.value|default:0 }} name="{{ base_form.asn.name }}"
+                       id="{{ base_form.asn.id_for_label }}" readonly="readonly">
+            </div>
+            <div class="col-5">
+                {{ base_form.ip_address.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ base_form.ip_address.value|default:"" }}" name="{{ base_form.ip_address.name }}"
+                       id="{{ base_form.ip_address.id_for_label }}" readonly="readonly">
+            </div>
+            <div class="col-2">
+                {{ base_form.kind.label }}
+                <select id="{{ base_form.kind.id_for_label }} v4_kind" name="{{ base_form.kind.name }}"
+                        class="form-select"
+                        aria-label="Default select example" readonly="readonly" disabled>
+                    <option selected disabled>Open this select menu</option>
+                    {% for field in base_form.kind %}
+                        {{ field }}
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        {% if form.errors %}
+            {{ form.errors }}
+        {% endif %}
+        <div class="col-5">
+            <div class="col-5">
+                {{ form.netwrk_nm.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       name="{{ form.networkname.name }}" id="{{ form.networkname.id_for_label }}"
+                       value="{{ form.networkname.value }}" required>
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-5">
+                {{ form.sosikiname.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       name="{{ form.sosikiname.name }}" id="{{ form.sosikiname.id_for_label }}"
+                       value="{{ form.sosikiname.value }}" required>
+            </div>
+            <div class="col-5">
+                {{ form.sosikiorg.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       name="{{ form.sosikiorg.name }}" id="{{ form.sosikiorg.id_for_label }}"
+                       value="{{ form.sosikiorg.value }}" required>
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-2">
+                {{ form.postcode.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       name="{{ form.postcode.name }}" id="{{ form.postcode.id_for_label }}"
+                       value="{{ form.postcode.value }}" required>
+            </div>
+            <div class="col-4">
+                {{ form.address.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       name="{{ form.address.name }}" id="{{ form.address.id_for_label }}"
+                       value="{{ form.address.value }}" required>
+            </div>
+            <div class="col-4">
+                {{ form.address2.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       name="{{ form.address2.name }}" id="{{ form.address2.id_for_label }}"
+                       value="{{ form.address2.value }}" required>
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-3">
+                {{ form.kanrimadoguchi.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       name="{{ form.kanrimadoguchi.name }}" id="{{ form.kanrimadoguchi.id_for_label }}"
+                       value="{{ form.kanrimadoguchi.value }}" required>
+            </div>
+            <div class="col-3">
+                {{ form.gijyutureraku.label }}
+                <textarea autocomplete="off" class="form-control"
+                          name="{{ form.gijyutureraku.name }}" id="{{ form.gijyutureraku.id_for_label }}" required
+                >{{ form.gijyutureraku.value }}</textarea>
+            </div>
+            <div class="col-4">
+                {{ form.abuse.label }}
+                <input autocomplete="off" class="form-control"
+                       name="{{ form.abuse.name }}" id="{{ form.abuse.id_for_label }}"
+                       value="{{ form.abuse.value }}" required>
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-6">
+                {{ form.henkouriyu.label }}
+                <textarea autocomplete="off" class="form-control"
+                          name="{{ form.henkouriyu.name }}" id="{{ form.henkouriyu.id_for_label }}"
+                          value="{{ form.henkouriyu.value }}"></textarea>
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-4">
+                {{ form.tuuchiaddress.label }}
+                <input autocomplete="off" class="form-control"
+                       name="{{ form.tuuchiaddress.name }}" id="{{ form.tuuchiaddress.id_for_label }}"
+                       value="{{ form.tuuchiaddress.value }}">
+            </div>
+            <div class="col-2">
+                {{ form.returndate.label }}
+                <input autocomplete="off" class="form-control"
+                       name="{{ form.returndate.name }}" id="{{ form.returndate.id_for_label }}"
+                       value="{{ form.returndate.value }}">
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-3">
+                {{ form.applymailaddr.label }}
+                <input autocomplete="off" class="form-control"
+                       name="{{ form.applymailaddr.name }}" id="{{ form.applymailaddr.id_for_label }}"
+                       value="{{ form.applymailaddr.value }}" required>
+            </div>
+        </div>
+        <br/>
+        <button class="btn btn-primary" type="submit" name="v6_change">申請</button>
+        <br/>
+        <br/>
+        {% if dns %}
+            <h4>DNS関連</h4>
+            <iframe name="dns1" srcdoc="{{ dns }}" width="1200" height="200"></iframe>
+        {% endif %}
+    </form>
+    <br/>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+        let is_ipv6 = false;
+
+        function check_ipv6() {
+            is_ipv6 = !is_ipv6
+            $('#v4_kind').prop("disabled", is_ipv6);
+        }
+    </script>
+
+{% endblock javascript %}
