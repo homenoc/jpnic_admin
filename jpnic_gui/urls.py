@@ -24,6 +24,7 @@ urlpatterns = [
     path('search/', views.search, name='search'),
     path('add_assignment/', views.add_assignment, name='add_assignment'),
     path('change_assignment/', views.change_assignment, name='change_assignment'),
+    path('return_assignment/', views.return_assignment, name='return_assignment'),
     path('result', views.result, name='result'),
     path('add_person/', views.add_person, name='add_person'),
     path('test/', views.get_jpnic_info, name='get_jpnic_info'),

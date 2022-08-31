@@ -454,3 +454,42 @@ class AddGroupContact(forms.Form):
         label='ファイル(json)',
         required=False
     )
+
+
+class ReturnAssignment(forms.Form):
+    asn = forms.IntegerField(
+        label="AS番号",
+        required=True,
+    )
+
+    ipv6 = forms.BooleanField(
+        label='ipv6',
+        required=False
+    )
+
+    ip_address = forms.CharField(
+        label="IP Address",
+        required=False,
+    )
+
+    return_date = forms.DateField(
+        label='返却年月日',
+        input_formats=['%Y-%m-%d'],
+        initial='',
+        widget=forms.DateTimeInput(format='%Y-%m-%d'),
+        required=False
+    )
+
+    notify_address = forms.CharField(
+        label="通知アドレス",
+        required=False
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        input_asn = cleaned_data.get("asn")
+        if input_asn < 1:
+            raise forms.ValidationError('AS番号が正しくありません')
+        input_ip_address = cleaned_data.get("ip_address")
+        if not input_ip_address:
+            raise forms.ValidationError('IPアドレスが正しくありません')
