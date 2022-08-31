@@ -6,20 +6,19 @@
 {% block title %}Articles for {{ year }}{% endblock %}
 
 {% block content %}
-    <h2>JPNIC {{ name }}</h2>
+    <h2>JPNIC IPアドレス割り当て返却</h2>
     <br/>
     <form method="post">
         {% csrf_token %}
         {% if form.errors %}
             {{ form.errors }}
         {% endif %}
-        <p>*本システムはDNSやDSレコードの追加・削除に対応しておりません。</p>
         <div class="row g-2">
             <div class="col-1">
                 {{ form.ipv6.label }}
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" value={{ form.ipv6.value }}
-                            name="{{ form.ipv6.name }}" id="{{ form.ipv6.id_for_label }}" onclick="check_ipv6()">
+                            name="{{ form.ipv6.name }}" id="{{ form.ipv6.id_for_label }}">
                 </div>
             </div>
             <div class="col-2">
@@ -34,29 +33,26 @@
                        value="{{ form.ip_address.value|default:"" }}" name="{{ form.ip_address.name }}"
                        id="{{ form.ip_address.id_for_label }}" required>
             </div>
-            <div class="col-2">
-                {{ form.kind.label }}
-                <select class="form-select" aria-label="Default select example" name="{{ form.kind.name }}"
-                        id="{{ form.kind.id_for_label }}">
-                    <option disabled selected>Open this select menu</option>
-                    {% for field in form.kind %}
-                        {{ field }}
-                    {% endfor %}
-                </select>
-            </div>
-            <button class="btn btn-primary" type="submit" name="search">検索</button>
         </div>
+        <div class="row g-2">
+            <div class="col-2">
+                {{ form.return_date.label }}
+                <input autocomplete="off" class="form-control"
+                       name="{{ form.return_date.name }}" id="{{ form.return_date.id_for_label }}"
+                       value="{{ form.return_date.value }}">
+            </div>
+            <div class="col-4">
+                {{ form.notify_address.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.notify_address.value|default:"" }}" name="{{ form.notify_address.name }}"
+                       id="{{ form.notify_address.id_for_label }}" required>
+            </div>
+        </div>
+        <br/>
+        <button class="btn btn-primary" type="submit" name="search">返却処理</button>
     </form>
 {% endblock %}
 
 {% block javascript %}
-    <script>
-        let is_ipv6 = false;
 
-        function check_ipv6() {
-            console.log(is_ipv6)
-            is_ipv6 = !is_ipv6
-            $('#{{ form.kind.id_for_label }}').prop("disabled", is_ipv6);
-        }
-    </script>
 {% endblock javascript %}

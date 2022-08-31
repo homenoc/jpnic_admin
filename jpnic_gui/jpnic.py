@@ -653,6 +653,118 @@ class JPNIC():
         data = application_complete(html_bs=soup)
         return {'data': data, 'html': res.text}
 
+    def v4_return_assignment(self, ip_address='', return_date=None, notify_address=''):
+        self.init_get()
+        data = self.get_ip_address(ip_address=ip_address, kind=0)
+        infos = data.get('infos')
+        network_name = None
+        for info in infos:
+            if '割当' in info['kind2']:
+                network_name = info['network_name']
+                break
+        if not network_name:
+            raise JPNICReqError('対象のIPアドレスが見つかりませんでした。', data.get('html'))
+
+        ## 割り当て済みIPv4返却申請
+        self.get_contents_url('割り当て済みIPv4返却申請')
+        res = self.session.get(self.url, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        req = {
+            'org.apache.struts.taglib.html.TOKEN':
+                soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})['value'],
+            'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
+            'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
+            'ipaddr': ip_address,
+            'netwrk_nm': network_name,
+            'rtn_date': return_date,
+            'aply_from_addr': notify_address,
+            'aply_from_addr_confirm': notify_address,
+            'action': "申請"
+        }
+        req_data = request_to_sjis(req)
+        post_url = \
+            soup.find('form', attrs={'name': 'AssiReturnv4Regist', 'action': re.compile(r'registconf')})[
+                'action'].split('/')[-1]
+        ## 申請ボタン＝＞確認
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        request_error(soup, res.text)
+        req = {
+            'org.apache.struts.taglib.html.TOKEN':
+                soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})['value'],
+            'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
+            'prevDispId': soup.find('input', attrs={'name': 'prevDispId'})['value'],
+            'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
+            'inputconf': "確認"
+        }
+        req_data = request_to_sjis(req)
+        post_url = soup.find('form', attrs={'name': 'ConfApplyForInsider'})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        data = application_complete(html_bs=soup)
+        return {'data': data, 'html': res.text}
+
+    def v6_return_assignment(self, ip_address='', return_date=None, notify_address=''):
+        self.init_get()
+        ## 割り当て済みIPv6返却申請
+        self.get_contents_url('割り当て済みIPv6返却申請')
+        print("Menu URL:", self.url)
+        res = self.session.get(self.url, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        network_id = None
+        req = {
+            'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
+            'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
+            'action': '確認'
+        }
+        for s in soup.findAll('tr', attrs={'bgcolor': '#ffffff'}):
+            addr = s.find('td', string=ip_address)
+            if addr:
+                network_id = s.find('input')['value']
+                break
+        if not network_id:
+            raise JPNICReqError('該当のIPアドレスが見つかりませんでした。', res.text)
+        req['netwrkId'] = network_id
+        req_data = request_to_sjis(req)
+        post_url = \
+            soup.find('form', attrs={'name': 'K01660Form', 'action': re.compile(r'Dispatch')})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        token = soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})
+        req = {
+            'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
+            'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
+            'return_date': return_date,
+            'aply_from_addr': notify_address,
+            'aply_from_addr_confirm': notify_address,
+            'action': '申請'
+        }
+        if token:
+            req['org.apache.struts.taglib.html.TOKEN'] = token['value'],
+        req_data = request_to_sjis(req)
+        post_url = \
+            soup.find('form', attrs={'name': 'K01661Form', 'action': re.compile(r'Dispatch')})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        request_error(html_bs=soup, html=res.text)
+        req = {
+            'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
+            'inputconf': '確認'
+        }
+        req_data = request_to_sjis(req)
+        post_url = soup.find('form', attrs={'name': 'K01662Form'})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        data = application_complete(html_bs=soup)
+        return {'data': data, 'html': res.text}
+
     def contact_register(self, **kwargs):
         self.init_get()
         self.get_contents_url('担当グループ（担当者）情報登録・変更')

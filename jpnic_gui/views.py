@@ -9,7 +9,7 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 
 from jpnic_gui.form import SearchForm, AddAssignment, AddGroupContact, GetIPAddressForm, \
-    ChangeV4Assignment, GetChangeAssignment, ChangeV6Assignment
+    ChangeV4Assignment, GetChangeAssignment, ChangeV6Assignment, ReturnAssignment
 from jpnic_gui.jpnic import JPNIC, JPNICReqError
 from jpnic_gui.models import JPNIC as JPNICModel
 
@@ -318,6 +318,76 @@ def change_assignment(request):
         }
 
         return render(request, 'get_ip_address.html', context)
+
+
+def return_assignment(request):
+    if request.method == 'POST':
+        form = ReturnAssignment(request.POST)
+        context = {
+            'name': 'IPアドレス割り当て返却　結果',
+        }
+        if form.is_valid():
+            print(form.cleaned_data)
+            print(form.cleaned_data.get('ipv6'))
+            if form.cleaned_data.get('ipv6'):
+                print('ipv6')
+                try:
+                    j = JPNIC(
+                        asn=form.cleaned_data.get('asn'),
+                        ipv6=form.cleaned_data.get('ipv6')
+                    )
+                    res_data = j.v6_return_assignment(
+                        ip_address=form.cleaned_data.get('ip_address'),
+                        return_date=form.cleaned_data.get('return_date'),
+                        notify_address=form.cleaned_data.get('notify_address')
+                    )
+                    context['result_html'] = res_data['html']
+                    context['data'] = res_data['data']
+                    context['req_data'] = form.cleaned_data
+                except JPNICReqError as exc:
+                    result_html = ''
+                    if len(exc.args) > 1:
+                        result_html = exc.args[1]
+                    context['error'] = exc.args[0]
+                    context['result_html'] = result_html
+                except TypeError as err:
+                    print(err)
+                    context['error'] = str(err)
+                return render(request, 'result.html', context)
+            else:
+                try:
+                    j = JPNIC(
+                        asn=form.cleaned_data.get('asn'),
+                        ipv6=form.cleaned_data.get('ipv6')
+                    )
+                    res_data = j.v4_return_assignment(
+                        ip_address=form.cleaned_data.get('ip_address'),
+                        return_date=form.cleaned_data.get('return_date'),
+                        notify_address=form.cleaned_data.get('notify_address')
+                    )
+                    context['result_html'] = res_data['html']
+                    context['data'] = res_data['data']
+                    context['req_data'] = form.cleaned_data
+                except JPNICReqError as exc:
+                    result_html = ''
+                    if len(exc.args) > 1:
+                        result_html = exc.args[1]
+                    context['error'] = exc.args[0]
+                    context['result_html'] = result_html
+                except TypeError as err:
+                    print(err)
+                    context['error'] = str(err)
+                return render(request, 'result.html', context)
+        else:
+            context['form'] = form
+            return render(request, 'return_assignment.html', context=context)
+    else:
+        form = ReturnAssignment()
+        context = {
+            'form': form
+        }
+
+        return render(request, 'return_assignment.html', context=context)
 
 
 def result(request):
