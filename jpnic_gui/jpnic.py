@@ -1,6 +1,6 @@
 import base64
-import json
 import os
+import re
 import ssl
 import tempfile
 from urllib import parse
@@ -39,8 +39,67 @@ class SSLAdapter(HTTPAdapter):
         return super(SSLAdapter, self).init_poolmanager(*args, **kwargs)
 
 
+def get_request_add_change(html_bs=None, change_req={}):
+    data_req = {}
+    for element in html_bs.find_all('input'):
+        if element['name'] != 'action':
+            if element['type'] == 'radio':
+                continue
+            if element['name'] in change_req:
+                data_req[element['name']] = change_req[element['name']]
+                continue
+            data_req[element['name']] = element['value']
+    for element in html_bs.find_all('textarea'):
+        if element['name'] != 'action':
+            if element['name'] in change_req:
+                data_req[element['name']] = change_req[element['name']]
+                continue
+            data_req[element['name']] = element.text
+
+    return data_req
+
+
+def request_to_sjis(request={}):
+    req_data = ''
+    for key, value in request.items():
+        if not value:
+            value = ''
+        req_data += parse.quote_plus(key, encoding='shift-jis') + '=' + \
+                    parse.quote_plus(str(value), encoding='shift-jis') + '&'
+    req_data = req_data[:-1]
+
+    return req_data
+
+
+def request_error(html_bs=None, html=''):
+    all_error = html_bs.findAll('font', attrs={'color': 'red'})
+    if all_error:
+        error = ''
+        for one_error in all_error:
+            error += one_error.text + "\n"
+        raise JPNICReqError(error, html)
+
+
+def application_complete(html_bs=None):
+    if not '申請完了' in html_bs.find('title').text:
+        raise Exception('Error: request error')
+    data = {
+        '受付番号': '',
+        '電子メールアドレス': '',
+    }
+    tmp_lists = html_bs.select('table > tr > td > table')[0].findAll('td')
+    for idx in range(len(tmp_lists)):
+        if '受付番号：' in tmp_lists[idx]:
+            data['受付番号'] = tmp_lists[idx + 1].text
+        if '電子メールアドレス：' in tmp_lists[idx]:
+            data['電子メールアドレス'] = tmp_lists[idx + 1].text
+
+    return data
+
+
 class JPNIC():
     def __init__(self, asn=None, ipv6=False):
+        self.menu_url = None
         self.base_url = settings.JPNIC_BASE_URL
         self.is_ipv6 = ipv6
         if asn is None:
@@ -118,10 +177,10 @@ class JPNIC():
         target_meta_url = BeautifulSoup(res.content, 'html.parser').find('meta', attrs={'http-equiv': 'Refresh'})
         if target_meta_url['content'] is None:
             raise Exception('[login sequence #2] parse error.')
-        self.url = self.base_url + "/" + target_meta_url['content'].split('url=')[1]
+        self.menu_url = self.base_url + "/" + target_meta_url['content'].split('url=')[1]
 
     def get_contents_url(self, *args):
-        res = self.session.get(self.url, headers=self.header)
+        res = self.session.get(self.menu_url, headers=self.header)
         res.encoding = 'Shift_JIS'
         soup = BeautifulSoup(res.text, 'html.parser')
         # print(soup.find_all('a'))
@@ -262,11 +321,7 @@ class JPNIC():
                 req['aplyid'] = aplyid
             req['destdisp'] = destdisp['value']
             req['action'] = '[担当者情報]追加'
-            req_data = ''
-            for key, value in req.items():
-                req_data += parse.quote_plus(key, encoding='shift-jis') + '=' + \
-                            parse.quote_plus(str(value), encoding='shift-jis') + '&'
-            req_data = req_data[:-1]
+            req_data = request_to_sjis(req)
             res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
             res.encoding = 'Shift_JIS'
             soup = BeautifulSoup(res.text, 'html.parser')
@@ -280,20 +335,11 @@ class JPNIC():
             req['aplyid'] = aplyid
         req['destdisp'] = destdisp['value']
         req['action'] = '申請'
-        req_data = ''
-        for key, value in req.items():
-            req_data += parse.quote_plus(key, encoding='shift-jis') + '=' + \
-                        parse.quote_plus(str(value), encoding='shift-jis') + '&'
-        req_data = req_data[:-1]
+        req_data = request_to_sjis(req)
         res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
         res.encoding = 'Shift_JIS'
         soup = BeautifulSoup(res.text, 'html.parser')
-        all_error = soup.findAll('font', attrs={'color': 'red'})
-        if all_error:
-            error = ''
-            for one_error in all_error:
-                error += one_error.text + "\n"
-            raise JPNICReqError(error, res.text)
+        request_error(soup, res.text)
         req = {}
         if not self.is_ipv6:
             req['destdisp'] = soup.find('input', attrs={'name': 'destdisp'})['value'],
@@ -305,11 +351,7 @@ class JPNIC():
         else:
             req['action'] = '確認'
 
-        req_data = ''
-        for key, value in req.items():
-            req_data += parse.quote_plus(key, encoding='shift-jis') + '=' + \
-                        parse.quote_plus(str(value), encoding='shift-jis') + '&'
-        req_data = req_data[:-1]
+        req_data = request_to_sjis(req)
         if self.is_ipv6:
             post_url = soup.find('form', attrs={'name': 'K01640Form'})['action'].split('/')[-1]
         else:
@@ -318,18 +360,7 @@ class JPNIC():
         res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
         res.encoding = 'Shift_JIS'
         soup = BeautifulSoup(res.text, 'html.parser')
-        if not '申請完了' in soup.find('title').text:
-            raise Exception('Error: request error')
-        data = {
-            '受付番号': '',
-            '電子メールアドレス': '',
-        }
-        tmp_lists = soup.select('table > tr > td > table')[0].findAll('td')
-        for idx in range(len(tmp_lists)):
-            if '受付番号：' in tmp_lists[idx]:
-                data['受付番号'] = tmp_lists[idx + 1].text
-            if '電子メールアドレス：' in tmp_lists[idx]:
-                data['電子メールアドレス'] = tmp_lists[idx + 1].text
+        data = application_complete(html_bs=soup)
         return {'data': data, 'html': res.text}
 
     def get_ip_address(self, ip_address="", kind=3):
@@ -360,20 +391,13 @@ class JPNIC():
         elif kind == 4:
             req['regKindSubA'] = 'on'
         req['action'] = '　検索　'
-        req_data = ''
-        for key, value in req.items():
-            req_data += parse.quote_plus(key, encoding='shift-jis') + '=' + \
-                        parse.quote_plus(str(value), encoding='shift-jis') + '&'
-        req_data = req_data[:-1]
+        req_data = request_to_sjis(req)
         post_url = soup.find('form')['action'].split('/')[-1]
         res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
         res.encoding = 'Shift_JIS'
         soup = BeautifulSoup(res.text, 'html.parser')
-        # print(soup)
         infos = []
         info = {}
-        # print(soup.findAll('td', attrs={'class': 'dataRow_mnt04'}))
-
         for idx, td in enumerate(soup.findAll('td', attrs={'class': 'dataRow_mnt04'})):
             text = td.text.strip()
             if self.is_ipv6:
@@ -432,6 +456,202 @@ class JPNIC():
         if len(infos) == 0:
             raise JPNICReqError('該当するデータが見つかりませんでした。', res.text)
         return {'infos': infos, 'html': res.text}
+
+    def v4_get_change_assignment(self, ip_address='', kind=0):
+        self.init_get()
+        ## IPv4ネットワーク情報変更申請
+        self.get_contents_url('IPv4ネットワーク情報変更申請')
+        print("Menu URL:", self.url)
+        res = self.session.get(self.url, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        req = {
+            'org.apache.struts.taglib.html.TOKEN':
+                soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})['value'],
+            'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
+            'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
+            'ipaddr': ip_address,
+            'infra_usr_kind': kind
+        }
+        req_data = request_to_sjis(req)
+        request_error(soup, res.text)
+        post_url = soup.find('form', attrs={'name': 'NetInfoChangePreRegist'})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        data = {
+            'netwrk_nm': soup.find('input', attrs={'name': 'netwrk_nm'})['value'],
+            'org_nm_jp': soup.find('textarea', attrs={'name': 'org_nm_jp'}).text,
+            'org_nm': soup.find('textarea', attrs={'name': 'org_nm'}).text,
+            'zipcode': soup.find('input', attrs={'name': 'zipcode'})['value'],
+            'addr_jp': soup.find('textarea', attrs={'name': 'addr_jp'}).text,
+            'addr': soup.find('textarea', attrs={'name': 'addr'}).text,
+            'adm_hdl': soup.find('input', attrs={'name': 'adm_hdl'})['value'],
+            'tech_hdl': soup.find('textarea', attrs={'name': 'tech_hdl'}).text,
+            'abuse': soup.find('input', attrs={'name': 'abuse'})['value'],
+            'ntfy_mail': soup.find('textarea', attrs={'name': 'ntfy_mail'}).text,
+            'chg_reason': soup.find('textarea', attrs={'name': 'chg_reason'}).text,
+            'rtn_date': soup.find('input', attrs={'name': 'rtn_date'})['value'],
+            'aply_from_addr': soup.find('input', attrs={'name': 'aply_from_addr'})['value'],
+            'aply_from_addr_confirm': soup.find('input', attrs={'name': 'aply_from_addr_confirm'})['value'],
+        }
+        ## ネームサーバ
+        self.get_contents_url('IPv4逆引きネームサーバ追加・削除')
+        print("Menu URL:", self.url)
+        res = self.session.get(self.url, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        kind_name = 'assign'
+        if kind == 2:
+            kind_name = 'suba'
+        elif kind == 3:
+            kind_name = 'history'
+        req = {
+            'org.apache.struts.taglib.html.TOKEN':
+                soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})['value'],
+            'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
+            'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
+            'ipaddr': ip_address,
+            'reg_kind': kind_name
+        }
+        req_data = request_to_sjis(req)
+        post_url = soup.find('form', attrs={'name': 'DnsIPInput'})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        dns = soup.findAll('table', attrs={'cellpadding': '1'})
+        return {'data': data, 'dns': dns}
+
+    def v6_get_change_assignment(self, ip_address=''):
+        self.init_get()
+        ## IPv6ネットワーク情報変更申請
+        self.get_contents_url('IPv6ネットワーク情報変更申請')
+        print("Menu URL:", self.url)
+        res = self.session.get(self.url, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        sel_check = None
+        req = {
+            'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
+            'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
+            'action': '確認'
+        }
+        for s in soup.findAll('tr', attrs={'bgcolor': '#ffffff'}):
+            addr = s.find('td', string=ip_address)
+            if addr:
+                sel_check = s.find('input')['value']
+                break
+        if not sel_check:
+            raise JPNICReqError('該当のIPアドレスが見つかりませんでした。', res.text)
+        req['selCheck'] = sel_check
+        req_data = request_to_sjis(req)
+        post_url = \
+            soup.find('form', attrs={'name': 'K01680Form', 'action': re.compile(r'Dispatch')})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        dns = soup.findAll('table', attrs={'cellpadding': '1'})
+        data = get_request_add_change(html_bs=soup, change_req={})
+        return {'data': data, 'dns': dns}
+
+    def v4_change_assignment(self, ip_address='', kind=0, change_req={}):
+        self.init_get()
+        ## IPv4ネットワーク情報変更申請
+        self.get_contents_url('IPv4ネットワーク情報変更申請')
+        print("Menu URL:", self.url)
+        res = self.session.get(self.url, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        req = {
+            'org.apache.struts.taglib.html.TOKEN':
+                soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})['value'],
+            'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
+            'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
+            'ipaddr': ip_address,
+            'infra_usr_kind': kind
+        }
+        # print(req)
+        req_data = request_to_sjis(req)
+        post_url = soup.find('form', attrs={'name': 'NetInfoChangePreRegist'})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        change_req['aply_from_addr_confirm'] = change_req['aply_from_addr']
+        change_req['org.apache.struts.taglib.html.TOKEN'] = \
+            soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})['value']
+        change_req['aplyid'] = soup.find('input', attrs={'name': 'aplyid'})['value']
+        change_req['destdisp'] = soup.find('input', attrs={'name': 'destdisp'})['value']
+        change_req['action'] = "申請"
+        req_data = request_to_sjis(req)
+        request_error(soup, res.text)
+        post_url = soup.find('form', attrs={'name': 'NetInfoChangeRegist'})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        request_error(soup, res.text)
+        req = {
+            'org.apache.struts.taglib.html.TOKEN':
+                soup.find('input', attrs={'name': 'org.apache.struts.taglib.html.TOKEN'})['value'],
+            'prevDispId': soup.find('input', attrs={'name': 'prevDispId'})['value'],
+            'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
+            'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
+            'inputconf': "確認"
+        }
+        req_data = request_to_sjis(req)
+        post_url = soup.find('form', attrs={'name': 'ConfApplyForInsider'})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        data = application_complete(html_bs=soup)
+        return {'data': data, 'html': res.text}
+
+    def v6_change_assignment(self, ip_address='', change_req={}):
+        self.init_get()
+        ## IPv6ネットワーク情報変更申請
+        self.get_contents_url('IPv6ネットワーク情報変更申請')
+        print("Menu URL:", self.url)
+        res = self.session.get(self.url, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        sel_check = None
+        req = {
+            'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
+            'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
+            'action': '確認'
+        }
+        for s in soup.findAll('tr', attrs={'bgcolor': '#ffffff'}):
+            addr = s.find('td', string=ip_address)
+            if addr:
+                sel_check = s.find('input')['value']
+                break
+        if not sel_check:
+            raise JPNICReqError('該当のIPアドレスが見つかりませんでした。', res.text)
+        req['selCheck'] = sel_check
+        print(req)
+        req_data = request_to_sjis(req)
+        post_url = \
+            soup.find('form', attrs={'name': 'K01680Form', 'action': re.compile(r'Dispatch')})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        ## Request Data
+        req = get_request_add_change(html_bs=soup, change_req=change_req)
+        req['applymailaddrkakunin'] = req['applymailaddr']
+        req['action'] = '申請'
+        req_data = request_to_sjis(req)
+        post_url = soup.find('form', attrs={'name': 'K01690Form'})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        request_error(soup, res.text)
+        req = {'action': '確認'}
+        req_data = request_to_sjis(req)
+        post_url = soup.find('form', attrs={'name': 'K01690Form'})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        data = application_complete(html_bs=soup)
+        return {'data': data, 'html': res.text}
 
     def contact_register(self, **kwargs):
         self.init_get()
