@@ -2,6 +2,7 @@ import io
 import json
 from html import escape
 
+from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, InvalidPage
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
@@ -570,3 +571,9 @@ def change_person(request):
             "form": form,
         }
         return render(request, 'get_jpnic_handle.html', context)
+
+
+def ca(request):
+    f = open(settings.CA_PATH, 'r', encoding='UTF-8')
+    ca_data = f.read()
+    return HttpResponse(content=ca_data, content_type='text/plain')
