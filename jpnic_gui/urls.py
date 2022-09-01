@@ -27,6 +27,7 @@ urlpatterns = [
     path('return_assignment/', views.return_assignment, name='return_assignment'),
     path('result', views.result, name='result'),
     path('add_person/', views.add_person, name='add_person'),
+    path('change_person/', views.change_person, name='change_person'),
     path('test/', views.get_jpnic_info, name='get_jpnic_info'),
     path('__debug__/', include('debug_toolbar.urls')),
     # path('event_viewer/', views.event_viewer, name='event_viewer'),

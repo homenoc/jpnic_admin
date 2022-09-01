@@ -42,7 +42,7 @@ class SSLAdapter(HTTPAdapter):
 def get_request_add_change(html_bs=None, change_req={}):
     data_req = {}
     for element in html_bs.find_all('input'):
-        if element['name'] != 'action':
+        if (element.get('name', None) is not None) and (element['name'] != 'action'):
             if element['type'] == 'radio':
                 continue
             if element['name'] in change_req:
@@ -50,7 +50,7 @@ def get_request_add_change(html_bs=None, change_req={}):
                 continue
             data_req[element['name']] = element['value']
     for element in html_bs.find_all('textarea'):
-        if element['name'] != 'action':
+        if (element.get('name', None) is not None) and (element['name'] != 'action'):
             if element['name'] in change_req:
                 data_req[element['name']] = change_req[element['name']]
                 continue
@@ -765,6 +765,81 @@ class JPNIC():
         data = application_complete(html_bs=soup)
         return {'data': data, 'html': res.text}
 
+    def add_person(self, change_req={}):
+        self.init_get()
+        ## 担当グループ(担当者)情報登録・変更
+        self.get_contents_url('担当グループ（担当者）情報登録・変更')
+        res = self.session.get(self.url, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        req = get_request_add_change(html_bs=soup, change_req=change_req)
+        req['aply_from_addr_confirm'] = req['aply_from_addr']
+        req['action'] = '申請'
+        req_data = request_to_sjis(req)
+        post_url = \
+            soup.find('form', attrs={'name': 'PocRegist', 'action': re.compile(r'pocregist.do')})['action'].split('/')[
+                -1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        request_error(html_bs=soup, html=res.text)
+        req = get_request_add_change(html_bs=soup, change_req=change_req)
+        req['inputconf'] = '確認'
+        req_data = request_to_sjis(req)
+        post_url = soup.find('form', attrs={'name': 'ConfApplyForInsider'})['action'].split('/')[-1]
+        res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        data = application_complete(html_bs=soup)
+        return {'data': data, 'html': res.text}
+
+    def get_jpnic_handle(self, jpnic_handle=''):
+        self.init_get()
+        res = self.session.get(self.base_url + '/' + 'entryinfo_handle.do?jpnic_hdl=' + jpnic_handle,
+                               headers=self.header)
+        res.encoding = 'Shift_JIS'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        jpnic_handle_info = soup.select('table > tr > td > table > tr > td > table')[0].findAll('td')
+        data = {
+            'jpnic_hdl': jpnic_handle
+        }
+        update_date = None
+        for idx in range(len(jpnic_handle_info)):
+            if idx != 0:
+                prev_text = jpnic_handle_info[idx - 1].text.strip()
+                now_text = jpnic_handle_info[idx].text.strip()
+                if prev_text == 'グループハンドル':
+                    data['kind'] = 'group'
+                if prev_text == 'JPNICハンドル':
+                    data['kind'] = 'person'
+                if prev_text == 'グループ名' or prev_text == '氏名':
+                    data['name_jp'] = now_text
+                if prev_text == 'Group Name' or prev_text == 'Last, First':
+                    data['name'] = now_text
+                if prev_text == '電子メール' or prev_text == '電子メイル':
+                    data['email'] = now_text
+                if prev_text == '組織名':
+                    data['org_nm_jp'] = now_text
+                if prev_text == 'Organization':
+                    data['org_nm'] = now_text
+                if prev_text == '部署':
+                    data['division_jp'] = now_text
+                if prev_text == 'Division':
+                    data['division'] = now_text
+                if prev_text == '肩書':
+                    data['title_jp'] = now_text
+                if prev_text == 'Title':
+                    data['title'] = now_text
+                if prev_text == '電話番号':
+                    data['phone'] = now_text
+                if prev_text == 'Fax番号' or prev_text == 'FAX番号':
+                    data['fax'] = now_text
+                if prev_text == '最終更新':
+                    update_date = now_text
+        if data['org_nm_jp'] == '' and data['name_jp'] == '':
+            raise JPNICReqError('該当のJPNIC Handleが見つかりませんでした。', res.text)
+        return {'data': data, 'update_date': update_date}
+
     def contact_register(self, **kwargs):
         self.init_get()
         self.get_contents_url('担当グループ（担当者）情報登録・変更')
@@ -778,7 +853,6 @@ class JPNIC():
         req = self.generate_req_contact(**kwargs)
         req['org.apache.struts.taglib.html.TOKEN'] = token['value']
         req['destdisp'] = destdisp['value']
-        req['aplyid'] = aplyid['value']
         req['aplyid'] = aplyid['value']
         req['aply_from_addr'] = kwargs.pop('apply_from_email', None)
         req['aply_from_addr_confirm'] = kwargs.pop('apply_from_email', None)
