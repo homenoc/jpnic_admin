@@ -361,15 +361,59 @@ class ChangeV6Assignment(forms.Form):
     )
 
 
+class Base1(forms.Form):
+    asn = forms.IntegerField(
+        label="AS番号",
+        required=True,
+    )
+
+    ipv6 = forms.BooleanField(
+        label='ipv6',
+        required=False
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        input_asn = cleaned_data.get("asn")
+        if input_asn < 1:
+            raise forms.ValidationError('AS番号が正しくありません')
+
+
+class GetJPNICHandle(forms.Form):
+    asn = forms.IntegerField(
+        label="AS番号",
+        required=True,
+    )
+
+    ipv6 = forms.BooleanField(
+        label='ipv6',
+        required=False
+    )
+
+    jpnic_handle = forms.CharField(
+        label="JPNICハンドル",
+        required=False,
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        input_asn = cleaned_data.get("asn")
+        if input_asn < 1:
+            raise forms.ValidationError('AS番号が正しくありません')
+        input_jpnic_handle = cleaned_data.get("jpnic_handle")
+        if not input_jpnic_handle:
+            raise forms.ValidationError('JPNIC Handleを指定してください')
+
+
 class AddGroupContact(forms.Form):
-    HANDLE_GROUP = 'グループハンドル'
-    HANDLE_JPNIC = "JPNICハンドル"
+    HANDLE_GROUP = 'group'
+    HANDLE_JPNIC = "person"
     HANDLE_CHOICE = [
         (HANDLE_GROUP, 'グループハンドル'),
         (HANDLE_JPNIC, 'JPNICハンドル'),
     ]
 
-    handle_type = forms.ChoiceField(
+    kind = forms.ChoiceField(
         label='グループ/JPNICハンドル',
         choices=HANDLE_CHOICE,
         initial=HANDLE_JPNIC,
@@ -378,18 +422,19 @@ class AddGroupContact(forms.Form):
         required=False,
     )
 
-    handle = forms.CharField(
+    jpnic_hdl = forms.CharField(
         label="ハンドル",
+        initial="1",
         required=False,
     )
 
-    group_name = forms.CharField(
-        label="グループ名",
+    name_jp = forms.CharField(
+        label="グループ名or氏名",
         required=False,
     )
 
-    group_name_en = forms.CharField(
-        label="グループ名(English)",
+    name = forms.CharField(
+        label="グループ名or氏名(English)",
         required=False,
     )
 
@@ -398,44 +443,54 @@ class AddGroupContact(forms.Form):
         required=False,
     )
 
-    postcode = forms.CharField(
+    org_nm_jp = forms.CharField(
+        label="組織名",
+        required=False,
+    )
+
+    org_nm = forms.CharField(
+        label="組織名(English)",
+        required=False,
+    )
+
+    zipcode = forms.CharField(
         label="郵便番号",
         min_length=8,
         max_length=8,
         required=False,
     )
 
-    address = forms.CharField(
+    addr_jp = forms.CharField(
         label="住所",
         required=False,
     )
 
-    address_en = forms.CharField(
+    addr = forms.CharField(
         label="住所(English)",
         required=False,
     )
 
-    division = forms.CharField(
+    division_jp = forms.CharField(
         label="部署",
         required=False,
     )
 
-    division_en = forms.CharField(
+    division = forms.CharField(
         label="部署(English)",
         required=False,
     )
 
-    title = forms.CharField(
+    title_jp = forms.CharField(
         label="肩書",
         required=False,
     )
 
-    title_en = forms.CharField(
+    title = forms.CharField(
         label="肩書(English)",
         required=False,
     )
 
-    tel = forms.CharField(
+    phone = forms.CharField(
         label="電話番号",
         required=False,
     )
@@ -445,14 +500,14 @@ class AddGroupContact(forms.Form):
         required=False,
     )
 
-    notify_address = forms.EmailField(
+    ntfy_mail = forms.EmailField(
         label="通知アドレス",
         required=False,
     )
 
-    file = forms.FileField(
-        label='ファイル(json)',
-        required=False
+    aply_from_addr = forms.EmailField(
+        label="申請者アドレス",
+        required=False,
     )
 
 
@@ -481,15 +536,13 @@ class ReturnAssignment(forms.Form):
     )
 
     notify_address = forms.CharField(
-        label="通知アドレス",
+        label="申請者アドレス",
         required=False
     )
 
-    def clean(self):
-        cleaned_data = super().clean()
-        input_asn = cleaned_data.get("asn")
-        if input_asn < 1:
-            raise forms.ValidationError('AS番号が正しくありません')
-        input_ip_address = cleaned_data.get("ip_address")
-        if not input_ip_address:
-            raise forms.ValidationError('IPアドレスが正しくありません')
+
+class UploadFile(forms.Form):
+    file = forms.FileField(
+        label='ファイル(json)',
+        required=False
+    )

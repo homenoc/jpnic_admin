@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>JPNIC担当者変更</h2>
+    <br/>
+    <form method="post">
+        {% csrf_token %}
+        {% if form.errors %}
+            {{ form.errors }}
+        {% endif %}
+        <div class="row g-2">
+            <div class="col-1">
+                {{ form.ipv6.label }}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value={{ form.ipv6.value }}
+                            name="{{ form.ipv6.name }}" id="{{ form.ipv6.id_for_label }}" onclick="check_ipv6()">
+                </div>
+            </div>
+            <div class="col-2">
+                {{ form.asn.label }}
+                <input type="number" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.asn.value|default:"" }}" name="{{ form.asn.name }}"
+                       id="{{ form.asn.id_for_label }}" required>
+            </div>
+            <div class="col-5">
+                {{ form.jpnic_handle.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.jpnic_handle.value|default:"" }}" name="{{ form.jpnic_handle.name }}"
+                       id="{{ form.jpnic_handle.id_for_label }}" required>
+            </div>
+            <button class="btn btn-primary" type="submit" name="search">検索</button>
+        </div>
+    </form>
+{% endblock %}

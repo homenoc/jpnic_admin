@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>JPNIC 担当者変更</h2>
+    <br/>
+    <br/>
+    <form method="post">
+        {% csrf_token %}
+        <div class="card">
+            <div class="card-body">
+                <h5>申請AS</h5>
+                <div class="row g-2">
+                    <div class="col-1">
+                        {{ base_form.ipv6.label }}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value={{ base_form.ipv6.value }}
+                                    name="{{ base_form.ipv6.name }}" id="{{ base_form.ipv6.id_for_label }}"
+                                   readonly="readonly">
+                        </div>
+                    </div>
+                    <div class="col-2">
+                        {{ base_form.asn.label }}
+                        <input type="number" autocomplete="off" list="agent_region" class="form-control"
+                               value="{{ base_form.asn.value|default:"" }}" name="{{ base_form.asn.name }}"
+                               id="{{ base_form.asn.id_for_label }}" required readonly="readonly">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br/>
+        <p>最終更新日: {{ update_date }}</p>
+        <br/>
+        <div class="row g-2">
+            <div class="col-4">
+                {{ form.kind.label }}
+                <select class="form-select" aria-label="Default select example" name="{{ form.kind.name }}"
+                        id="{{ form.kind.id_for_label }}" required>
+                    <option selected disabled>Open this select menu</option>
+                    {% for field in form.kind %}
+                        {{ field }}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-2">
+                {{ form.jpnic_hdl.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.jpnic_hdl.value|default:"" }}"
+                       name="{{ form.jpnic_hdl.name }}"
+                       id="{{ form.jpnic_hdl.id_for_label }}" readonly="readonly">
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-3">
+                {{ form.name_jp.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.name_jp.value|default:"" }}"
+                       name="{{ form.name_jp.name }}"
+                       id="{{ form.name_jp.id_for_label }}" required>
+            </div>
+            <div class="col-3">
+                {{ form.name.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.name.value|default:"" }}" name="{{ form.name.name }}"
+                       id="{{ form.name.id_for_label }}" required>
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-4">
+                {{ form.org_nm_jp.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.org_nm_jp.value|default:"" }}"
+                       name="{{ form.org_nm_jp.name }}"
+                       id="{{ form.org_nm_jp.id_for_label }}" required>
+            </div>
+            <div class="col-4">
+                {{ form.org_nm.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.org_nm.value|default:"" }}"
+                       name="{{ form.org_nm.name }}"
+                       id="{{ form.org_nm.id_for_label }}" required>
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-2">
+                {{ form.zipcode.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.zipcode.value|default:"" }}"
+                       name="{{ form.zipcode.name }}"
+                       id="{{ form.zipcode.id_for_label }}" required>
+            </div>
+            <div class="col-4">
+                {{ form.addr_jp.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.addr_jp.value|default:"" }}"
+                       name="{{ form.addr_jp.name }}"
+                       id="{{ form.addr_jp.id_for_label }}" required>
+            </div>
+            <div class="col-4">
+                {{ form.addr.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.addr.value|default:"" }}" name="{{ form.addr.name }}"
+                       id="{{ form.addr.id_for_label }}" required>
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-2">
+                {{ form.division_jp.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.division_jp.value|default:"" }}"
+                       name="{{ form.division_jp.name }}"
+                       id="{{ form.division_jp.id_for_label }}">
+            </div>
+            <div class="col-2">
+                {{ form.division.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.division.value|default:"" }}"
+                       name="{{ form.division.name }}"
+                       id="{{ form.division.id_for_label }}">
+            </div>
+            <div class="col-2">
+                {{ form.title_jp.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.title_jp.value|default:"" }}"
+                       name="{{ form.title_jp.name }}"
+                       id="{{ form.title_jp.id_for_label }}">
+            </div>
+            <div class="col-2">
+                {{ form.title.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.title.value|default:"" }}" name="{{ form.title.name }}"
+                       id="{{ form.title.id_for_label }}">
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-2">
+                {{ form.phone.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.phone.value|default:"" }}" name="{{ form.phone.name }}"
+                       id="{{ form.phone.id_for_label }}" required>
+            </div>
+            <div class="col-2">
+                {{ form.fax.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.fax.value|default:"" }}" name="{{ form.fax.name }}"
+                       id="{{ form.fax.id_for_label }}">
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-4">
+                {{ form.email.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.email.value|default:"" }}" name="{{ form.email.name }}"
+                       id="{{ form.email.id_for_label }}" required>
+            </div>
+            <div class="col-4">
+                {{ form.ntfy_mail.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.ntfy_mail.value|default:"" }}"
+                       name="{{ form.ntfy_mail.name }}"
+                       id="{{ form.ntfy_mail.id_for_label }}">
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-4">
+                {{ form.aply_from_addr.label }}
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.aply_from_addr.value|default:"" }}"
+                       name="{{ form.aply_from_addr.name }}"
+                       id="{{ form.aply_from_addr.id_for_label }}" required>
+            </div>
+        </div>
+        <br/>
+        <button class="btn btn-primary" type="submit" name="apply">登録</button>
+        <button class="btn btn-primary" type="submit" name="download">Download(JSON *Test*)</button>
+    </form>
+{% endblock %}
