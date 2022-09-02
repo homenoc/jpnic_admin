@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.conf import settings
 
-from jpnic_gui.models import JPNIC
+from jpnic_admin.models import JPNIC
 
 admin.site.site_title = settings.SITE_TITLE
 admin.site.site_header = settings.SITE_HEADER

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from jpnic_gui.result.models import V4List, V6List, JPNICHandle
+from jpnic_admin.result.models import V4List, V6List, JPNICHandle
 
 
 @admin.register(V4List)

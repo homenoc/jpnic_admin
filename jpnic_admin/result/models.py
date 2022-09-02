@@ -15,7 +15,7 @@ class JPNICHandle(models.Model):
     division_en = models.CharField("部署(英語)", max_length=30, null=True, blank=True, db_index=True)
     tel = models.CharField("部署(英語)", max_length=20, null=True, blank=True, db_index=True)
     fax = models.CharField("部署(英語)", max_length=20, null=True, blank=True, db_index=True)
-    asn = models.ForeignKey("jpnic_gui.JPNIC", related_name="jpnic_handle", on_delete=models.PROTECT)
+    asn = models.ForeignKey("jpnic_admin.JPNIC", related_name="jpnic_handle", on_delete=models.PROTECT)
     update_date = models.DateTimeField("更新時刻")
 
     def __str__(self):
@@ -62,7 +62,7 @@ class V4List(models.Model):
     name_server = models.CharField("ネームサーバ", max_length=100, null=True, blank=True)
     ds_record = models.CharField("DSレコード", max_length=100, null=True, blank=True)
     notify_address = models.CharField("通知アドレス", max_length=100, null=True, blank=True)
-    asn = models.ForeignKey("jpnic_gui.JPNIC", related_name="v4lists", on_delete=models.PROTECT)
+    asn = models.ForeignKey("jpnic_admin.JPNIC", related_name="v4lists", on_delete=models.PROTECT)
     admin_jpnic = models.ForeignKey("result.JPNICHandle", related_name="v4lists", null=True, on_delete=models.PROTECT)
     tech_jpnic = models.ManyToManyField(JPNICHandle)
 
@@ -99,7 +99,7 @@ class V6List(models.Model):
     name_server = models.CharField("ネームサーバ", max_length=100, null=True, blank=True)
     ds_record = models.CharField("DSレコード", max_length=100, null=True, blank=True)
     notify_address = models.CharField("通知アドレス", max_length=100, null=True, blank=True)
-    asn = models.ForeignKey("jpnic_gui.JPNIC", related_name="v6lists", on_delete=models.PROTECT)
+    asn = models.ForeignKey("jpnic_admin.JPNIC", related_name="v6lists", on_delete=models.PROTECT)
     admin_jpnic = models.ForeignKey("result.JPNICHandle", related_name="v6lists", null=True, on_delete=models.PROTECT)
     tech_jpnic = models.ManyToManyField(JPNICHandle)
 

@@ -18,8 +18,8 @@ ADD Pipfile.lock /opt/app/
 RUN pipenv install --system
 
 ADD manage.py /opt/app/
-ADD jpnic_gui/ /opt/app/jpnic_gui/
-#ADD jpnic_gui/production_settings.py /opt/app/jpnic_gui/settings.py
+ADD jpnic_admin/ /opt/app/jpnic_admin/
+#ADD jpnic_admin/production_settings.py /opt/app/jpnic_admin/settings.py
 
 
 # NGINX
