@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('jpnic_gui', '0001_initial'),
+        ('jpnic_admin', '0001_initial'),
     ]
 
     operations = [
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('tel', models.CharField(blank=True, db_index=True, max_length=20, null=True, verbose_name='部署(英語)')),
                 ('fax', models.CharField(blank=True, db_index=True, max_length=20, null=True, verbose_name='部署(英語)')),
                 ('update_date', models.DateTimeField(verbose_name='更新時刻')),
-                ('asn', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='jpnic_handle', to='jpnic_gui.jpnic')),
+                ('asn', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='jpnic_handle', to='jpnic_admin.jpnic')),
             ],
         ),
         migrations.CreateModel(
@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
                 ('ds_record', models.CharField(blank=True, max_length=100, null=True, verbose_name='DSレコード')),
                 ('notify_address', models.CharField(blank=True, max_length=100, null=True, verbose_name='通知アドレス')),
                 ('admin_jpnic', models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='v6lists', to='result.jpnichandle')),
-                ('asn', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='v6lists', to='jpnic_gui.jpnic')),
+                ('asn', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='v6lists', to='jpnic_admin.jpnic')),
                 ('tech_jpnic', models.ManyToManyField(to='result.JPNICHandle')),
             ],
         ),
@@ -83,7 +83,7 @@ class Migration(migrations.Migration):
                 ('ds_record', models.CharField(blank=True, max_length=100, null=True, verbose_name='DSレコード')),
                 ('notify_address', models.CharField(blank=True, max_length=100, null=True, verbose_name='通知アドレス')),
                 ('admin_jpnic', models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='v4lists', to='result.jpnichandle')),
-                ('asn', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='v4lists', to='jpnic_gui.jpnic')),
+                ('asn', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='v4lists', to='jpnic_admin.jpnic')),
                 ('tech_jpnic', models.ManyToManyField(to='result.JPNICHandle')),
             ],
         ),

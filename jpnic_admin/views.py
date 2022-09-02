@@ -9,11 +9,11 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
 
-from jpnic_gui.form import SearchForm, AddAssignment, AddGroupContact, GetIPAddressForm, \
+from jpnic_admin.form import SearchForm, AddAssignment, AddGroupContact, GetIPAddressForm, \
     ChangeV4Assignment, GetChangeAssignment, ChangeV6Assignment, ReturnAssignment, UploadFile, Base1, GetJPNICHandle, \
     ASForm, ChangeCertForm
-from jpnic_gui.jpnic import JPNIC, JPNICReqError, verify_expire_p12_file, verify_expire_ca
-from jpnic_gui.models import JPNIC as JPNICModel
+from jpnic_admin.jpnic import JPNIC, JPNICReqError, verify_expire_p12_file, verify_expire_ca
+from jpnic_admin.models import JPNIC as JPNICModel
 
 
 def index(request):
@@ -34,14 +34,14 @@ def index(request):
         "count_no_data": count_no_data,
         "search_form": form,
     }
-    return render(request, 'jpnic_gui/index.html', context)
+    return render(request, 'jpnic_admin/index.html', context)
 
 
 def get_jpnic_info(request):
     # a_list = Article.objects.filter(pub_date__year=year)
     # result = JPNIC.objects.filter()
     context = {'year': "year"}
-    return render(request, 'jpnic_gui/index.html', context)
+    return render(request, 'jpnic_admin/index.html', context)
 
 
 def add_assignment(request):

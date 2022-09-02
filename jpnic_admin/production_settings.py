@@ -1,4 +1,4 @@
-from jpnic_gui.settings import *
+from jpnic_admin.settings import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

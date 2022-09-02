@@ -16,7 +16,7 @@ from django.conf import settings
 from requests.adapters import HTTPAdapter
 from ssl import PROTOCOL_TLS as default_ssl_protocol
 
-from jpnic_gui.models import JPNIC as JPNICModel
+from jpnic_admin.models import JPNIC as JPNICModel
 
 
 class JPNICReqError(Exception):

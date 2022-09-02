@@ -32,4 +32,4 @@ END
   echo "Created superuser Username: ${SUPERUSER_NAME}, E-Mail: ${SUPERUSER_EMAIL}"
 fi
 
-gunicorn --bind 0.0.0.0:8000 -w 2 jpnic_gui.wsgi:application
+gunicorn --bind 0.0.0.0:8000 -w 2 jpnic_admin.wsgi:application

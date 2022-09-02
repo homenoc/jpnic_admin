@@ -4,7 +4,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
-from jpnic_gui.result.models import V4List, V6List
+from jpnic_admin.result.models import V4List, V6List
 
 
 class SearchForm(forms.Form):
