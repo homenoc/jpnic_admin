@@ -28,6 +28,8 @@ urlpatterns = [
     path('result', views.result, name='result'),
     path('add_person/', views.add_person, name='add_person'),
     path('change_person/', views.change_person, name='change_person'),
+    path('add_as/', views.add_as, name='add_as'),
+    path('list_as/', views.list_as, name='list_as'),
     path('ca', views.ca, name='ca'),
     path('test/', views.get_jpnic_info, name='get_jpnic_info'),
     path('__debug__/', include('debug_toolbar.urls')),

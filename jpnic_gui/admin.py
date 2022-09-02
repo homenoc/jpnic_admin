@@ -16,7 +16,8 @@ class JPNICAdmin(admin.ModelAdmin):
         "is_active",
         "is_ipv6",
         "asn",
-        "ca",
+        "ada",
+        "collection_interval",
         "p12_base64",
         "p12_pass"
     )

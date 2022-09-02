@@ -1,4 +1,4 @@
-import io
+import base64
 import json
 from html import escape
 
@@ -10,8 +10,9 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 
 from jpnic_gui.form import SearchForm, AddAssignment, AddGroupContact, GetIPAddressForm, \
-    ChangeV4Assignment, GetChangeAssignment, ChangeV6Assignment, ReturnAssignment, UploadFile, Base1, GetJPNICHandle
-from jpnic_gui.jpnic import JPNIC, JPNICReqError
+    ChangeV4Assignment, GetChangeAssignment, ChangeV6Assignment, ReturnAssignment, UploadFile, Base1, GetJPNICHandle, \
+    ASForm, ChangeCertForm
+from jpnic_gui.jpnic import JPNIC, JPNICReqError, verify_expire_p12_file, verify_expire_ca
 from jpnic_gui.models import JPNIC as JPNICModel
 
 
@@ -577,3 +578,85 @@ def ca(request):
     f = open(settings.CA_PATH, 'r', encoding='UTF-8')
     ca_data = f.read()
     return HttpResponse(content=ca_data, content_type='text/plain')
+
+
+def add_as(request):
+    if request.method == 'POST':
+        form = ASForm(request.POST, request.FILES)
+        context = {
+            "form": form,
+        }
+        if form.is_valid():
+            if not form.cleaned_data['p12']:
+                return render(request, 'add_as.html', context=context)
+            p12_binary = form.cleaned_data['p12'].read()
+            p12_base64 = base64.b64encode(p12_binary)
+            jpnic_model = JPNICModel.objects.create(
+                name=form.cleaned_data.get('name'),
+                is_active=True,
+                is_ipv6=form.cleaned_data.get('ipv6'),
+                ada=form.cleaned_data.get('ada'),
+                collection_interval=form.cleaned_data.get('collection_interval'),
+                asn=form.cleaned_data.get('asn'),
+                p12_base64=p12_base64.decode("ascii"),
+                p12_pass=form.cleaned_data.get('p12_pass'),
+            )
+            jpnic_model.save()
+            context['name'] = 'AS・証明書の追加'
+            context['data'] = '登録しました'
+            return render(request, 'result.html', context)
+    else:
+        form = ASForm()
+        context = {
+            "form": form,
+        }
+        return render(request, 'add_as.html', context)
+
+
+def list_as(request):
+    if request.method == 'POST':
+        if 'apply' in request.POST:
+            form = ChangeCertForm(request.POST, request.FILES)
+            jpnic_id = int(request.POST.get('id'))
+            context = {
+                "form": form,
+            }
+            if form.is_valid():
+                if not form.cleaned_data['p12']:
+                    return render(request, 'add_as.html', context=context)
+                p12_binary = form.cleaned_data['p12'].read()
+                p12_base64 = base64.b64encode(p12_binary)
+                jpnic_model = JPNICModel.objects.get(id=jpnic_id)
+                jpnic_model.p12_base64 = p12_base64.decode("ascii")
+                jpnic_model.p12_pass = form.cleaned_data.get('p12_pass')
+                jpnic_model.save()
+                context['name'] = 'AS・証明書の追加'
+                context['data'] = '登録しました'
+                return render(request, 'result.html', context)
+        elif 'renew_cert' in request.POST:
+            jpnic_id = int(request.POST.get('id'))
+            form = ChangeCertForm()
+            context = {
+                "id": jpnic_id,
+                "form": form,
+            }
+            return render(request, 'change_as.html', context)
+
+    else:
+        jpnic_model = JPNICModel.objects.all()
+        print(jpnic_model)
+        data = []
+        ca_expiry_date = verify_expire_ca()
+        for jpn in jpnic_model:
+            print(jpn)
+            p12_expiry_date = verify_expire_p12_file(p12_base64=jpn.p12_base64, p12_pass=jpn.p12_pass)
+            data.append({
+                'data': jpn,
+                'expiry_date': p12_expiry_date
+            })
+        context = {
+            "jpnic": data,
+            "ca_path": settings.CA_PATH,
+            "ca_expiry_date": ca_expiry_date
+        }
+        return render(request, 'list_as.html', context)

@@ -2,6 +2,7 @@ import base64
 import os
 import re
 import ssl
+import subprocess
 import tempfile
 from urllib import parse
 
@@ -95,6 +96,30 @@ def application_complete(html_bs=None):
             data['電子メールアドレス'] = tmp_lists[idx + 1].text
 
     return data
+
+
+def verify_expire_ca():
+    ca_expiry = subprocess.run(["openssl", "x509", "-noout", "-dates", "-in", settings.CA_PATH],
+                               capture_output=True, text=True).stdout
+    not_before = ''
+    not_after = ''
+    for line in ca_expiry.splitlines():
+        if 'notBefore' in line:
+            not_before = line.replace('notBefore=', "")
+        if 'notAfter' in line:
+            not_after = line.replace('notAfter=', "")
+    return {'before': not_before, 'after': not_after}
+
+
+def verify_expire_p12_file(p12_base64='', p12_pass=''):
+    p12_base64 += "=" * ((4 - len(p12_base64) % 4) % 4)
+    p12 = base64.b64decode(p12_base64)
+    p12_pass_bytes = bytes(p12_pass, 'utf-8')
+    pk, cert, option_cert = load_key_and_certificates(
+        p12,
+        p12_pass_bytes
+    )
+    return {'before': cert.not_valid_before, 'after': cert.not_valid_after}
 
 
 class JPNIC():
