@@ -63,7 +63,7 @@ def get_request_add_change(html_bs=None, change_req={}):
 def request_to_sjis(request={}):
     req_data = ''
     for key, value in request.items():
-        if not value:
+        if value is None:
             value = ''
         req_data += parse.quote_plus(key, encoding='shift-jis') + '=' + \
                     parse.quote_plus(str(value), encoding='shift-jis') + '&'
@@ -496,7 +496,8 @@ class JPNIC():
             'aplyid': soup.find('input', attrs={'name': 'aplyid'})['value'],
             'destdisp': soup.find('input', attrs={'name': 'destdisp'})['value'],
             'ipaddr': ip_address,
-            'infra_usr_kind': kind
+            'infra_usr_kind': kind,
+            'action': '　確認　'
         }
         req_data = request_to_sjis(req)
         request_error(soup, res.text)
@@ -504,6 +505,7 @@ class JPNIC():
         res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
         res.encoding = 'Shift_JIS'
         soup = BeautifulSoup(res.text, 'html.parser')
+        request_error(soup, res.text)
         data = {
             'netwrk_nm': soup.find('input', attrs={'name': 'netwrk_nm'})['value'],
             'org_nm_jp': soup.find('textarea', attrs={'name': 'org_nm_jp'}).text,
@@ -595,7 +597,6 @@ class JPNIC():
             'ipaddr': ip_address,
             'infra_usr_kind': kind
         }
-        # print(req)
         req_data = request_to_sjis(req)
         post_url = soup.find('form', attrs={'name': 'NetInfoChangePreRegist'})['action'].split('/')[-1]
         res = self.session.post(self.base_url + '/' + post_url, data=req_data, headers=self.header)
