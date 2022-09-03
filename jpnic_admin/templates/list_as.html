@@ -40,7 +40,7 @@
         {% for j in jpnic %}
             <tr>
                 <th>{{ j.data.id }}</th>
-                {% if j.data.ipv6 %}
+                {% if j.data.is_ipv6 %}
                     <th>IPv6</th>
                 {% else %}
                     <th>IPv4</th>
