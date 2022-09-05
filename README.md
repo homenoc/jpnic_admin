@@ -1,6 +1,12 @@
 # JPNIC Admin
+
 [![Publish Docker image(prod)](https://github.com/homenoc/jpnic_admin/actions/workflows/build-prod.yaml/badge.svg)](https://github.com/homenoc/jpnic_admin/actions/workflows/build-prod.yaml)
 [![Publish Docker image(dev)](https://github.com/homenoc/jpnic_admin/actions/workflows/build-dev.yaml/badge.svg)](https://github.com/homenoc/jpnic_admin/actions/workflows/build-dev.yaml)
+
+## デプロイ(Docker)方法
+`/docker`フォルダにサンプルファイルとREADMEをご覧ください。
+
+### Memo
 
 ```
 pipenv run python3 manage.py migrate
