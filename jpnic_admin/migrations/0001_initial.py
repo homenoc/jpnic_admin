@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('ada', models.BooleanField(verbose_name='データの自動取得')),
                 ('collection_interval', models.IntegerField(verbose_name='収集頻度(分)', default=60)),
                 ('asn', models.IntegerField(verbose_name='ASN')),
-                ('p12_base64', models.CharField(default='', max_length=1000, verbose_name='p12 base64')),
+                ('p12_base64', models.CharField(default='', max_length=10000, verbose_name='p12 base64')),
                 ('p12_pass', models.CharField(default='', max_length=200, verbose_name='p12 Pass')),
             ],
             options={

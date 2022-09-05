@@ -11,7 +11,7 @@ class JPNIC(models.Model):
     ada = models.BooleanField("データの自動取得", blank=False)
     collection_interval = models.IntegerField("収集頻度(分)", blank=False, default=60)
     asn = models.IntegerField("ASN")
-    p12_base64 = models.CharField("p12 base64", max_length=1000, default="")
+    p12_base64 = models.CharField("p12 base64", max_length=10000, default="")
     p12_pass = models.CharField("p12 Pass", max_length=200, default="")
 
     def __str__(self):
