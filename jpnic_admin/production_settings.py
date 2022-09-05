@@ -26,3 +26,5 @@ SITE_HEADER = 'JPNIC管理システム'
 
 # CSRF Check
 # CSRF_TRUSTED_ORIGINS = ['http://*.localhost', 'https://*.127.0.0.1']
+CA_PATH = '/opt/app/config/ca.cert'
+JPNIC_BASE_URL = 'https://iphostmaster.nic.ad.jp'
