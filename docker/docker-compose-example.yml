@@ -4,7 +4,7 @@ services:
     container_name: jpnic-admin
     image: yoneyan/jpnic-admin:develop
     ports:
-      - "8080:80"
+      - "80:80"
     environment:
       - DJANGO_SETTINGS_MODULE=jpnic_admin.production_settings
       - SKIP_SUPERUSER=false
@@ -14,11 +14,12 @@ services:
       - DB_NAME=jpnic-admin
       - DB_USER=jpnic-admin
       - DB_PASSWORD=passWord123#
+    volumes:
+      - ./config:/opt/app/config
     links:
       - db
       - daemon
-    restart:
-      always
+    restart: always
   db:
     image: mariadb:10.7.4
     restart: always
@@ -34,9 +35,12 @@ services:
   daemon:
     image: yoneyan/jpnic-admin-daemon:develop
     environment:
-      - CA_URL=http://jpnic-admin:8080/ca
+      - CA_URL=http://jpnic-admin:8000/ca
       - DATABASE_TYPE=mysql
       - DATABASE_IP=db
       - DATABASE_NAME=jpnic-admin
       - DATABASE_USER=jpnic-admin
       - DATABASE_PASS=passWord123#
+    links:
+      - db
+    restart: always
