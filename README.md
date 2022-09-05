@@ -1,4 +1,6 @@
 # JPNIC Admin
+[![Publish Docker image(prod)](https://github.com/homenoc/jpnic_admin/actions/workflows/build-prod.yaml/badge.svg)](https://github.com/homenoc/jpnic_admin/actions/workflows/build-prod.yaml)
+[![Publish Docker image(dev)](https://github.com/homenoc/jpnic_admin/actions/workflows/build-dev.yaml/badge.svg)](https://github.com/homenoc/jpnic_admin/actions/workflows/build-dev.yaml)
 
 ```
 pipenv run python3 manage.py migrate
