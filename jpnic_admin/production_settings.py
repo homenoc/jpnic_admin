@@ -4,7 +4,7 @@ from jpnic_admin.settings import *
 DEBUG = True
 
 # # candidates value for X-Forwarded-Host header
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 # django backend database config
 DATABASES = {
