@@ -60,6 +60,13 @@ def get_request_add_change(html_bs=None, change_req={}):
     return data_req
 
 
+def convert_date_format(input_date=None):
+    if input_date:
+        return input_date.strftime("%Y/%m/%d")
+    else:
+        return None
+
+
 def request_to_sjis(request={}):
     req_data = ''
     for key, value in request.items():

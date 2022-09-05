@@ -12,7 +12,7 @@ from django.template.loader import render_to_string
 from jpnic_admin.form import SearchForm, AddAssignment, AddGroupContact, GetIPAddressForm, \
     ChangeV4Assignment, GetChangeAssignment, ChangeV6Assignment, ReturnAssignment, UploadFile, Base1, GetJPNICHandle, \
     ASForm, ChangeCertForm
-from jpnic_admin.jpnic import JPNIC, JPNICReqError, verify_expire_p12_file, verify_expire_ca
+from jpnic_admin.jpnic import JPNIC, JPNICReqError, verify_expire_p12_file, verify_expire_ca, convert_date_format
 from jpnic_admin.models import JPNIC as JPNICModel
 
 
@@ -95,7 +95,6 @@ def add_assignment(request):
                 context['error'] = exc.args[0]
                 context['result_html'] = escape(result_html)
             except TypeError as err:
-                print(err)
                 context['error'] = str(err)
 
             return JsonResponse(context)
@@ -113,7 +112,6 @@ def add_assignment(request):
 def search(request):
     if request.method == 'POST':
         if 'search' in request.POST:
-            print("search")
             form = GetIPAddressForm(request.POST)
             context = {}
             if form.is_valid():
@@ -146,7 +144,6 @@ def search(request):
                     context['error'] = exc.args[0]
                     context['result_html'] = result_html
                 except TypeError as err:
-                    print(err)
                     context['error'] = str(err)
                 return render(request, 'result.html', context)
             else:
@@ -167,7 +164,6 @@ def search(request):
 def change_assignment(request):
     if request.method == 'POST':
         if 'search' in request.POST:
-            print("search")
             form = GetChangeAssignment(request.POST)
             context = {}
             if form.is_valid():
@@ -204,7 +200,6 @@ def change_assignment(request):
                         context['error'] = exc.args[0]
                         context['result_html'] = result_html
                     except TypeError as err:
-                        print(err)
                         context['error'] = str(err)
                     return render(request, 'result.html', context)
                 else:
@@ -233,7 +228,6 @@ def change_assignment(request):
                         context['error'] = exc.args[0]
                         context['result_html'] = result_html
                     except TypeError as err:
-                        print(err)
                         context['error'] = str(err)
                     return render(request, 'result.html', context)
             else:
@@ -274,7 +268,6 @@ def change_assignment(request):
                 context['error'] = exc.args[0]
                 context['result_html'] = result_html
             except TypeError as err:
-                print(err)
                 context['error'] = str(err)
             return render(request, 'result.html', context)
 
@@ -309,7 +302,6 @@ def change_assignment(request):
                 context['error'] = exc.args[0]
                 context['result_html'] = result_html
             except TypeError as err:
-                print(err)
                 context['error'] = str(err)
             return render(request, 'result.html', context)
     else:
@@ -340,7 +332,7 @@ def return_assignment(request):
                     )
                     res_data = j.v6_return_assignment(
                         ip_address=form.cleaned_data.get('ip_address'),
-                        return_date=form.cleaned_data.get('return_date'),
+                        return_date=convert_date_format(form.cleaned_data.get('return_date')),
                         notify_address=form.cleaned_data.get('notify_address')
                     )
                     context['result_html'] = res_data['html']
@@ -353,7 +345,6 @@ def return_assignment(request):
                     context['error'] = exc.args[0]
                     context['result_html'] = result_html
                 except TypeError as err:
-                    print(err)
                     context['error'] = str(err)
                 return render(request, 'result.html', context)
             else:
@@ -364,7 +355,7 @@ def return_assignment(request):
                     )
                     res_data = j.v4_return_assignment(
                         ip_address=form.cleaned_data.get('ip_address'),
-                        return_date=form.cleaned_data.get('return_date'),
+                        return_date=convert_date_format(form.cleaned_data.get('return_date')),
                         notify_address=form.cleaned_data.get('notify_address')
                     )
                     context['result_html'] = res_data['html']
@@ -377,7 +368,6 @@ def return_assignment(request):
                     context['error'] = exc.args[0]
                     context['result_html'] = result_html
                 except TypeError as err:
-                    print(err)
                     context['error'] = str(err)
                 return render(request, 'result.html', context)
         else:
@@ -434,7 +424,6 @@ def add_person(request):
                     context['error'] = exc.args[0]
                     context['result_html'] = result_html
                 except TypeError as err:
-                    print(err)
                     context['error'] = str(err)
                 return render(request, 'result.html', context)
         elif 'upload' in request.POST:
@@ -471,7 +460,6 @@ def add_person(request):
                 context['error'] = exc.args[0]
                 context['result_html'] = result_html
             except TypeError as err:
-                print(err)
                 context['error'] = str(err)
             return render(request, 'result.html', context)
         elif 'manual_download' in request.POST:
@@ -525,7 +513,6 @@ def change_person(request):
                     context['error'] = exc.args[0]
                     context['result_html'] = result_html
                 except TypeError as err:
-                    print(err)
                     context['error'] = str(err)
                 return render(request, 'result.html', context)
         elif 'apply' in request.POST:
@@ -554,7 +541,6 @@ def change_person(request):
                     context['error'] = exc.args[0]
                     context['result_html'] = result_html
                 except TypeError as err:
-                    print(err)
                     context['error'] = str(err)
                 return render(request, 'result.html', context)
         elif 'download' in request.POST:

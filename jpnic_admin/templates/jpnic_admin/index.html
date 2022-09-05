@@ -52,31 +52,36 @@
     <br/>
     {% if jpnic_page %}
         <div class="form-check">
-            <input class="row_filter" type="checkbox" value="0" id="flexCheckDefault" checked>
-            <label class="row_filter-label" for="flexCheckDefault">更新日</label>
-            <input class="row_filter" type="checkbox" value="1" id="flexCheckDefault" checked>
-            <label class="row_filter-label" for="flexCheckDefault">IP Address</label>
+            <input class="row_filter" type="checkbox" value="0" id="flexCheckDefault">
+            <label class="row_filter-label" for="flexCheckDefault">ASN</label>
+            <input class="row_filter" type="checkbox" value="1" id="flexCheckDefault">
+            <label class="row_filter-label" for="flexCheckDefault">更新開始日</label>
             <input class="row_filter" type="checkbox" value="2" id="flexCheckDefault" checked>
-            <label class="row_filter-label" for="flexCheckDefault">Type</label>
+            <label class="row_filter-label" for="flexCheckDefault">更新日</label>
             <input class="row_filter" type="checkbox" value="3" id="flexCheckDefault" checked>
-            <label class="row_filter-label" for="flexCheckDefult">ネットワーク名</label>
+            <label class="row_filter-label" for="flexCheckDefault">IP Address</label>
             <input class="row_filter" type="checkbox" value="4" id="flexCheckDefault" checked>
-            <label class="row_filter-label" for="flexCheckDefault">Org</label>
+            <label class="row_filter-label" for="flexCheckDefault">Type</label>
             <input class="row_filter" type="checkbox" value="5" id="flexCheckDefault" checked>
-            <label class="row_filter-label" for="flexCheckDefault">郵便番号</label>
+            <label class="row_filter-label" for="flexCheckDefult">ネットワーク名</label>
             <input class="row_filter" type="checkbox" value="6" id="flexCheckDefault" checked>
-            <label class="row_filter-label" for="flexCheckDefault">住所</label>
+            <label class="row_filter-label" for="flexCheckDefault">Org</label>
+            <br/>
             <input class="row_filter" type="checkbox" value="7" id="flexCheckDefault" checked>
+            <label class="row_filter-label" for="flexCheckDefault">郵便番号</label>
+            <input class="row_filter" type="checkbox" value="8" id="flexCheckDefault" checked>
+            <label class="row_filter-label" for="flexCheckDefault">住所</label>
+            <input class="row_filter" type="checkbox" value="9" id="flexCheckDefault" checked>
             <label class="row_filter-label" for="flexCheckDefault">管理者連絡窓口</label>
-            <input class="row_filter" type="checkbox" value="8" id="flexCheckDefault">
+            <input class="row_filter" type="checkbox" value="10" id="flexCheckDefault">
             <label class="row_filter-label" for="flexCheckDefault">名前(管理者)</label>
-            <input class="row_filter" type="checkbox" value="9" id="flexCheckDefault">
-            <label class="row_filter-label" for="flexCheckDefault">E-Mail(管理者)</label>
-            <input class="row_filter" type="checkbox" value="10" id="flexCheckDefault" checked>
-            <label class="row_filter-label" for="flexCheckDefault">技術連絡担当者</label>
             <input class="row_filter" type="checkbox" value="11" id="flexCheckDefault">
+            <label class="row_filter-label" for="flexCheckDefault">E-Mail(管理者)</label>
+            <input class="row_filter" type="checkbox" value="12" id="flexCheckDefault" checked>
+            <label class="row_filter-label" for="flexCheckDefault">技術連絡担当者</label>
+            <input class="row_filter" type="checkbox" value="13" id="flexCheckDefault">
             <label class="row_filter-label" for="flexCheckDefault">名前(技術)</label>
-            <input class="row_filter" type="checkbox" value="12" id="flexCheckDefault">
+            <input class="row_filter" type="checkbox" value="14" id="flexCheckDefault">
             <label class="row_filter-label" for="flexCheckDefault">E-Mail(技術)</label>
         </div>
     {% endif %}
@@ -87,6 +92,8 @@
     {% if jpnic_page %}
         <table class="table table-striped table-hover">
             <tr>
+                <th>ASN</th>
+                <th>取得開始日</th>
                 <th>更新日</th>
                 <th>IP Address</th>
                 <th>Type</th>
@@ -103,6 +110,8 @@
             </tr>
             {% for j_p in jpnic_page %}
                 <tr>
+                    <td>{{ j_p.asn_id }}</td>
+                    <td>{{ j_p.get_start_date }}</td>
                     <td  {% if j_p.org == "" and j_p.address == "" %}
                         class="table-danger" {% else %} class="table-success" {% endif %}> {{ j_p.get_date }}</td>
                     <td>{{ j_p.ip_address }}</td>
@@ -210,11 +219,12 @@
         window.onload = function () {
             const $ = window.jQuery;
 
-            remove_row(5)
-            remove_row(8)
-            remove_row(9)
+            remove_row(0)
+            remove_row(1)
+            remove_row(10)
             remove_row(11)
-            remove_row(12)
+            remove_row(13)
+            remove_row(14)
 
             // flatpickr
             const config_date = {

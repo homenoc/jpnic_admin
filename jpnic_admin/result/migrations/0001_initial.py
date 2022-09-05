@@ -17,7 +17,8 @@ class Migration(migrations.Migration):
             name='JPNICHandle',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('get_date', models.DateTimeField(verbose_name='取得時刻')),
+                ('get_start_date', models.DateTimeField(verbose_name='取得開始時刻')),
+                ('get_date', models.DateTimeField(verbose_name='取得更新時刻')),
                 ('is_ipv6', models.BooleanField(verbose_name='IPv6')),
                 ('jpnic_handle', models.CharField(db_index=True, max_length=20, verbose_name='JPNICハンドル')),
                 ('name', models.CharField(db_index=True, max_length=20, verbose_name='名前')),
@@ -37,7 +38,8 @@ class Migration(migrations.Migration):
             name='V6List',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('get_date', models.DateTimeField(verbose_name='取得時刻')),
+                ('get_start_date', models.DateTimeField(verbose_name='取得開始時刻')),
+                ('get_date', models.DateTimeField(verbose_name='取得更新時刻')),
                 ('ip_address', models.CharField(db_index=True, max_length=100, verbose_name='IPアドレス')),
                 ('network_name', models.CharField(max_length=20, verbose_name='ネットワーク名')),
                 ('assign_date', models.DateTimeField(verbose_name='割振・割当年月日')),
@@ -63,7 +65,8 @@ class Migration(migrations.Migration):
             name='V4List',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('get_date', models.DateTimeField(verbose_name='取得時刻')),
+                ('get_start_date', models.DateTimeField(verbose_name='取得開始時刻')),
+                ('get_date', models.DateTimeField(verbose_name='取得更新時刻')),
                 ('ip_address', models.CharField(db_index=True, max_length=100, verbose_name='IPアドレス')),
                 ('size', models.IntegerField(verbose_name='サイズ')),
                 ('network_name', models.CharField(max_length=20, verbose_name='ネットワーク名')),
