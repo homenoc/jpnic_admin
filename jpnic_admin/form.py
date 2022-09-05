@@ -61,10 +61,16 @@ class SearchForm(forms.Form):
         # 日付フィルタ
         # フィルタなし時現在の日付にする
         if select_date is None:
-            select_date = datetime.date.today()
-            print(select_date)
-        if select_date is not None:
-            q &= Q(get_date__gte=select_date) & Q(get_date__lte=select_date + datetime.timedelta(days=1))
+            now_date = datetime.datetime.utcnow()
+            before_date = datetime.datetime(now_date.year, now_date.month, now_date.day, 15,0,0)
+            after_date= before_date + datetime.timedelta(hours=23, minutes=59, seconds=59)
+            # print(before_date, after_date)
+            q &= Q(get_start_date__gte=before_date) & Q(get_start_date__lte=after_date)
+        else:
+            after_date = datetime.datetime(select_date.year, select_date.month, select_date.day, 14, 59, 59)
+            before_date = after_date - datetime.timedelta(hours=23, minutes=59, seconds=59)
+            # print(before_date, after_date)
+            q &= Q(get_start_date__gte=before_date) & Q(get_start_date__lte=after_date)
 
         if addr_type:
             return V6List.objects.select_related('admin_jpnic').prefetch_related('tech_jpnic').filter(q)
@@ -117,9 +123,9 @@ class AddAssignment(forms.Form):
 
     return_date = forms.DateField(
         label='返却年月日',
-        input_formats=['%Y-%m-%d'],
+        input_formats=['%Y/%m/%d'],
         # initial=datetime.date.today,
-        widget=forms.DateTimeInput(format='%Y-%m-%d'),
+        widget=forms.DateTimeInput(format='%Y/%m/%d'),
         required=False
     )
 
@@ -529,9 +535,9 @@ class ReturnAssignment(forms.Form):
 
     return_date = forms.DateField(
         label='返却年月日',
-        input_formats=['%Y-%m-%d'],
+        input_formats=['%Y/%m/%d'],
         initial='',
-        widget=forms.DateTimeInput(format='%Y-%m-%d'),
+        widget=forms.DateTimeInput(format='%Y/%m/%d'),
         required=False
     )
 
