@@ -5,16 +5,11 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 
 from jpnic_admin.result.models import V4List, V6List
+from jpnic_admin.models import JPNIC as JPNICModel
 
 
 class SearchForm(forms.Form):
-    addr_type = forms.BooleanField(
-        label='IPv6',
-        initial=0,
-        required=False,
-    )
-
-    as_number = forms.CharField(
+    as_number_id = forms.IntegerField(
         label="AS番号",
         required=False,
     )
@@ -42,17 +37,17 @@ class SearchForm(forms.Form):
         conditions = {}
 
         select_date = cleaned_data.get('select_date')
-        addr_type = cleaned_data.get('addr_type')
+        is_ipv6 = False
         address = cleaned_data.get('address')
-        as_number = cleaned_data.get('as_number')
+        as_number_id = cleaned_data.get('as_number_id')
 
-        if addr_type == "v6":
-            conditions["is_ipv6"] = True
         q = Q(**conditions)
 
         # AS番号フィルタ
-        if as_number != "":
-            q &= Q(asn__id__contains=as_number)
+        if as_number_id:
+            jpn = JPNICModel.objects.get(id=as_number_id)
+            is_ipv6 = jpn.is_ipv6
+            q &= Q(asn__id__contains=as_number_id)
 
         # 住所/住所(English)一部含むフィルタ
         if address != "":
@@ -62,8 +57,8 @@ class SearchForm(forms.Form):
         # フィルタなし時現在の日付にする
         if select_date is None:
             now_date = datetime.datetime.utcnow()
-            before_date = datetime.datetime(now_date.year, now_date.month, now_date.day, 15,0,0)
-            after_date= before_date + datetime.timedelta(hours=23, minutes=59, seconds=59)
+            before_date = datetime.datetime(now_date.year, now_date.month, now_date.day, 15, 0, 0)
+            after_date = before_date + datetime.timedelta(hours=23, minutes=59, seconds=59)
             # print(before_date, after_date)
             q &= Q(get_start_date__gte=before_date) & Q(get_start_date__lte=after_date)
         else:
@@ -72,7 +67,7 @@ class SearchForm(forms.Form):
             # print(before_date, after_date)
             q &= Q(get_start_date__gte=before_date) & Q(get_start_date__lte=after_date)
 
-        if addr_type:
+        if is_ipv6:
             return V6List.objects.select_related('admin_jpnic').prefetch_related('tech_jpnic').filter(q)
         else:
             return V4List.objects.select_related('admin_jpnic').prefetch_related('tech_jpnic').filter(q)

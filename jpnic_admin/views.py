@@ -30,6 +30,7 @@ def index(request):
         events_page = paginator.page(paginator.num_pages)
 
     context = {
+        "jpnic_model": JPNICModel.objects.all(),
         "jpnic_page": events_page,
         "count_no_data": count_no_data,
         "search_form": form,
