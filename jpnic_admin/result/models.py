@@ -14,8 +14,8 @@ class JPNICHandle(models.Model):
     org_en = models.CharField("組織名(英語)", max_length=30, db_index=True)
     division = models.CharField("部署", max_length=30, null=True, blank=True, db_index=True)
     division_en = models.CharField("部署(英語)", max_length=30, null=True, blank=True, db_index=True)
-    tel = models.CharField("部署(英語)", max_length=20, null=True, blank=True, db_index=True)
-    fax = models.CharField("部署(英語)", max_length=20, null=True, blank=True, db_index=True)
+    tel = models.CharField("電話番号", max_length=100, null=True, blank=True, db_index=True)
+    fax = models.CharField("Fax", max_length=100, null=True, blank=True, db_index=True)
     asn = models.ForeignKey("jpnic_admin.JPNIC", related_name="jpnic_handle", on_delete=models.PROTECT)
     update_date = models.DateTimeField("更新時刻")
 
