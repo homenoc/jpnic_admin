@@ -52,7 +52,8 @@
                 {% else %}
                     <th class="table-danger">{{ j.data.collection_interval }}分</th>
                 {% endif %}
-                <th>{{ j.expiry_date.after }}</th>
+                <th>{% if j.expiry_date == None %}    <span class="badge bg-danger">p12ファイルが壊れています</span>
+{% else %}{{ j.expiry_date.after }}{% endif %}</th>
                 <th>
                     <form method="post">
                         {% csrf_token %}

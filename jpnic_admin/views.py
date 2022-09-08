@@ -636,11 +636,16 @@ def list_as(request):
         ca_expiry_date = verify_expire_ca()
         for jpn in jpnic_model:
             print(jpn)
-            p12_expiry_date = verify_expire_p12_file(p12_base64=jpn.p12_base64, p12_pass=jpn.p12_pass)
-            data.append({
-                'data': jpn,
-                'expiry_date': p12_expiry_date
-            })
+            try:
+                p12_expiry_date = verify_expire_p12_file(p12_base64=jpn.p12_base64, p12_pass=jpn.p12_pass)
+                data.append({
+                    'data': jpn,
+                    'expiry_date': p12_expiry_date
+                })
+            except:
+                data.append({
+                    'data': jpn,
+                })
         context = {
             "jpnic": data,
             "ca_path": settings.CA_PATH,
