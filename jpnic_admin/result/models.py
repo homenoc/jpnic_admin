@@ -5,6 +5,8 @@ from django.db import models
 class JPNICHandle(models.Model):
     get_start_date = models.DateTimeField("取得開始時刻")
     get_date = models.DateTimeField("取得更新時刻")
+    is_disabled = models.BooleanField("無効", default=False)
+    is_get = models.BooleanField("取得", default=True)
     is_ipv6 = models.BooleanField("IPv6", blank=False)
     jpnic_handle = models.CharField("JPNICハンドル", max_length=20, db_index=True)
     name = models.CharField("名前", max_length=50, db_index=True)
@@ -46,6 +48,8 @@ class V4List(models.Model):
 
     get_start_date = models.DateTimeField("取得開始時刻")
     get_date = models.DateTimeField("取得更新時刻")
+    is_disabled = models.BooleanField("無効", default=False)
+    is_get = models.BooleanField("取得", default=True)
     ip_address = models.CharField("IPアドレス", max_length=100, db_index=True)
     size = models.IntegerField("サイズ")
     network_name = models.CharField("ネットワーク名", max_length=30)
@@ -86,6 +90,8 @@ class V6List(models.Model):
 
     get_start_date = models.DateTimeField("取得開始時刻")
     get_date = models.DateTimeField("取得更新時刻")
+    is_disabled = models.BooleanField("無効", default=False)
+    is_get = models.BooleanField("取得", default=True)
     ip_address = models.CharField("IPアドレス", max_length=100, db_index=True)
     network_name = models.CharField("ネットワーク名", max_length=30)
     assign_date = models.DateTimeField("割振・割当年月日")
