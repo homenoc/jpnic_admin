@@ -94,7 +94,7 @@
     {% if jpnic_page %}
         <table class="table table-striped table-hover">
             <tr>
-                <th>ASN</th>
+                <th>ASN_ID</th>
                 <th>取得開始日</th>
                 <th>更新日</th>
                 <th>IP Address</th>
@@ -114,9 +114,10 @@
                 <tr>
                     <td>{{ j_p.asn_id }}</td>
                     <td>{{ j_p.get_start_date }}</td>
-                    <td  {% if j_p.org == "" and j_p.address == "" %}
-                        class="table-danger" {% else %} class="table-success" {% endif %}> {{ j_p.get_date }}</td>
-                    <td>{{ j_p.ip_address }}</td>
+                    <td  {% if j_p.is_get %}
+                        class="table-danger" {% elif j_p.is_disabled %} class="table-warning" {% else %}
+                        class="table-success" {% endif %}> {{ j_p.get_date }}</td>
+                    <td>{{ j_p.ip_address }}{% if j_p.is_disabled %}<br/>返却済み/情報取得エラー{% endif %}</td>
                     <td>{{ j_p.division }}</td>
                     <td>{{ j_p.network_name }}</td>
                     <td>{{ j_p.org }}</td>
