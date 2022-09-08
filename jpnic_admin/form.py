@@ -61,6 +61,7 @@ class SearchForm(forms.Form):
             tmp_before_date = now_date - datetime.timedelta(days=1)
             before_date = datetime.datetime(tmp_before_date.year, tmp_before_date.month, tmp_before_date.day, 15, 0, 0)
             after_date = datetime.datetime(now_jst_datetime.year, now_jst_datetime.month, now_jst_datetime.day, 14, 59, 59)
+            # print(before_date, after_date)
             q &= Q(get_start_date__gte=before_date) & Q(get_start_date__lte=after_date)
         else:
             after_date = datetime.datetime(select_date.year, select_date.month, select_date.day, 14, 59, 59)

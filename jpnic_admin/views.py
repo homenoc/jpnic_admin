@@ -20,7 +20,7 @@ def index(request):
     form = SearchForm(request.GET)
     result = form.get_queryset().order_by()
 
-    count_no_data = result.filter(Q(address='', address_en='')).count()
+    count_no_data = result.filter(Q(is_get=True)).count()
 
     paginator = Paginator(result, int(request.GET.get("per_page", "30")))
     page = int(request.GET.get("page", "1"))
