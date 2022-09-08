@@ -113,10 +113,10 @@
             {% for j_p in jpnic_page %}
                 <tr>
                     <td>{{ j_p.asn_id }}</td>
-                    <td>{{ j_p.get_start_date }}</td>
+                    <td>{% to_jst j_p.get_start_date %}</td>
                     <td  {% if j_p.is_get %}
                         class="table-danger" {% elif j_p.is_disabled %} class="table-warning" {% else %}
-                        class="table-success" {% endif %}> {{ j_p.get_date }}</td>
+                        class="table-success" {% endif %}>{% to_jst j_p.get_date %}</td>
                     <td>{{ j_p.ip_address }}{% if j_p.is_disabled %}<br/>返却済み/情報取得エラー{% endif %}</td>
                     <td>{{ j_p.division }}</td>
                     <td>{{ j_p.network_name }}</td>
