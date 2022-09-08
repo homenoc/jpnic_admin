@@ -57,9 +57,10 @@ class SearchForm(forms.Form):
         # フィルタなし時現在の日付にする
         if select_date is None:
             now_date = datetime.datetime.utcnow()
-            before_date = datetime.datetime(now_date.year, now_date.month, now_date.day, 15, 0, 0)
-            after_date = before_date + datetime.timedelta(hours=23, minutes=59, seconds=59)
-            # print(before_date, after_date)
+            now_jst_datetime = now_date + datetime.timedelta(hours=9)
+            tmp_before_date = now_date - datetime.timedelta(days=1)
+            before_date = datetime.datetime(tmp_before_date.year, tmp_before_date.month, tmp_before_date.day, 15, 0, 0)
+            after_date = datetime.datetime(now_jst_datetime.year, now_jst_datetime.month, now_jst_datetime.day, 14, 59, 59)
             q &= Q(get_start_date__gte=before_date) & Q(get_start_date__lte=after_date)
         else:
             after_date = datetime.datetime(select_date.year, select_date.month, select_date.day, 14, 59, 59)
