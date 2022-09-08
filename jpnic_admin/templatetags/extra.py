@@ -9,3 +9,10 @@ def url_replace(request, **kwargs):
     for k, v in kwargs.items():
         params[k] = v
     return params.urlencode()
+
+
+@register.simple_tag
+def to_int(value):
+    if not value:
+        return None
+    return int(value)
