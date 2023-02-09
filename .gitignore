@@ -2,3 +2,5 @@
 !.idea/gradle.xml
 !.idea/misc.xml
 conf/*
+*.sqlite3
+*.sqlite3-*

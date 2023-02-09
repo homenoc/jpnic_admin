@@ -5,7 +5,7 @@ from jpnic_admin.models import JPNIC
 
 admin.site.site_title = settings.SITE_TITLE
 admin.site.site_header = settings.SITE_HEADER
-admin.site.index_title = 'メニュー'
+admin.site.index_title = "メニュー"
 
 
 @admin.register(JPNIC)
@@ -19,7 +19,7 @@ class JPNICAdmin(admin.ModelAdmin):
         "ada",
         "collection_interval",
         "p12_base64",
-        "p12_pass"
+        "p12_pass",
     )
     list_filter = ("is_active",)
     search_fields = ("name",)

@@ -1,4 +1,3 @@
-import json
 from django.db import models
 
 
@@ -18,7 +17,9 @@ class JPNICHandle(models.Model):
     division_en = models.CharField("部署(英語)", max_length=120, null=True, blank=True, db_index=True)
     tel = models.CharField("電話番号", max_length=100, null=True, blank=True, db_index=True)
     fax = models.CharField("Fax", max_length=100, null=True, blank=True, db_index=True)
-    asn = models.ForeignKey("jpnic_admin.JPNIC", related_name="jpnic_handle", on_delete=models.CASCADE)
+    asn = models.ForeignKey(
+        "jpnic_admin.JPNIC", related_name="jpnic_handle", on_delete=models.CASCADE
+    )
     update_date = models.DateTimeField("更新時刻")
 
     def __str__(self):
@@ -69,7 +70,9 @@ class V4List(models.Model):
     ds_record = models.CharField("DSレコード", max_length=500, null=True, blank=True)
     notify_address = models.CharField("通知アドレス", max_length=200, null=True, blank=True)
     asn = models.ForeignKey("jpnic_admin.JPNIC", related_name="v4lists", on_delete=models.CASCADE)
-    admin_jpnic = models.ForeignKey("result.JPNICHandle", related_name="v4lists", null=True, on_delete=models.CASCADE)
+    admin_jpnic = models.ForeignKey(
+        "result.JPNICHandle", related_name="v4lists", null=True, on_delete=models.CASCADE
+    )
     tech_jpnic = models.ManyToManyField(JPNICHandle)
 
     def __str__(self):
@@ -109,7 +112,9 @@ class V6List(models.Model):
     ds_record = models.CharField("DSレコード", max_length=500, null=True, blank=True)
     notify_address = models.CharField("通知アドレス", max_length=200, null=True, blank=True)
     asn = models.ForeignKey("jpnic_admin.JPNIC", related_name="v6lists", on_delete=models.CASCADE)
-    admin_jpnic = models.ForeignKey("result.JPNICHandle", related_name="v6lists", null=True, on_delete=models.CASCADE)
+    admin_jpnic = models.ForeignKey(
+        "result.JPNICHandle", related_name="v6lists", null=True, on_delete=models.CASCADE
+    )
     tech_jpnic = models.ManyToManyField(JPNICHandle)
 
     def __str__(self):

@@ -20,11 +20,11 @@ class SearchForm(forms.Form):
     )
 
     select_date = forms.DateField(
-        label='データ日時',
-        input_formats=['%Y-%m-%d'],
+        label="データ日時",
+        input_formats=["%Y-%m-%d"],
         initial=datetime.date.today,
-        widget=forms.DateTimeInput(format='%Y-%m-%d'),
-        required=False
+        widget=forms.DateTimeInput(format="%Y-%m-%d"),
+        required=False,
     )
 
     def get_queryset(self):
@@ -36,10 +36,10 @@ class SearchForm(forms.Form):
         # 条件
         conditions = {}
 
-        select_date = cleaned_data.get('select_date')
+        select_date = cleaned_data.get("select_date")
         is_ipv6 = False
-        address = cleaned_data.get('address')
-        as_number_id = cleaned_data.get('as_number_id')
+        address = cleaned_data.get("address")
+        as_number_id = cleaned_data.get("as_number_id")
 
         q = Q(**conditions)
 
@@ -59,20 +59,29 @@ class SearchForm(forms.Form):
             now_date = datetime.datetime.utcnow()
             now_jst_datetime = now_date + datetime.timedelta(hours=9)
             tmp_before_date = now_jst_datetime - datetime.timedelta(days=1)
-            before_date = datetime.datetime(tmp_before_date.year, tmp_before_date.month, tmp_before_date.day, 15, 0, 0)
-            after_date = datetime.datetime(now_jst_datetime.year, now_jst_datetime.month, now_jst_datetime.day, 14, 59, 59)
+            before_date = datetime.datetime(
+                tmp_before_date.year, tmp_before_date.month, tmp_before_date.day, 15, 0, 0
+            )
+            after_date = datetime.datetime(
+                now_jst_datetime.year, now_jst_datetime.month, now_jst_datetime.day, 14, 59, 59
+            )
             # print(before_date, after_date)
             q &= Q(get_start_date__gte=before_date) & Q(get_start_date__lte=after_date)
         else:
-            after_date = datetime.datetime(select_date.year, select_date.month, select_date.day, 14, 59, 59)
+            after_date = datetime.datetime(
+                select_date.year, select_date.month, select_date.day, 14, 59, 59
+            )
             before_date = after_date - datetime.timedelta(hours=23, minutes=59, seconds=59)
             # print(before_date, after_date)
             q &= Q(get_start_date__gte=before_date) & Q(get_start_date__lte=after_date)
 
         if is_ipv6:
-            return V6List.objects.select_related('admin_jpnic').prefetch_related('tech_jpnic').filter(q)
-        else:
-            return V4List.objects.select_related('admin_jpnic').prefetch_related('tech_jpnic').filter(q)
+            return (
+                V6List.objects.select_related("admin_jpnic")
+                .prefetch_related("tech_jpnic")
+                .filter(q)
+            )
+        return V4List.objects.select_related("admin_jpnic").prefetch_related("tech_jpnic").filter(q)
 
 
 class AddAssignment(forms.Form):
@@ -119,11 +128,11 @@ class AddAssignment(forms.Form):
     )
 
     return_date = forms.DateField(
-        label='返却年月日',
-        input_formats=['%Y/%m/%d'],
+        label="返却年月日",
+        input_formats=["%Y/%m/%d"],
         # initial=datetime.date.today,
-        widget=forms.DateTimeInput(format='%Y/%m/%d'),
-        required=False
+        widget=forms.DateTimeInput(format="%Y/%m/%d"),
+        required=False,
     )
 
     apply_email = forms.EmailField(
@@ -131,10 +140,7 @@ class AddAssignment(forms.Form):
         required=False,
     )
 
-    file = forms.FileField(
-        label='ファイル(json)',
-        required=False
-    )
+    file = forms.FileField(label="ファイル(json)", required=False)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -145,28 +151,19 @@ class AddAssignment(forms.Form):
             # Only do something if both fields are valid so far.
             if "help" not in subject:
                 raise ValidationError(
-                    "Did not send for 'help' in the subject despite "
-                    "CC'ing yourself."
+                    "Did not send for 'help' in the subject despite " "CC'ing yourself."
                 )
 
 
 class GetIPAddressForm(forms.Form):
-    KIND_CHOICE = [
-        (1, '割振'),
-        (2, 'ユーザ割当'),
-        (3, 'インフラ割当'),
-        (4, 'SUBA')
-    ]
+    KIND_CHOICE = [(1, "割振"), (2, "ユーザ割当"), (3, "インフラ割当"), (4, "SUBA")]
 
     asn = forms.IntegerField(
         label="AS番号",
         required=True,
     )
 
-    ipv6 = forms.BooleanField(
-        label='ipv6',
-        required=False
-    )
+    ipv6 = forms.BooleanField(label="ipv6", required=False)
 
     ip_address = forms.CharField(
         label="IPアドレス",
@@ -182,9 +179,9 @@ class GetIPAddressForm(forms.Form):
 
 class GetChangeAssignment(forms.Form):
     V4_KIND_CHOICE = [
-        (0, '割り当て'),
-        (2, 'SUBA登録'),
-        (3, '歴史的PI'),
+        (0, "割り当て"),
+        (2, "SUBA登録"),
+        (3, "歴史的PI"),
     ]
 
     asn = forms.IntegerField(
@@ -192,10 +189,7 @@ class GetChangeAssignment(forms.Form):
         required=True,
     )
 
-    ipv6 = forms.BooleanField(
-        label='ipv6',
-        required=False
-    )
+    ipv6 = forms.BooleanField(label="ipv6", required=False)
 
     ip_address = forms.CharField(
         label="IP Address",
@@ -212,14 +206,14 @@ class GetChangeAssignment(forms.Form):
         cleaned_data = super().clean()
         input_asn = cleaned_data.get("asn")
         if input_asn < 1:
-            raise forms.ValidationError('AS番号が正しくありません')
+            raise forms.ValidationError("AS番号が正しくありません")
         input_ip_address = cleaned_data.get("ip_address")
         if not input_ip_address:
-            raise forms.ValidationError('IPアドレスが正しくありません')
+            raise forms.ValidationError("IPアドレスが正しくありません")
         if not cleaned_data.get("ipv6"):
             input_kind = cleaned_data.get("kind")
             if not input_kind:
-                raise forms.ValidationError('IPv4種別を選択してください')
+                raise forms.ValidationError("IPv4種別を選択してください")
 
 
 class ChangeV4Assignment(forms.Form):
@@ -281,10 +275,10 @@ class ChangeV4Assignment(forms.Form):
     )
 
     rtn_date = forms.DateField(
-        label='返却年月日',
-        input_formats=['%Y-%m-%d'],
-        widget=forms.DateTimeInput(format='%Y-%m-%d'),
-        required=False
+        label="返却年月日",
+        input_formats=["%Y-%m-%d"],
+        widget=forms.DateTimeInput(format="%Y-%m-%d"),
+        required=False,
     )
 
     aply_from_addr = forms.EmailField(
@@ -352,10 +346,10 @@ class ChangeV6Assignment(forms.Form):
     )
 
     returndate = forms.DateField(
-        label='返却年月日',
-        input_formats=['%Y-%m-%d'],
-        widget=forms.DateTimeInput(format='%Y-%m-%d'),
-        required=False
+        label="返却年月日",
+        input_formats=["%Y-%m-%d"],
+        widget=forms.DateTimeInput(format="%Y-%m-%d"),
+        required=False,
     )
 
     applymailaddr = forms.EmailField(
@@ -370,16 +364,13 @@ class Base1(forms.Form):
         required=True,
     )
 
-    ipv6 = forms.BooleanField(
-        label='ipv6',
-        required=False
-    )
+    ipv6 = forms.BooleanField(label="ipv6", required=False)
 
     def clean(self):
         cleaned_data = super().clean()
         input_asn = cleaned_data.get("asn")
         if input_asn < 1:
-            raise forms.ValidationError('AS番号が正しくありません')
+            raise forms.ValidationError("AS番号が正しくありません")
 
 
 class GetJPNICHandle(forms.Form):
@@ -388,10 +379,7 @@ class GetJPNICHandle(forms.Form):
         required=True,
     )
 
-    ipv6 = forms.BooleanField(
-        label='ipv6',
-        required=False
-    )
+    ipv6 = forms.BooleanField(label="ipv6", required=False)
 
     jpnic_handle = forms.CharField(
         label="JPNICハンドル",
@@ -402,22 +390,22 @@ class GetJPNICHandle(forms.Form):
         cleaned_data = super().clean()
         input_asn = cleaned_data.get("asn")
         if input_asn < 1:
-            raise forms.ValidationError('AS番号が正しくありません')
+            raise forms.ValidationError("AS番号が正しくありません")
         input_jpnic_handle = cleaned_data.get("jpnic_handle")
         if not input_jpnic_handle:
-            raise forms.ValidationError('JPNIC Handleを指定してください')
+            raise forms.ValidationError("JPNIC Handleを指定してください")
 
 
 class AddGroupContact(forms.Form):
-    HANDLE_GROUP = 'group'
+    HANDLE_GROUP = "group"
     HANDLE_JPNIC = "person"
     HANDLE_CHOICE = [
-        (HANDLE_GROUP, 'グループハンドル'),
-        (HANDLE_JPNIC, 'JPNICハンドル'),
+        (HANDLE_GROUP, "グループハンドル"),
+        (HANDLE_JPNIC, "JPNICハンドル"),
     ]
 
     kind = forms.ChoiceField(
-        label='グループ/JPNICハンドル',
+        label="グループ/JPNICハンドル",
         choices=HANDLE_CHOICE,
         initial=HANDLE_JPNIC,
         # empty_value=HANDLE_JPNIC,
@@ -520,10 +508,7 @@ class ReturnAssignment(forms.Form):
         required=True,
     )
 
-    ipv6 = forms.BooleanField(
-        label='ipv6',
-        required=False
-    )
+    ipv6 = forms.BooleanField(label="ipv6", required=False)
 
     ip_address = forms.CharField(
         label="IP Address",
@@ -531,24 +516,18 @@ class ReturnAssignment(forms.Form):
     )
 
     return_date = forms.DateField(
-        label='返却年月日',
-        input_formats=['%Y/%m/%d'],
-        initial='',
-        widget=forms.DateTimeInput(format='%Y/%m/%d'),
-        required=False
+        label="返却年月日",
+        input_formats=["%Y/%m/%d"],
+        initial="",
+        widget=forms.DateTimeInput(format="%Y/%m/%d"),
+        required=False,
     )
 
-    notify_address = forms.CharField(
-        label="申請者アドレス",
-        required=False
-    )
+    notify_address = forms.CharField(label="申請者アドレス", required=False)
 
 
 class UploadFile(forms.Form):
-    file = forms.FileField(
-        label='ファイル(json)',
-        required=False
-    )
+    file = forms.FileField(label="ファイル(json)", required=False)
 
 
 class ASForm(forms.Form):
@@ -557,10 +536,7 @@ class ASForm(forms.Form):
         required=False,
     )
 
-    ipv6 = forms.BooleanField(
-        label='ipv6であるか',
-        required=False
-    )
+    ipv6 = forms.BooleanField(label="ipv6であるか", required=False)
 
     ada = forms.BooleanField(
         label="データの自動収集",
@@ -577,10 +553,7 @@ class ASForm(forms.Form):
         required=True,
     )
 
-    p12 = forms.FileField(
-        label='ファイル(.p12)',
-        required=False
-    )
+    p12 = forms.FileField(label="ファイル(.p12)", required=False)
 
     p12_pass = forms.CharField(
         label="p12パスワード",
@@ -589,10 +562,7 @@ class ASForm(forms.Form):
 
 
 class ChangeCertForm(forms.Form):
-    p12 = forms.FileField(
-        label='ファイル(.p12)',
-        required=False
-    )
+    p12 = forms.FileField(label="ファイル(.p12)", required=False)
 
     p12_pass = forms.CharField(
         label="p12パスワード",
