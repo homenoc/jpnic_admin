@@ -16,3 +16,11 @@ class JPNIC(models.Model):
 
     def __str__(self):
         return self.name
+
+
+# class RequestLog(models.Model):
+#     class Meta:
+#         verbose_name = verbose_name_plural = "申請ログ"
+#
+#     name = models.CharField("名前", max_length=100)
+#     # result = models.CharField("結果", max_length=65530)

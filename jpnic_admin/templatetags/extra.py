@@ -26,4 +26,3 @@ def to_jst(gmt):
     if not gmt:
         return "取得失敗"
     return jst.strftime("%Y/%m/%d %H:%M(JST)")
-

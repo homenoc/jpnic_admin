@@ -202,37 +202,37 @@
 
 {% block javascript %}
     <script>
-        $(document).on("click", "#add_nameserver", function () {
-            let count = $('#parent_nameserver > div').length;
-            console.log(count)
-            let html = '<div>ネームサーバ<input type="text" autocomplete="off" list="agent_region"' +
-                ' class="form-control"name="nameserver" id="nameserver"></input>' +
-                '</div>';
-            $('#parent_nameserver').append(html);
+      $(document).on("click", "#add_nameserver", function () {
+        let count = $('#parent_nameserver > div').length;
+        console.log(count)
+        let html = '<div>ネームサーバ<input type="text" autocomplete="off" list="agent_region"' +
+          ' class="form-control"name="nameserver" id="nameserver"></input>' +
+          '</div>';
+        $('#parent_nameserver').append(html);
 
-            // delete all button
-            $('#parent_nameserver button').remove();
-            count += 1;
-            for (let i = 0; i < count; i += 1) {
-                html = '<button class="btn btn-danger" id="delete_nameserver">削除</button>';
-                $('#parent_nameserver > div').eq(i).append(html);
-            }
-        })
+        // delete all button
+        $('#parent_nameserver button').remove();
+        count += 1;
+        for (let i = 0; i < count; i += 1) {
+          html = '<button class="btn btn-danger" id="delete_nameserver">削除</button>';
+          $('#parent_nameserver > div').eq(i).append(html);
+        }
+      })
 
-        $(document).on("click", "#delete_nameserver", function (ev) {
-            let index = $(ev.target).parent().index();
-            $('#parent_nameserver > div').eq(index).remove();
-            let all_count = $('#parent_nameserver > div').length;
+      $(document).on("click", "#delete_nameserver", function (ev) {
+        let index = $(ev.target).parent().index();
+        $('#parent_nameserver > div').eq(index).remove();
+        let all_count = $('#parent_nameserver > div').length;
 
-            if (all_count === 1) {
-                $('#parent_nameserver button').remove();
-            }
-        })
+        if (all_count === 1) {
+          $('#parent_nameserver button').remove();
+        }
+      })
 
-        $(document).on("click", "#add_contact", function () {
-            let count = $('#parent_contact > div').length;
-            console.log(count)
-            let html = '<div>\
+      $(document).on("click", "#add_contact", function () {
+        let count = $('#parent_contact > div').length;
+        console.log(count)
+        let html = '<div>\
             <div class="row g-2">\
             <div class="col-5">\
             グループ/JPNICハンドル\
@@ -325,185 +325,185 @@
             </div>\
             </div>\
             '
-            $('#parent_contact').append(html);
+        $('#parent_contact').append(html);
 
-            // delete all button
-            $('#parent_contact button').remove();
-            for (let i = 0; i < count + 1; i += 1) {
-                html = '<button class="btn btn-danger" id="delete_contact">削除</button>';
-                $('#parent_contact > div').eq(i).append(html);
+        // delete all button
+        $('#parent_contact button').remove();
+        for (let i = 0; i < count + 1; i += 1) {
+          html = '<button class="btn btn-danger" id="delete_contact">削除</button>';
+          $('#parent_contact > div').eq(i).append(html);
+        }
+      })
+
+      $(document).on("click", "#delete_contact", function (ev) {
+        let index = $(ev.target).parent().index();
+        $('#parent_contact > div').eq(index).remove();
+      })
+
+      function check_is_ipv6() {
+
+        $('#infra_usr_kind').empty();
+
+        let infra_usr_kind_html = ''
+        console.log(infra_usr_kind_html)
+        if ((document.getElementById('ipv6')).checked) {
+          infra_usr_kind_html += '<option value=0>インフラストラクチャ</option>'
+          infra_usr_kind_html += '<option value=1 selected>ユーザ</option>'
+          infra_usr_kind_html += '<option value=2>再割り振り</option>'
+          infra_usr_kind_html += '<option value=3>再割り振りからの割り当て</option>'
+          $('#plan_data').prop("disabled", true);
+        } else {
+          infra_usr_kind_html += '<option value=0>インフラストラクチャ</option>'
+          infra_usr_kind_html += '<option value=1 selected>ユーザーネットワーク</option>'
+          infra_usr_kind_html += '<option value=2>SUBA</option>'
+          $('#plan_data').prop("disabled", false);
+        }
+
+        $('#infra_usr_kind').append(infra_usr_kind_html);
+      }
+
+      function get_form_data() {
+        let data = {}
+        let forms_array = $('form').serializeArray()
+        forms_array.forEach(form_array => {
+          if (!form_array.name.includes('nameserver') && !form_array.name.includes('contact_')) {
+            let tmp_value = form_array.value;
+            if (form_array.value == null) {
+              tmp_value = '';
             }
+            data[form_array.name] = tmp_value;
+          }
         })
 
-        $(document).on("click", "#delete_contact", function (ev) {
-            let index = $(ev.target).parent().index();
-            $('#parent_contact > div').eq(index).remove();
+        data.nameservers = []
+        let nameservers = forms_array.filter(d => d.name.includes('nameserver'))
+        nameservers.forEach(tmp_nameserver => {
+          data.nameservers.push(tmp_nameserver.value)
         })
 
-        function check_is_ipv6() {
+        data.contacts = []
+        let contacts = forms_array.filter(d => d.name.includes('contact_'))
+        let tmp_contact_data = {}
+        contacts.forEach(tmp_contact => {
+          let tmp_contact_value = tmp_contact.value;
+          if (tmp_contact.value == null) {
+            tmp_contact_value = '';
+          }
+          tmp_contact_data[tmp_contact.name.slice(8)] = tmp_contact_value
+          if (tmp_contact.name.includes('notify_email')) {
+            data.contacts.push(tmp_contact_data);
+            tmp_contact_data = {}
+          }
+        })
 
-            $('#infra_usr_kind').empty();
+        return data
+      }
 
-            let infra_usr_kind_html = ''
-            console.log(infra_usr_kind_html)
-            if ((document.getElementById('ipv6')).checked) {
-                infra_usr_kind_html += '<option value=0>インフラストラクチャ</option>'
-                infra_usr_kind_html += '<option value=1 selected>ユーザ</option>'
-                infra_usr_kind_html += '<option value=2>再割り振り</option>'
-                infra_usr_kind_html += '<option value=3>再割り振りからの割り当て</option>'
-                $('#plan_data').prop("disabled", true);
-            } else {
-                infra_usr_kind_html += '<option value=0>インフラストラクチャ</option>'
-                infra_usr_kind_html += '<option value=1 selected>ユーザーネットワーク</option>'
-                infra_usr_kind_html += '<option value=2>SUBA</option>'
-                $('#plan_data').prop("disabled", false);
-            }
+      {#$(document).on("click", "#submit_manual", function () {#}
+      $('#assignment_form').submit(function (event) {
+        event.preventDefault();
+        let data = get_form_data()
+        let forms = document.querySelectorAll('.needs-validation')
 
-            $('#infra_usr_kind').append(infra_usr_kind_html);
+        Array.prototype.slice.call(forms)
+          .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+              if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+              }
+
+              form.classList.add('was-validated')
+            }, false)
+          })
+
+        $.ajax({
+          type: "POST",
+          url: "{% url 'add_assignment' %}",
+          entries: "application/json",
+          data: {
+            data: JSON.stringify(data),
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+          },
+        }).done(function (data) {
+          console.log(data)
+          result(data)
+        });
+        return false
+      });
+
+      $('#file_upload_form').submit(function (event) {
+        event.preventDefault();
+        console.log(event)
+        var formData = new FormData(this);
+        console.log(formData)
+        for (var [key, value] of formData.entries()) {
+          console.log(key, value);
         }
 
-        function get_form_data() {
-            let data = {}
-            let forms_array = $('form').serializeArray()
-            forms_array.forEach(form_array => {
-                if (!form_array.name.includes('nameserver') && !form_array.name.includes('contact_')) {
-                    let tmp_value = form_array.value;
-                    if (form_array.value == null) {
-                        tmp_value = '';
-                    }
-                    data[form_array.name] = tmp_value;
-                }
-            })
+        $.ajax({
+          type: "POST",
+          url: "{% url 'add_assignment' %}",
+          enctype: "multipart/form-data",
+          data: formData,
+          processData: false,
+          contentType: false,
+          cache: false
+        }).done(function (data) {
+          console.log(data)
+          result(data)
+        });
+        return false;
+      });
 
-            data.nameservers = []
-            let nameservers = forms_array.filter(d => d.name.includes('nameserver'))
-            nameservers.forEach(tmp_nameserver => {
-                data.nameservers.push(tmp_nameserver.value)
-            })
+      function result(data) {
+        $('#result').empty();
 
-            data.contacts = []
-            let contacts = forms_array.filter(d => d.name.includes('contact_'))
-            let tmp_contact_data = {}
-            contacts.forEach(tmp_contact => {
-                let tmp_contact_value = tmp_contact.value;
-                if (tmp_contact.value == null) {
-                    tmp_contact_value = '';
-                }
-                tmp_contact_data[tmp_contact.name.slice(8)] = tmp_contact_value
-                if (tmp_contact.name.includes('notify_email')) {
-                    data.contacts.push(tmp_contact_data);
-                    tmp_contact_data = {}
-                }
-            })
-
-            return data
+        let html = '<br/>'
+        html += '<nav class="nav nav-pills">'
+        html += '<button class="nav-link active btn btn-primary" onclick="window.print();">印刷 <i class="bi bi-printer-fill"></i></button>'
+        html += '&nbsp;'
+        html += '</nav>'
+        html += '<br/>'
+        if (data['error']) {
+          html += '<h4>エラー</h4>'
+          html += '<div class="alert alert-danger" role="alert">'
+          html += data.error
+          html += '</div>'
+        } else {
+          html += '<h4>Response(成功)</h4>'
+          html += '<div class="alert alert-success" role="alert">'
+          html += data['data']
+          html += '</div>'
         }
 
-        {#$(document).on("click", "#submit_manual", function () {#}
-        $('#assignment_form').submit(function (event) {
-            event.preventDefault();
-            let data = get_form_data()
-            let forms = document.querySelectorAll('.needs-validation')
-
-            Array.prototype.slice.call(forms)
-                .forEach(function (form) {
-                    form.addEventListener('submit', function (event) {
-                        if (!form.checkValidity()) {
-                            event.preventDefault()
-                            event.stopPropagation()
-                        }
-
-                        form.classList.add('was-validated')
-                    }, false)
-                })
-
-            $.ajax({
-                type: "POST",
-                url: "{% url 'add_assignment' %}",
-                entries: "application/json",
-                data: {
-                    data: JSON.stringify(data),
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
-            }).done(function (data) {
-                console.log(data)
-                result(data)
-            });
-            return false
-        });
-
-        $('#file_upload_form').submit(function (event) {
-            event.preventDefault();
-            console.log(event)
-            var formData = new FormData(this);
-            console.log(formData)
-            for (var [key, value] of formData.entries()) {
-                console.log(key, value);
-            }
-
-            $.ajax({
-                type: "POST",
-                url: "{% url 'add_assignment' %}",
-                enctype: "multipart/form-data",
-                data: formData,
-                processData: false,
-                contentType: false,
-                cache: false
-            }).done(function (data) {
-                console.log(data)
-                result(data)
-            });
-            return false;
-        });
-
-        function result(data) {
-            $('#result').empty();
-
-            let html = '<br/>'
-            html += '<nav class="nav nav-pills">'
-            html += '<button class="nav-link active btn btn-primary" onclick="window.print();">印刷 <i class="bi bi-printer-fill"></i></button>'
-            html += '&nbsp;'
-            html += '</nav>'
-            html += '<br/>'
-            if (data['error']) {
-                html += '<h4>エラー</h4>'
-                html += '<div class="alert alert-danger" role="alert">'
-                html += data.error
-                html += '</div>'
-            } else {
-                html += '<h4>Response(成功)</h4>'
-                html += '<div class="alert alert-success" role="alert">'
-                html += data['data']
-                html += '</div>'
-            }
-
-            if (data['result_html']) {
-                html += '<br/>'
-                html += '<h4>Response(html)</h4>'
-                html += '<iframe name="result_html" srcdoc="' + data["result_html"] + '" width="1200" height="700"></iframe>'
-            }
-
-            if (data['req_data']) {
-                html += '<br/>'
-                html += '<h4>Request Data(json)</h4>'
-                html += '<div class="card">'
-                html += '<div class="card-body">'
-                html += data['req_data']
-                html += '</div>'
-                html += '</div>'
-            }
-
-            console.log(html)
-            $('#result').append(html);
-            $(window).scrollTop(0);
+        if (data['result_html']) {
+          html += '<br/>'
+          html += '<h4>Response(html)</h4>'
+          html += '<iframe name="result_html" srcdoc="' + data["result_html"] + '" width="1200" height="700"></iframe>'
         }
 
-        document.getElementById('download_json').addEventListener('click', (event) => {
-            let data = get_form_data()
+        if (data['req_data']) {
+          html += '<br/>'
+          html += '<h4>Request Data(json)</h4>'
+          html += '<div class="card">'
+          html += '<div class="card-body">'
+          html += data['req_data']
+          html += '</div>'
+          html += '</div>'
+        }
 
-            const data_json = JSON.stringify(data, null, 2);
-            const blob = new Blob([data_json], {type: 'application/json'});
-            event.currentTarget.href = window.URL.createObjectURL(blob);
-        });
+        console.log(html)
+        $('#result').append(html);
+        $(window).scrollTop(0);
+      }
+
+      document.getElementById('download_json').addEventListener('click', (event) => {
+        let data = get_form_data()
+
+        const data_json = JSON.stringify(data, null, 2);
+        const blob = new Blob([data_json], {type: 'application/json'});
+        event.currentTarget.href = window.URL.createObjectURL(blob);
+      });
     </script>
 {% endblock javascript %}
