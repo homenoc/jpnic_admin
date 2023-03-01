@@ -5,6 +5,9 @@ verify_ssl = true
 
 [dev-packages]
 django-debug-toolbar = "*"
+black = "*"
+pylint-django = "*"
+pylint = "==2.14.5"
 
 [packages]
 django = "==4.1"
@@ -16,6 +19,7 @@ mysqlclient = "*"
 urllib3 = "==1.26.11"
 pyopenssl = "*"
 beautifulsoup4 = "*"
+django-configurations = "*"
 
 [requires]
 python_version = "3.8"
