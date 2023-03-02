@@ -16,10 +16,9 @@ services:
       - DB_USER=jpnic-admin
       - DB_PASSWORD=passWord123#
     links:
-      - db
-    restart:
-      always
-  db:
+      - mysql
+    restart: always
+  mysql:
     image: mariadb:10.7.4
     restart: always
     ports:
