@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "debug_toolbar",
     "jpnic_admin",
-    "jpnic_admin.data",
+    "jpnic_admin.resource",
     "jpnic_admin.config",
     "jpnic_admin.assignment",
     "jpnic_admin.person",
@@ -86,9 +86,9 @@ WSGI_APPLICATION = "jpnic_admin.wsgi.application"
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 }
 
