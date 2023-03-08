@@ -243,7 +243,6 @@ class JPNIC:
         fax="",
         notify_email="",
     ):
-
         data = {
             "kind": kind,
             "jpnic_hdl": jpnic_handle,
@@ -874,37 +873,38 @@ class JPNIC:
         data = {"jpnic_hdl": jpnic_handle}
         update_date = None
         for idx in range(len(jpnic_handle_info)):
-            if idx != 0:
-                prev_text = jpnic_handle_info[idx - 1].text.strip()
-                now_text = jpnic_handle_info[idx].text.strip()
-                if prev_text == "グループハンドル":
-                    data["kind"] = "group"
-                if prev_text == "JPNICハンドル":
-                    data["kind"] = "person"
-                if prev_text in ("グループ名", "氏名"):
-                    data["name_jp"] = now_text
-                if prev_text in ("Group Name", "Last, First"):
-                    data["name"] = now_text
-                if prev_text in ("電子メール", "電子メイル"):
-                    data["email"] = now_text
-                if prev_text == "組織名":
-                    data["org_nm_jp"] = now_text
-                if prev_text == "Organization":
-                    data["org_nm"] = now_text
-                if prev_text == "部署":
-                    data["division_jp"] = now_text
-                if prev_text == "Division":
-                    data["division"] = now_text
-                if prev_text == "肩書":
-                    data["title_jp"] = now_text
-                if prev_text == "Title":
-                    data["title"] = now_text
-                if prev_text == "電話番号":
-                    data["phone"] = now_text
-                if prev_text in ("Fax番号", "FAX番号"):
-                    data["fax"] = now_text
-                if prev_text == "最終更新":
-                    update_date = now_text
+            if idx == 0:
+                continue
+            prev_text = jpnic_handle_info[idx - 1].text.strip()
+            now_text = jpnic_handle_info[idx].text.strip()
+            if prev_text == "グループハンドル":
+                data["kind"] = "group"
+            if prev_text == "JPNICハンドル":
+                data["kind"] = "person"
+            if prev_text in ("グループ名", "氏名"):
+                data["name_jp"] = now_text
+            if prev_text in ("Group Name", "Last, First"):
+                data["name"] = now_text
+            if prev_text in ("電子メール", "電子メイル"):
+                data["email"] = now_text
+            if prev_text == "組織名":
+                data["org_nm_jp"] = now_text
+            if prev_text == "Organization":
+                data["org_nm"] = now_text
+            if prev_text == "部署":
+                data["division_jp"] = now_text
+            if prev_text == "Division":
+                data["division"] = now_text
+            if prev_text == "肩書":
+                data["title_jp"] = now_text
+            if prev_text == "Title":
+                data["title"] = now_text
+            if prev_text == "電話番号":
+                data["phone"] = now_text
+            if prev_text in ("Fax番号", "FAX番号"):
+                data["fax"] = now_text
+            if prev_text == "最終更新":
+                update_date = now_text
         if data["org_nm_jp"] == "" and data["name_jp"] == "":
             raise JPNICReqError("該当のJPNIC Handleが見つかりませんでした。", res.text)
         return {"data": data, "update_date": update_date}
