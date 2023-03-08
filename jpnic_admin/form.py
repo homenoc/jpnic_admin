@@ -2,10 +2,13 @@ import datetime
 
 from django import forms
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db import connection
+from django.db.models import Q, Prefetch
+from django.utils import timezone
 
-from jpnic_admin.data.models import V4List, V6List
+from jpnic_admin.resource.models import AddrList
 from jpnic_admin.models import JPNIC as JPNICModel
+from .resource.sql import sqlDateSelect, sqlDateSelectCount, sqlNow, sqlNowCount
 
 
 class SearchForm(forms.Form):
@@ -14,74 +17,145 @@ class SearchForm(forms.Form):
         required=False,
     )
 
+    network_name = forms.CharField(
+        label="ネットワーク名(一部含む)",
+        required=False,
+    )
+
     address = forms.CharField(
         label="住所/住所(English)(一部含む)",
         required=False,
     )
 
-    select_date = forms.DateField(
-        label="データ日時",
+    start_date = forms.DateField(
+        label="取得日開始",
         input_formats=["%Y-%m-%d"],
         initial=datetime.date.today,
         widget=forms.DateTimeInput(format="%Y-%m-%d"),
         required=False,
     )
 
-    def get_queryset(self):
-        if not self.is_valid():
-            return V4List.objects.all()
+    end_date = forms.DateField(
+        label="取得日終了",
+        input_formats=["%Y-%m-%d"],
+        initial=datetime.date.today,
+        widget=forms.DateTimeInput(format="%Y-%m-%d"),
+        required=False,
+    )
+
+    def get_queryset(self, page=1, jpnic_model=None):
+        if (not self.is_valid()) or jpnic_model is None:
+            return None
 
         cleaned_data = self.cleaned_data
 
-        # 条件
-        conditions = {}
-
-        select_date = cleaned_data.get("select_date")
-        is_ipv6 = False
-        address = cleaned_data.get("address")
         as_number_id = cleaned_data.get("as_number_id")
+        network_name = cleaned_data.get("network_name")
+        address = cleaned_data.get("address")
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
 
-        q = Q(**conditions)
+        if as_number_id is None:
+            return None
 
         # AS番号フィルタ
-        if as_number_id:
-            jpn = JPNICModel.objects.get(id=as_number_id)
-            is_ipv6 = jpn.is_ipv6
-            q &= Q(asn__id__contains=as_number_id)
+        select_jpnic_info = None
+        for model in jpnic_model:
+            if model.id == as_number_id:
+                select_jpnic_info = model
+        if select_jpnic_info is None:
+            return
+        asn = select_jpnic_info.asn
+        ip_version = 4
+        if select_jpnic_info.is_ipv6:
+            ip_version = 6
 
-        # 住所/住所(English)一部含むフィルタ
-        if address != "":
-            q &= Q(address__contains=address) | Q(address_en__contains=address)
-
+        sql = sqlDateSelect
+        sqlCount = sqlDateSelectCount
         # 日付フィルタ
         # フィルタなし時現在の日付にする
-        if select_date is None:
-            now_date = datetime.datetime.utcnow()
-            now_jst_datetime = now_date + datetime.timedelta(hours=9)
-            tmp_before_date = now_jst_datetime - datetime.timedelta(days=1)
-            before_date = datetime.datetime(
-                tmp_before_date.year, tmp_before_date.month, tmp_before_date.day, 15, 0, 0
-            )
-            after_date = datetime.datetime(
-                now_jst_datetime.year, now_jst_datetime.month, now_jst_datetime.day, 14, 59, 59
-            )
-            # print(before_date, after_date)
-            q &= Q(get_start_date__gte=before_date) & Q(get_start_date__lte=after_date)
+        if start_date is None or end_date is None:
+            # 最新バージョン
+            sql = sqlNow
+            sqlCount = sqlNowCount
+            input_array = [
+                asn,
+                ip_version,
+                "%%%s%%" % network_name,
+                "%%%s%%" % address,
+                "%%%s%%" % address,
+            ]
         else:
-            after_date = datetime.datetime(
-                select_date.year, select_date.month, select_date.day, 14, 59, 59
-            )
-            before_date = after_date - datetime.timedelta(hours=23, minutes=59, seconds=59)
-            # print(before_date, after_date)
-            q &= Q(get_start_date__gte=before_date) & Q(get_start_date__lte=after_date)
+            input_array = [
+                start_date,
+                end_date,
+                asn,
+                ip_version,
+                "%%%s%%" % network_name,
+                "%%%s%%" % address,
+                "%%%s%%" % address,
+            ]
 
-        if is_ipv6:
-            return (
-                V6List.objects.select_related("admin_jpnic")
-                .prefetch_related("tech_jpnic")
-                .filter(q)
+        # Count
+        with connection.cursor() as cursor:
+            cursor.execute(sqlCount, input_array)
+            sql_result = cursor.fetchall()
+        count = sql_result[0][0]
+        # pages数
+        all_pages = count // 50
+        if count % 50 != 0:
+            all_pages += 1
+        # range_pages
+        all_range_pages = []
+        for i in range(all_pages):
+            all_range_pages.append(i + 1)
+        # range_pages
+        next_page = None
+        prev_page = None
+        if page != all_pages:
+            next_page = page + 1
+        if page != 1:
+            prev_page = page - 1
+
+        # データ出力
+        with connection.cursor() as cursor:
+            input_array.append(50)
+            input_array.append((page - 1) * 50)
+            cursor.execute(sql, input_array)
+            sql_result = cursor.fetchall()
+        data = []
+        for result in sql_result:
+            data.append(
+                {
+                    "id": result[0],
+                    "asn": result[1],
+                    "created_at": result[2],
+                    "last_checked_at": result[3],
+                    "kind": result[4],
+                    "division": result[5],
+                    "ip_address": result[6],
+                    "network_name": result[7],
+                    "org": result[8],
+                    "postcode": result[9],
+                    "address": result[10],
+                    "address_en": result[11],
+                    "admin_handle": result[12],
+                    "admin_name": result[13],
+                    "admin_email": result[14],
+                    "tech_handle": result[15],
+                    "tech_name": result[16],
+                    "tech_email": result[17],
+                }
             )
-        return V4List.objects.select_related("admin_jpnic").prefetch_related("tech_jpnic").filter(q)
+
+        return {
+            "all_range_pages": all_range_pages,
+            "all_pages": all_pages,
+            "next_page": next_page,
+            "prev_page": prev_page,
+            "count": count,
+            "info": data,
+        }
 
 
 class AddAssignment(forms.Form):
@@ -150,9 +224,7 @@ class AddAssignment(forms.Form):
         if cc_myself and subject:
             # Only do something if both fields are valid so far.
             if "help" not in subject:
-                raise ValidationError(
-                    "Did not send for 'help' in the subject despite " "CC'ing yourself."
-                )
+                raise ValidationError("Did not send for 'help' in the subject despite " "CC'ing yourself.")
 
 
 class GetIPAddressForm(forms.Form):

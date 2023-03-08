@@ -20,22 +20,16 @@ from jpnic_admin.models import JPNIC as JPNICModel
 
 
 def index(request):
+    jpnic_model_all = JPNICModel.objects.all()
     form = SearchForm(request.GET)
-    result_address = form.get_queryset().order_by()
 
-    count_no_data = result_address.filter(Q(is_get=True)).count()
-
-    paginator = Paginator(result_address, int(request.GET.get("per_page", "30")))
-    page = int(request.GET.get("page", "1"))
-    try:
-        events_page = paginator.page(page)
-    except (EmptyPage, InvalidPage):
-        events_page = paginator.page(paginator.num_pages)
+    per_page = int(request.GET.get("per_page", 1))
+    data = form.get_queryset(page=per_page, jpnic_model=jpnic_model_all)
 
     context = {
-        "jpnic_model": JPNICModel.objects.all(),
-        "jpnic_page": events_page,
-        "count_no_data": count_no_data,
+        "jpnic_model": jpnic_model_all,
+        "data": data,
+        "per_page": per_page,
         "search_form": form,
     }
     return render(request, "jpnic_admin/index.html", context)
@@ -124,9 +118,7 @@ def add_assignment1(request):
                 input_data = json.loads(request.POST["data"])
 
             context = {
-                "req_data": json.dumps(
-                    input_data, ensure_ascii=False, indent=4, sort_keys=True, separators=(",", ":")
-                )
+                "req_data": json.dumps(input_data, ensure_ascii=False, indent=4, sort_keys=True, separators=(",", ":"))
             }
 
             if not "as" in input_data:
