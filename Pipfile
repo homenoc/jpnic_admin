@@ -10,7 +10,7 @@ pylint-django = "*"
 pylint = "==2.14.5"
 
 [packages]
-django = "==4.1"
+django = "==4.1.7"
 requests = "*"
 django-debug-toolbar = "*"
 django-mathfilters = "*"
