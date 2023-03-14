@@ -4,9 +4,8 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.db.models import Q, Prefetch
-from django.utils import timezone
 
-from jpnic_admin.resource.models import AddrList
+from jpnic_admin.resource.models import AddrList, ResourceList, ResourceAddressList
 from jpnic_admin.models import JPNIC as JPNICModel
 from .resource.sql import sqlDateSelect, sqlDateSelectCount, sqlNow, sqlNowCount
 
@@ -155,6 +154,60 @@ class SearchForm(forms.Form):
             "prev_page": prev_page,
             "count": count,
             "info": data,
+        }
+
+
+class SearchResourceForm(forms.Form):
+    as_id = forms.IntegerField(
+        label="対象AS番号",
+        required=False,
+    )
+
+    select_date = forms.DateField(
+        label="取得日開始",
+        input_formats=["%Y-%m-%d"],
+        initial=datetime.date.today,
+        widget=forms.DateTimeInput(format="%Y-%m-%d"),
+        required=False,
+    )
+
+    def get_queryset(self, jpnic_model=None):
+        if not self.is_valid():
+            return None
+
+        cleaned_data = self.cleaned_data
+
+        as_id = cleaned_data.get("as_id")
+        select_date = cleaned_data.get("select_date")
+
+        if as_id is None:
+            return None
+
+        # 条件
+        conditions = {}
+        q = Q(**conditions)
+
+        # AS番号フィルタ
+        q &= Q(asn_id=as_id)
+        jpn = JPNICModel.objects.get(id=as_id)
+
+        # 日付フィルタ
+        # 最新
+        if select_date:
+            q &= ~Q(last_checked_at__lt=datetime.datetime.combine(select_date, datetime.time()))
+            q &= ~Q(created_at__gt=datetime.datetime.combine(select_date, datetime.time(23, 59, 59)))
+        else:
+            q &= Q(last_checked_at__gt=jpn.last_resource2_checked_at)
+
+        print(q)
+        # created_at < start_date && select_date < last_checked_
+        # データ出力 |=======| |---|
+        rs_list = ResourceList.objects.filter(q).order_by("-last_checked_at").first()
+        rs_addr_list = ResourceAddressList.objects.filter(q)
+
+        return {
+            "rs_list": rs_list,
+            "rs_addr_list": rs_addr_list,
         }
 
 

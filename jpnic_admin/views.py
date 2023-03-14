@@ -11,6 +11,7 @@ from jpnic_admin.form import (
     SearchForm,
     AddAssignment,
     GetIPAddressForm,
+    SearchResourceForm,
 )
 from jpnic_admin.jpnic import (
     JPNIC,
@@ -33,6 +34,18 @@ def index(request):
         "search_form": form,
     }
     return render(request, "jpnic_admin/index.html", context)
+
+
+def resource(request):
+    form = SearchResourceForm(request.GET)
+    events_page = form.get_queryset()
+
+    context = {
+        "jpnic_model": JPNICModel.objects.all(),
+        "data": events_page,
+        "search_form": form,
+    }
+    return render(request, "jpnic_admin/resource.html", context)
 
 
 def get_jpnic_info(request):

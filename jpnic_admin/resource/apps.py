@@ -8,7 +8,7 @@ class Data(AppConfig):
     verbose_name = "アドレス資源"
 
     def ready(self):
-        from .task import start
+        from .task import start, start_resource
 
         try:
             SharedMemory(create=False, name="apscheduler_start")
@@ -16,4 +16,5 @@ class Data(AppConfig):
         except:
             SharedMemory(create=True, size=1, name="apscheduler_start")
 
-        start()
+        # start()
+        # start_resource()

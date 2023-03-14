@@ -1,16 +1,22 @@
 from django.db import models
 
+from jpnic_admin.models import JPNIC
+
 
 class JPNICHandle(models.Model):
     class Meta:
-        ordering = ("id", "last_enabled_at", "created_at")
+        ordering = (
+            "-last_checked_at",
+            "-created_at",
+            "id",
+        )
         index_together = [
-            ["created_at", "last_enabled_at", "jpnic_handle", "asn", "ip_version"],
-            ["last_enabled_at", "jpnic_handle", "asn", "ip_version"],
+            ["created_at", "last_checked_at", "jpnic_handle", "asn", "ip_version"],
+            ["last_checked_at", "jpnic_handle", "asn", "ip_version"],
         ]
 
     created_at = models.DateTimeField("取得開始時刻", auto_now_add=True, db_index=True)
-    last_enabled_at = models.DateTimeField("最終有効時刻", null=True, blank=True, db_index=True)
+    last_checked_at = models.DateTimeField("最終更新時刻", auto_now=True, db_index=True)
     jpnic_handle = models.CharField("JPNICハンドル", max_length=20, db_index=True)
     name = models.CharField("名前", max_length=120)
     name_en = models.CharField("名前(英語)", max_length=120)
@@ -39,7 +45,12 @@ class JPNICHandle(models.Model):
 
 class AddrList(models.Model):
     class Meta:
-        ordering = ("id", "last_checked_at", "ip_address")
+        ordering = (
+            "-last_checked_at",
+            "-created_at",
+            "ip_address",
+            "id",
+        )
         index_together = [
             [
                 "asn",
@@ -110,3 +121,64 @@ class AddrList(models.Model):
 class AddrListTechHandle(models.Model):
     addr_list = models.ForeignKey(AddrList, on_delete=models.CASCADE)
     jpnic_handle = models.CharField("JPNICハンドル", max_length=20, db_index=True)
+
+
+# resource
+class ResourceList(models.Model):
+    class Meta:
+        ordering = (
+            "-last_checked_at",
+            "-created_at",
+            "asn_id",
+        )
+        index_together = [
+            ["created_at", "last_checked_at", "asn_id"],
+            ["created_at", "last_checked_at", "asn_id"],
+            ["last_checked_at", "asn_id"],
+        ]
+
+    created_at = models.DateTimeField("取得開始時刻", auto_now_add=True, db_index=True)
+    last_checked_at = models.DateTimeField("最終更新時刻", auto_now=True, db_index=True)
+    resource_no = models.IntegerField("資源管理者番号", db_index=True)
+    resource_admin_short = models.CharField("資源管理者略称", max_length=50)
+    org = models.CharField("組織名", max_length=120)
+    org_en = models.CharField("組織名(英語)", max_length=120)
+    post_code = models.CharField("郵便番号", max_length=20)
+    address = models.CharField("住所", max_length=200)
+    address_en = models.CharField("住所(英語)", max_length=200)
+    tel = models.CharField("電話番号", max_length=100, blank=True)
+    fax = models.CharField("Fax", max_length=100, blank=True)
+    admin_handle = models.CharField("資源管理責任者", max_length=20, db_index=True)
+    email = models.CharField("連絡担当窓口", max_length=50)
+    common_email = models.CharField("一般問い合わせ窓口", max_length=50)
+    notify_email = models.CharField("資源管理者通知アドレス", max_length=50)
+    assignment_size = models.IntegerField("アサインメントウィンドウサイズ")
+    start_date = models.DateTimeField("管理開始時刻")
+    end_date = models.DateTimeField("管理終了時刻", null=True, blank=True)
+    update_date = models.DateTimeField("最終更新時刻", null=True, blank=True, db_index=True)
+    all_addr_count = models.IntegerField("総アドレス数")
+    assigned_addr_count = models.IntegerField("割当数")
+    ad_ratio = models.FloatField("AD Ratio")
+    asn_id = models.ForeignKey(JPNIC, on_delete=models.CASCADE)
+
+
+class ResourceAddressList(models.Model):
+    class Meta:
+        ordering = (
+            "-last_checked_at",
+            "-created_at",
+            "asn_id",
+        )
+
+    index_together = [
+        ["created_at", "last_enabled_at", "asn_id"],
+        ["created_at", "last_checked_at", "asn_id"],
+        ["last_enabled_at", "asn_id"],
+    ]
+
+    created_at = models.DateTimeField("取得開始時刻", auto_now_add=True, db_index=True)
+    last_checked_at = models.DateTimeField("最終更新時刻", auto_now=True, db_index=True)
+    ip_address = models.CharField("IPアドレス", max_length=100, db_index=True)
+    assign_date = models.DateTimeField("割振年月日")
+    assigned_addr_count = models.IntegerField("割当数", db_index=True)
+    asn_id = models.ForeignKey(JPNIC, on_delete=models.CASCADE)

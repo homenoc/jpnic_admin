@@ -22,6 +22,8 @@ beautifulsoup4 = "*"
 django-configurations = "*"
 apscheduler = "*"
 dt = "*"
+q = "*"
+conditions = "*"
 
 [requires]
 python_version = "3.8"

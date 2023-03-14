@@ -21,6 +21,7 @@ from jpnic_admin import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.index, name="index"),
+    path("resource/", views.resource, name="resource"),
     path("config/", include("jpnic_admin.config.urls")),
     path("assignment/", include("jpnic_admin.assignment.urls")),
     path("person/", include("jpnic_admin.person.urls")),
