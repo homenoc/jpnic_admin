@@ -7,11 +7,11 @@ from django.db.models import Q, Prefetch
 
 from jpnic_admin.resource.models import AddrList, ResourceList, ResourceAddressList
 from jpnic_admin.models import JPNIC as JPNICModel
-from .resource.sql import sqlDateSelect, sqlDateSelectCount, sqlNow, sqlNowCount
+from .resource.sql import sqlDateSelect, sql_get_latest
 
 
 class SearchForm(forms.Form):
-    as_number_id = forms.IntegerField(
+    as_id = forms.IntegerField(
         label="AS番号",
         required=False,
     )
@@ -42,64 +42,64 @@ class SearchForm(forms.Form):
         required=False,
     )
 
-    def get_queryset(self, page=1, jpnic_model=None):
-        if (not self.is_valid()) or jpnic_model is None:
+    def get_queryset(self, page=1):
+        if not self.is_valid():
             return None
 
         cleaned_data = self.cleaned_data
 
-        as_number_id = cleaned_data.get("as_number_id")
+        as_id = cleaned_data.get("as_id")
         network_name = cleaned_data.get("network_name")
         address = cleaned_data.get("address")
         start_date = cleaned_data.get("start_date")
         end_date = cleaned_data.get("end_date")
 
-        if as_number_id is None:
+        conditions = {}
+        q = Q(**conditions)
+
+        if as_id is None:
             return None
 
         # AS番号フィルタ
-        select_jpnic_info = None
-        for model in jpnic_model:
-            if model.id == as_number_id:
-                select_jpnic_info = model
-        if select_jpnic_info is None:
-            return
-        asn = select_jpnic_info.asn
-        ip_version = 4
-        if select_jpnic_info.is_ipv6:
-            ip_version = 6
+        q &= Q(jpnic_id=as_id)
+
+        # ネットワーク名フィルタ
+        if network_name != "":
+            q &= Q(network_name__contains=network_name)
+
+        # 住所/住所(English)一部含むフィルタ
+        if address != "":
+            q &= Q(address__contains=address) | Q(address_en__contains=address)
 
         sql = sqlDateSelect
-        sqlCount = sqlDateSelectCount
         # 日付フィルタ
         # フィルタなし時現在の日付にする
         if start_date is None or end_date is None:
             # 最新バージョン
-            sql = sqlNow
-            sqlCount = sqlNowCount
+            # get_latest_timeを取得
+            last_addr_list = AddrList.objects.filter(jpnic_id=as_id).order_by("-last_checked_at").first()
+            q &= Q(last_checked_at__exact=last_addr_list.last_checked_at)
+            sql = sql_get_latest
             input_array = [
-                asn,
-                ip_version,
+                last_addr_list.last_checked_at,
+                as_id,
                 "%%%s%%" % network_name,
                 "%%%s%%" % address,
                 "%%%s%%" % address,
             ]
         else:
+            q &= ~(Q(created_at__gte=end_date) or Q(last_checked_at__lte=start_date))
             input_array = [
                 start_date,
                 end_date,
-                asn,
-                ip_version,
+                as_id,
                 "%%%s%%" % network_name,
                 "%%%s%%" % address,
                 "%%%s%%" % address,
             ]
 
         # Count
-        with connection.cursor() as cursor:
-            cursor.execute(sqlCount, input_array)
-            sql_result = cursor.fetchall()
-        count = sql_result[0][0]
+        count = AddrList.objects.filter(q).count()
         # pages数
         all_pages = count // 50
         if count % 50 != 0:
@@ -111,7 +111,7 @@ class SearchForm(forms.Form):
         # range_pages
         next_page = None
         prev_page = None
-        if page != all_pages:
+        if page < all_pages:
             next_page = page + 1
         if page != 1:
             prev_page = page - 1
@@ -188,8 +188,7 @@ class SearchResourceForm(forms.Form):
         q = Q(**conditions)
 
         # AS番号フィルタ
-        q &= Q(asn_id=as_id)
-        jpn = JPNICModel.objects.get(id=as_id)
+        q &= Q(jpnic_id=as_id)
 
         # 日付フィルタ
         # 最新
@@ -197,11 +196,10 @@ class SearchResourceForm(forms.Form):
             q &= ~Q(last_checked_at__lt=datetime.datetime.combine(select_date, datetime.time()))
             q &= ~Q(created_at__gt=datetime.datetime.combine(select_date, datetime.time(23, 59, 59)))
         else:
+            jpn = JPNICModel.objects.get(id=as_id)
             q &= Q(last_checked_at__gt=jpn.last_resource2_checked_at)
 
-        print(q)
         # created_at < start_date && select_date < last_checked_
-        # データ出力 |=======| |---|
         rs_list = ResourceList.objects.filter(q).order_by("-last_checked_at").first()
         rs_addr_list = ResourceAddressList.objects.filter(q)
 

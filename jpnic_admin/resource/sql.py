@@ -1,6 +1,6 @@
-sqlNow = """
+sql_get_latest = """
 SELECT t1.id                                  AS ID,
-       t1.asn                                 AS ASN,
+       t1.jpnic_id                            AS JPNIC_ID,
        t1.created_at                          AS created_at,
        t1.last_checked_at                     AS last_checked_at,
        t1.type                                AS type,
@@ -20,8 +20,8 @@ SELECT t1.id                                  AS ID,
 FROM resource_addrlist AS t1
          JOIN (SELECT MAX(id) AS id, admin_handle
                FROM resource_addrlist
-               WHERE resource_addrlist.asn = %s
-                 AND resource_addrlist.ip_version = %s
+               WHERE resource_addrlist.last_checked_at = %s
+                 AND resource_addrlist.jpnic_id = %s
                  AND resource_addrlist.network_name like %s
                  AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
                GROUP BY ip_address, admin_handle, assign_date, type, division
@@ -34,20 +34,11 @@ FROM resource_addrlist AS t1
                     ON resource_addrlisttechhandle.jpnic_handle = tech_handle.jpnic_handle
 GROUP BY id, ip_address, admin_name, admin_email
 ORDER BY ip_address
-"""
-
-sqlNowCount = """
-SELECT COUNT(distinct ip_address, admin_handle, assign_date, type, division) AS count
-FROM resource_addrlist
-WHERE resource_addrlist.asn = %s
-  AND resource_addrlist.ip_version = %s
-  AND resource_addrlist.network_name like %s
-  AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
 """
 
 sqlDateSelect = """
 SELECT t1.id                                  AS ID,
-       t1.asn                                 AS ASN,
+       t1.jpnic_id                            AS JPNIC_ID,
        t1.created_at                          AS created_at,
        t1.last_checked_at                     AS last_checked_at,
        t1.type                                AS type,
@@ -67,9 +58,8 @@ SELECT t1.id                                  AS ID,
 FROM resource_addrlist AS t1
          JOIN (SELECT MAX(id) AS id, admin_handle
                FROM resource_addrlist
-               WHERE NOT (resource_addrlist.last_checked_at < %s OR %s < resource_addrlist.created_at)
-                 AND resource_addrlist.asn = %s
-                 AND resource_addrlist.ip_version = %s
+               WHERE NOT (resource_addrlist.last_checked_at <= %s OR %s <= resource_addrlist.created_at)
+                 AND resource_addrlist.jpnic_id = %s
                  AND resource_addrlist.network_name like %s
                  AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
                GROUP BY ip_address, admin_handle, assign_date, type, division
@@ -82,15 +72,4 @@ FROM resource_addrlist AS t1
                     ON resource_addrlisttechhandle.jpnic_handle = tech_handle.jpnic_handle
 GROUP BY id, ip_address, admin_name, admin_email
 ORDER BY ip_address
-"""
-
-
-sqlDateSelectCount = """
-SELECT COUNT(distinct ip_address, admin_handle, assign_date, type, division) AS count
-FROM resource_addrlist
-WHERE NOT (resource_addrlist.last_checked_at < %s OR %s < resource_addrlist.created_at)
-  AND resource_addrlist.asn = %s
-  AND resource_addrlist.ip_version = %s
-  AND resource_addrlist.network_name like %s
-  AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
 """

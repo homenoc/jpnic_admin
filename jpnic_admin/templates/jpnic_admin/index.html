@@ -23,17 +23,17 @@
                         {{ search_form.end_date|add_class:'form-control' }}
                     </div>
                     <div class="col-2">
-                        <label for="id_asn">{{ search_form.as_number_id.label }}</label>
+                        <label for="id_asn">{{ search_form.as_id.label }}</label>
                         <select class="form-select" aria-label="Default select"
-                                value="{{ search_form.as_number_id.value }}"
-                                name="{{ search_form.as_number_id.name }}"
-                                id="{{ search_form.as_number_id.id_for_label }}">
-                            <option {% if search_form.as_number_id.value == None %}selected{% endif %} disabled>
+                                value="{{ search_form.as_id.value }}"
+                                name="{{ search_form.as_id.name }}"
+                                id="{{ search_form.as_id.id_for_label }}">
+                            <option {% if search_form.as_id.value == None %}selected{% endif %} disabled>
                                 選択してください
                             </option>
                             {% for value in jpnic_model %}
                                 {% to_int value.id as jpnic_id %}
-                                {% to_int search_form.as_number_id.value as base_value %}
+                                {% to_int search_form.as_id.value as base_value %}
                                 <option value={{ value.id }}
                                                 {% if base_value == jpnic_id %}selected{% endif %}>{{ value.name }}
                                 </option>
@@ -102,6 +102,7 @@
             <label class="row_filter-label" for="flexCheckDefault">E-Mail(技術)</label>
         </div>
         <span class="badge bg-dark">全数: {{ data.count }}</span>
+        <span class="badge bg-primary">ページ数: {{ data.all_pages }}</span>
         <br/>
         <table class="table table-striped table-hover">
             <tr>
@@ -220,7 +221,7 @@
             </ul>
         </nav>
     {% else %}
-        {% if search_form.as_number_id.value == None %}
+        {% if search_form.as_id.value == None %}
             <b>AS番号を選択してください</b>
         {% endif %}
     {% endif %}

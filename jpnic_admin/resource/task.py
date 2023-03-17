@@ -21,39 +21,37 @@ from jpnic_admin.resource.models import (
 
 
 # 情報取得関数
-def start_process():
-    base_objects = JPNICModel.objects.filter(is_active=True)
-    for base_object in base_objects:
-        if datetime.datetime.now() > base_object.last_resource1_checked_at + datetime.timedelta(
-            minutes=base_object.collection_interval
+def get_addr_process():
+    bases = JPNICModel.objects.filter(is_active=True)
+    for base in bases:
+        if (
+            not base.last_resource1_checked_at
+        ) or datetime.datetime.now() > base.last_resource1_checked_at + datetime.timedelta(
+            minutes=base.collection_interval
         ):
-            t = threading.Thread(
-                target=get_detail_address,
-                args=(copy.deepcopy(base_object),),
-            )
-            print("before", base_object.last_resource1_checked_at)
+            t = threading.Thread(target=get_addr, args=(copy.deepcopy(base),))
             t.setDaemon(True)
             t.start()
-            now = timezone.now()
-            print("now", now)
-            base_object.last_resource1_checked_at = now
-            base_object.save()
+            base.last_resource1_checked_at = timezone.now()
+            base.save()
 
 
-def start_resource_process():
-    base_objects = JPNICModel.objects.filter(is_active=True)
-    for base_object in base_objects:
-        if datetime.datetime.now() > base_object.last_resource2_checked_at + datetime.timedelta(
-            minutes=base_object.collection_interval
+def get_resource_process():
+    bases = JPNICModel.objects.filter(is_active=True)
+    for base in bases:
+        if (
+            not base.last_resource2_checked_at
+        ) or datetime.datetime.now() > base.last_resource2_checked_at + datetime.timedelta(
+            minutes=base.collection_interval
         ):
-            t = threading.Thread(target=get_resource, args=base_object)
+            t = threading.Thread(target=get_resource, args=(copy.deepcopy(base),))
             t.setDaemon(True)
             t.start()
-            base_object.last_resource2_checked_at = timezone.now()
-            base_object.save()
+            base.last_resource2_checked_at = timezone.now()
+            base.save()
 
 
-def get_detail_address(base):
+def get_addr(base):
     GetAddr(base=base).search_list()
 
 
@@ -61,17 +59,17 @@ def get_resource(base):
     GetAddr(base=base).get_resource()
 
 
-def start():
+def start_getting_addr():
     # start_process()
     scheduler = BackgroundScheduler()
-    scheduler.add_job(start_process, "interval", seconds=5)
+    scheduler.add_job(get_addr_process, "interval", seconds=5)
     scheduler.start()
 
 
-def start_resource():
+def start_getting_resource():
     # start_process()
     scheduler = BackgroundScheduler()
-    scheduler.add_job(start_resource_process, "interval", seconds=5)
+    scheduler.add_job(get_resource_process, "interval", seconds=5)
     scheduler.start()
 
 
@@ -101,15 +99,13 @@ class GetAddr(JPNIC):
             print("ERROR")
             return
 
-        latest_res_list = ResourceList.objects.filter(
-            asn_id_id=self.base.id, last_checked_at__gt=self.base.last_resource2_checked_at
-        )
-        latest_res_addr_list = ResourceAddressList.objects.filter(
-            asn_id_id=self.base.id, last_checked_at__gt=self.base.last_resource2_checked_at
-        )
-        print("latest_res_list", latest_res_list)
-        print("latest_res_addr_list", latest_res_addr_list)
-        print("latest_res_addr_list", latest_res_addr_list.count())
+        latest_res_list = ResourceList.objects.filter(jpnic_id=self.base.id).order_by("-last_checked_at").first()
+        last_res_addr = ResourceAddressList.objects.filter(jpnic_id=self.base.id).order_by("-last_checked_at").first()
+        latest_res_addr_list = []
+        if last_res_addr:
+            latest_res_addr_list = ResourceAddressList.objects.filter(
+                jpnic_id=self.base.id, last_checked_at__exact=last_res_addr.last_checked_at
+            )
 
         # メインの資源管理者情報
         info_resource_list = {}
@@ -176,50 +172,57 @@ class GetAddr(JPNIC):
                     res_addr_list.append(tmp_rs_addr_list)
                     tmp_rs_addr_list = {}
 
-        with transaction.atomic():
-            if latest_res_list.count() == 0:
-                self.insert_resource_list(info=info_resource_list)
-            elif latest_res_list.count() > 1:
-                print("error: Count error...")
-            else:
+        now = copy.deepcopy(timezone.now())
+        # 資源情報(main)
+        if (
+            latest_res_list is None
+            or latest_res_list.assigned_addr_count != info_resource_list.get("assigned_addr_count")
+            or latest_res_list.all_addr_count != info_resource_list.get("all_addr_count")
+            or latest_res_list.update_date != info_resource_list.get("update_date")
+        ):
+            self.insert_resource_list(info=info_resource_list)
+        else:
+            latest_res_list.last_checked_at = now
+            latest_res_list.save()
+
+        # 資源情報(addr list)
+        for res_addr_list_one in res_addr_list:
+            is_new_item = True
+            for latest_res_addr in latest_res_addr_list:
                 if (
-                    latest_res_list[0].assigned_addr_count != info_resource_list.get("assigned_addr_count")
-                    or latest_res_list[0].all_addr_count != info_resource_list.get("all_addr_count")
-                    or latest_res_list[0].update_date != info_resource_list.get("update_date")
+                    latest_res_addr.ip_address == res_addr_list_one.get("ip_address")
+                    and latest_res_addr.assign_date == res_addr_list_one.get("assign_date")
+                    and latest_res_addr.assigned_addr_count == res_addr_list_one.get("assigned_addr_count")
                 ):
-                    latest_res_list[0].last_enabled_at = timezone.now()
-                    latest_res_list[0].save()
-                    self.insert_resource_list(info=info_resource_list)
+                    latest_res_addr.last_checked_at = now
+                    latest_res_addr.save()
+                    is_new_item = False
+                    break
 
-            for res_addr_list_one in res_addr_list:
-                if len(latest_res_addr_list) == 0:
-                    self.insert_resource_address_list(info=res_addr_list_one)
-                else:
-                    for latest_res_addr in latest_res_addr_list:
-                        if latest_res_addr.ip_address == res_addr_list_one.get("ip_address") and (
-                            latest_res_addr.assign_date != res_addr_list_one.get("assign_date")
-                            or latest_res_addr.assigned_addr_count != res_addr_list_one.get("assigned_addr_count")
-                        ):
-                            latest_res_addr.last_enabled_at = timezone.now()
-                            latest_res_addr.save()
-                            self.insert_resource_address_list(info=res_addr_list_one)
-
-        print("resource_list", info_resource_list)
-        print("resource_address_list", res_addr_list)
+            if is_new_item:
+                self.insert_resource_address_list(info=res_addr_list_one, now=now)
+        # print("resource_list", info_resource_list)
+        # print("resource_address_list", res_addr_list)
 
     def search_list(self):
-        addr_lists = AddrList.objects.filter(
-            asn=self.base.asn, ip_version=self.get_ip_version(), last_checked_at__gt=self.base.last_resource1_checked_at
-        )
-        addr_list_exists = addr_lists.exists()
+        # 最新版を取得
+        last_addr_list = AddrList.objects.filter(jpnic_id=self.base.id).order_by("-last_checked_at").first()
+        addr_lists = []
+        addr_list_exists = False
+        if last_addr_list:
+            addr_lists = AddrList.objects.filter(
+                jpnic_id=self.base.id, last_checked_at__exact=last_addr_list.last_checked_at
+            )
+            addr_list_exists = addr_lists.exists()
+
         # 初回時に初回取得時間を記録する
-        if addr_lists is None or addr_list_exists is False:
-            asn_info = JPNICModel.objects.get(is_active=True, asn=self.base.asn)
+        if not addr_list_exists:
+            asn_info = JPNICModel.objects.get(id=self.base.id)
             asn_info.first_checked_at = timezone.now()
             asn_info.save()
 
         self.init_get()
-        if self.is_ipv6:
+        if self.base.is_ipv6:
             self.get_contents_url("登録情報検索(IPv6)")
         else:
             self.get_contents_url("登録情報検索(IPv4)")
@@ -231,104 +234,99 @@ class GetAddr(JPNIC):
         addr_info = {}
         no_update_data = True
         updated_info_lists = []
-        with transaction.atomic():
-            while is_over_list:
-                req = dict(
-                    destdisp=soup.find("input", attrs={"name": "destdisp"})["value"],
-                    ipaddr=ipaddr,
-                    sizeS="",
-                    sizeE="",
-                    netwrkName="",
-                    regDateS="",
-                    regDateE="",
-                    rtnDateS="",
-                    rtnDateE="",
-                    organizationName="",
-                    resceAdmSnm=soup.find("input", attrs={"name": "resceAdmSnm"})["value"],
-                    recepNo="",
-                    deliNo="",
-                    action="　検索　",
-                )
-                req_data = request_to_sjis(req)
-                post_url = soup.find("form")["action"].split("/")[-1]
-                res = self.session.post(self.base_url + "/" + post_url, data=req_data, headers=self.header)
-                res.encoding = "Shift_JIS"
-                # 1000件以上か確認
-                if "該当する情報が1000件を超えました (1000件まで表示します)" in res.text:
-                    is_over_list = True
-                else:
-                    is_over_list = False
+        while is_over_list:
+            req = dict(
+                destdisp=soup.find("input", attrs={"name": "destdisp"})["value"],
+                ipaddr=ipaddr,
+                sizeS="",
+                sizeE="",
+                netwrkName="",
+                regDateS="",
+                regDateE="",
+                rtnDateS="",
+                rtnDateE="",
+                organizationName="",
+                resceAdmSnm=soup.find("input", attrs={"name": "resceAdmSnm"})["value"],
+                recepNo="",
+                deliNo="",
+                action="　検索　",
+            )
+            req_data = request_to_sjis(req)
+            post_url = soup.find("form")["action"].split("/")[-1]
+            res = self.session.post(self.base_url + "/" + post_url, data=req_data, headers=self.header)
+            res.encoding = "Shift_JIS"
+            # 1000件以上か確認
+            if "該当する情報が1000件を超えました (1000件まで表示します)" in res.text:
+                is_over_list = True
+            else:
+                is_over_list = False
 
-                soup = BeautifulSoup(res.text, "html.parser")
-                addr_info = {}
-                max_len = enumerate(soup.findAll("td", attrs={"class": "dataRow_mnt04"}))
-                for idx, td in enumerate(soup.findAll("td", attrs={"class": "dataRow_mnt04"})):
-                    text = td.text.strip()
-                    if ((not self.is_ipv6) and (0 <= idx < 11)) or (self.is_ipv6 and (0 <= idx < 9)):
-                        continue
-                    if ((not self.is_ipv6) and (idx % 11 == 0)) or (self.is_ipv6 and (idx % 9 == 0)):
-                        addr_info["ip_address"] = text
-                        addr_info["ip_address_url"] = td.find("a")["href"]
-                    elif (not self.is_ipv6) and (idx % 11 == 1):
-                        addr_info["size"] = text
-                    elif ((not self.is_ipv6) and (idx % 11 == 2)) or (self.is_ipv6 and (idx % 9 == 1)):
-                        addr_info["network_name"] = text
-                    elif ((not self.is_ipv6) and (idx % 11 == 3)) or (self.is_ipv6 and (idx % 9 == 2)):
-                        addr_info["assign_date"] = convert_datetime(text=text)
-                    elif ((not self.is_ipv6) and (idx % 11 == 4)) or (self.is_ipv6 and (idx % 9 == 3)):
-                        addr_info["return_date"] = convert_datetime(text=text)
-                    elif ((not self.is_ipv6) and (idx % 11 == 5)) or (self.is_ipv6 and (idx % 9 == 4)):
-                        addr_info["org"] = text
-                    elif ((not self.is_ipv6) and (idx % 11 == 6)) or (self.is_ipv6 and (idx % 9 == 5)):
-                        addr_info["admin_org"] = text
-                    elif ((not self.is_ipv6) and (idx % 11 == 7)) or (self.is_ipv6 and (idx % 9 == 6)):
-                        addr_info["recept_no"] = text
-                    elif ((not self.is_ipv6) and (idx % 11 == 8)) or (self.is_ipv6 and (idx % 9 == 7)):
-                        addr_info["deli_no"] = text
-                    elif ((not self.is_ipv6) and (idx % 11 == 9)) or (self.is_ipv6 and (idx % 9 == 8)):
-                        addr_info["kind1"] = text
-                    elif (not self.is_ipv6) and (idx % 11 == 10):
-                        addr_info["kind2"] = text
-                        if not addr_list_exists:
-                            no_update_data = False
+            soup = BeautifulSoup(res.text, "html.parser")
+            addr_info = {}
+            max_len = enumerate(soup.findAll("td", attrs={"class": "dataRow_mnt04"}))
+            for idx, td in enumerate(soup.findAll("td", attrs={"class": "dataRow_mnt04"})):
+                text = td.text.strip()
+                if ((not self.base.is_ipv6) and (0 <= idx < 11)) or (self.base.is_ipv6 and (0 <= idx < 9)):
+                    continue
+                if ((not self.base.is_ipv6) and (idx % 11 == 0)) or (self.base.is_ipv6 and (idx % 9 == 0)):
+                    addr_info["ip_address"] = text
+                    addr_info["ip_address_url"] = td.find("a")["href"]
+                elif (not self.base.is_ipv6) and (idx % 11 == 1):
+                    addr_info["size"] = text
+                elif ((not self.base.is_ipv6) and (idx % 11 == 2)) or (self.base.is_ipv6 and (idx % 9 == 1)):
+                    addr_info["network_name"] = text
+                elif ((not self.base.is_ipv6) and (idx % 11 == 3)) or (self.base.is_ipv6 and (idx % 9 == 2)):
+                    addr_info["assign_date"] = convert_datetime(text=text)
+                elif ((not self.base.is_ipv6) and (idx % 11 == 4)) or (self.base.is_ipv6 and (idx % 9 == 3)):
+                    addr_info["return_date"] = convert_datetime(text=text)
+                elif ((not self.base.is_ipv6) and (idx % 11 == 5)) or (self.base.is_ipv6 and (idx % 9 == 4)):
+                    addr_info["org"] = text
+                elif ((not self.base.is_ipv6) and (idx % 11 == 6)) or (self.base.is_ipv6 and (idx % 9 == 5)):
+                    addr_info["admin_org"] = text
+                elif ((not self.base.is_ipv6) and (idx % 11 == 7)) or (self.base.is_ipv6 and (idx % 9 == 6)):
+                    addr_info["recept_no"] = text
+                elif ((not self.base.is_ipv6) and (idx % 11 == 8)) or (self.base.is_ipv6 and (idx % 9 == 7)):
+                    addr_info["deli_no"] = text
+                elif ((not self.base.is_ipv6) and (idx % 11 == 9)) or (self.base.is_ipv6 and (idx % 9 == 8)):
+                    addr_info["kind1"] = text
+                elif (not self.base.is_ipv6) and (idx % 11 == 10):
+                    addr_info["kind2"] = text
+                    # 1000件超え対処用
+                    if max_len == idx + 1:
+                        ipaddr = addr_info["ip_address"]
+                    is_exist_addr_lists = False
+                    # addr_listsから一致するものを抜き出す
+                    for addr_list in addr_lists:
+                        if (
+                            addr_list.ip_address == addr_info["ip_address"]
+                            and addr_list.recep_number == addr_info["recept_no"]
+                        ):
+                            is_exist_addr_lists = True
+                            # 存在する場合は確認OKなので、last_checkedを更新する
+                            updated_info_lists.append(addr_list)
                             break
-                        if max_len == idx + 1:
-                            ipaddr = addr_info["ip_address"]
-                        is_exist_addr_lists = False
-                        for addr_list in addr_lists:
-                            if (
-                                addr_list.asn == self.base.asn
-                                and addr_list.ip_address == addr_info["ip_address"]
-                                and addr_list.ip_version == self.get_ip_version()
-                                and addr_list.recep_number == addr_info["recept_no"]
-                            ):
-                                is_exist_addr_lists = True
-                                # 存在する場合は確認OKなので、last_checkedを更新する
-                                updated_info_lists.append(addr_list)
-                                break
-                        if not is_exist_addr_lists:
-                            no_update_data = False
-                            break
-        last_checked_at = timezone.now()
-        for updated_info_list in updated_info_lists:
-            with transaction.atomic():
-                updated_info_list.last_checked_at = last_checked_at
+                    if not is_exist_addr_lists:
+                        no_update_data = False
+                        break
+
+        now = timezone.now()
+        with transaction.atomic():
+            # last_checked_atだけ更新
+            for updated_info_list in updated_info_lists:
+                updated_info_list.last_checked_at = now
                 updated_info_list.save()
 
         # JPNICハンドルの更新処理
         if no_update_data:
             print("update only jpnic handle.")
-            self.apply_list()
+            self.update_handle()
             return
         addr_info = self.get_detail_address(url=addr_info["ip_address_url"], info=addr_info)
-        # print("info", addr_info)
 
         jpnic_handles = []
         # 管理者連絡窓口
         # データベースに含まれている場合はSKIP(最新情報は申請履歴より更新)
-        if not JPNICHandle.objects.filter(
-            ip_version=self.get_ip_version(), jpnic_handle=addr_info["admin_handle"]
-        ).exists():
+        if not JPNICHandle.objects.filter(jpnic_id=self.base.id, jpnic_handle=addr_info["admin_handle"]).exists():
             try:
                 jpnic_handles.append(self.get_jpnic_handle(jpnic_handle=addr_info["admin_handle"]))
             except JPNICReqError as exc:
@@ -339,16 +337,17 @@ class GetAddr(JPNIC):
             if tech_jpnic == addr_info["admin_handle"]:
                 continue
             # データベースに含まれている場合はSKIP
-            if JPNICHandle.objects.filter(ip_version=self.get_ip_version(), jpnic_handle=tech_jpnic).exists():
+            if JPNICHandle.objects.filter(jpnic_id=self.base.id, jpnic_handle=tech_jpnic).exists():
                 continue
             try:
                 jpnic_handles.append(self.get_jpnic_handle(jpnic_handle=tech_jpnic))
             except JPNICReqError as exc:
                 print(exc)
-        with transaction.atomic():
-            self.insert_jpnic_handle(jpnic_handles)
-            addr_list_id = self.insert_addr_list(addr_info)
 
+        with transaction.atomic():
+            # addr_listを新規登録
+            addr_list_id = self.insert_addr_list(addr_info, now)
+            self.insert_jpnic_handle(now, jpnic_handles)
             for tech_handle in addr_info["tech_handle"]:
                 AddrListTechHandle(addr_list_id=addr_list_id, jpnic_handle=tech_handle).save()
 
@@ -538,11 +537,10 @@ class GetAddr(JPNIC):
                     info["fax"] = body
         return info
 
-    def insert_jpnic_handle(self, jpnic_handles, recep_number=""):
+    def insert_jpnic_handle(self, now, jpnic_handles, recep_number=""):
         for jpnic_handle in jpnic_handles:
             new_handle_model = JPNICHandle(
-                asn=self.base.asn,
-                ip_version=self.get_ip_version(),
+                last_checked_at=now,
                 jpnic_handle=jpnic_handle.get("jpnic_hdl"),
                 name=jpnic_handle.get("name"),
                 name_en=jpnic_handle.get("name_en"),
@@ -557,13 +555,13 @@ class GetAddr(JPNIC):
                 fax=",".join(jpnic_handle.get("fax")),
                 updated_at=jpnic_handle.get("update_date"),
                 recep_number=recep_number,
+                jpnic_id=self.base.id,
             )
             new_handle_model.save()
 
-    def insert_addr_list(self, addr_info):
+    def insert_addr_list(self, addr_info, now):
         insert_addrlist = AddrList(
-            asn=self.base.asn,
-            ip_version=self.get_ip_version(),
+            last_checked_at=now,
             ip_address=addr_info.get("ip_address"),
             network_name=addr_info.get("network_name"),
             assign_date=addr_info.get("assign_date"),
@@ -582,6 +580,7 @@ class GetAddr(JPNIC):
             abuse=",".join(addr_info.get("abuse")),
             updated_at=addr_info.get("update_date"),
             admin_handle=addr_info.get("admin_handle"),
+            jpnic_id=self.base.id,
         )
         insert_addrlist.save()
         return insert_addrlist.id
@@ -608,26 +607,21 @@ class GetAddr(JPNIC):
             all_addr_count=info.get("all_addr_count"),
             assigned_addr_count=info.get("assigned_addr_count"),
             ad_ratio=info.get("ad_ratio"),
-            asn_id_id=self.base.id,
+            jpnic_id=self.base.id,
         )
         insert_resource_list.save()
 
-    def insert_resource_address_list(self, info):
+    def insert_resource_address_list(self, info, now):
         insert_resource_address_list = ResourceAddressList(
+            last_checked_at=now,
             ip_address=info.get("ip_address"),
             assign_date=info.get("assign_date"),
             assigned_addr_count=info.get("assigned_addr_count"),
-            asn_id_id=self.base.id,
+            jpnic_id=self.base.id,
         )
         insert_resource_address_list.save()
 
-    def get_ip_version(self):
-        if self.is_ipv6:
-            return 6
-        else:
-            return 4
-
-    def apply_list(self):
+    def update_handle(self):
         self.get_contents_url("申請一覧")
         res = self.session.get(self.url, headers=self.header)
         res.encoding = "Shift_JIS"
@@ -641,7 +635,7 @@ class GetAddr(JPNIC):
             aplyKind="",
             aplyClass=501,
             resceAdmSnm="",
-            aplyDateS=self.first_checked_at.strftime("%Y/%m/%d"),
+            aplyDateS=self.base.first_checked_at.strftime("%Y/%m/%d"),
             aplyDateE="",
             completDateS="",
             completDateE="",
@@ -653,7 +647,7 @@ class GetAddr(JPNIC):
         res = self.session.post(self.base_url + "/" + post_url, data=req_data, headers=self.header)
         res.encoding = "Shift_JIS"
         soup = BeautifulSoup(res.text, "html.parser")
-        handle_lists = JPNICHandle.objects.filter(asn=self.base.asn, ip_version=self.get_ip_version())
+        handle_lists = JPNICHandle.objects.filter(jpnic_id=self.base.id)
         info = {}
         is_find = True
         for idx, td in enumerate(soup.find_all("table")[6].findAll("td", attrs={"class": "dataRow_mnt01"})):
@@ -693,13 +687,14 @@ class GetAddr(JPNIC):
             print("ERROR")
             return
 
+        now = timezone.now()
         with transaction.atomic():
-            # TODO: JPNICハンドルとlast_enabled_at=Nullを使って対象のテーブルを探し当てて、last_enabled_atを更新する
+            # TODO: JPNICハンドルとlast_checked_at=Nullを使って対象のテーブルを探し当てて、last_checked_atを更新する
             tmp_handle = JPNICHandle.objects.get(
                 jpnic_handle=handle_info["jpnic_handle"],
-                asn=self.base.asn,
-                ip_version=self.get_ip_version(),
+                last_checked_at__gt=self.base.last_resource1_checked_at,
+                jpnic_id=self.base.id,
             )
-            tmp_handle.last_enabled_at = timezone.now()
+            tmp_handle.last_checked_at = now
             tmp_handle.save()
-            self.insert_jpnic_handle(jpnic_handles=[].append(handle_info), recep_number=info["recept_no"])
+            self.insert_jpnic_handle(now, jpnic_handles=[].append(handle_info), recep_number=info["recept_no"])

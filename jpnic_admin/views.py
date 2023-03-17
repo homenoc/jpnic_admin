@@ -25,7 +25,7 @@ def index(request):
     form = SearchForm(request.GET)
 
     per_page = int(request.GET.get("per_page", 1))
-    data = form.get_queryset(page=per_page, jpnic_model=jpnic_model_all)
+    data = form.get_queryset(page=per_page)
 
     context = {
         "jpnic_model": jpnic_model_all,
