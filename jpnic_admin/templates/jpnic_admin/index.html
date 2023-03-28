@@ -125,8 +125,8 @@
             {% for info in data.info %}
                 <tr>
                     <td>{{ info.id }}</td>
-                    <td>{% to_jst info.created_at %}</td>
-                    <td>{% to_jst info.last_checked_at %}</td>
+                    <td>{% time_to_str info.created_at %}</td>
+                    <td>{% time_to_str info.last_checked_at %}</td>
                     <td>{{ info.ip_address }}</td>
                     <td>{% if info.kind %}<span class="badge bg-primary">{{ info.kind }}</span>{% endif %}
                         {% if info.kind %}<span class="badge bg-success">{{ info.division }}</span>{% endif %}</td>

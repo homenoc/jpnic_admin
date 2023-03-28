@@ -60,8 +60,8 @@
                     <th>アドレス数</th>
                 </tr>
                 <tr>
-                    <td>{% to_jst data.rs_list.created_at %}</td>
-                    <td>{% to_jst data.rs_list.last_checked_at %}</td>
+                    <td>{% time_to_str data.rs_list.created_at %}</td>
+                    <td>{% time_to_str data.rs_list.last_checked_at %}</td>
                     <td>{{ data.rs_list.resource_no }}</td>
                     <td>{{ data.rs_list.resource_admin_short }}</td>
                     <td>{{ data.rs_list.admin_handle }}</td>
@@ -90,7 +90,7 @@
                 </tr>
                 {% for info in data.rs_addr_list %}
                     <tr>
-                        <td>{% to_jst info.created_at %}<br/>{% to_jst info.last_checked_at %}</td>
+                        <td>{% time_to_str info.created_at %} → {% time_to_str info.last_checked_at %}</td>
                         <td>{{ info.ip_address }}</td>
                         <td>{{ info.assign_date }}</td>
                         <td>{{ info.assigned_addr_count }}</td>

@@ -21,6 +21,14 @@ def to_int(value):
 
 
 @register.simple_tag
+def time_to_str(gmt):
+    jst = gmt + datetime.timedelta(hours=0)
+    if not gmt:
+        return "取得失敗"
+    return jst.strftime("%Y/%m/%d %H:%M")
+
+
+@register.simple_tag
 def to_jst(gmt):
     jst = gmt + datetime.timedelta(hours=9)
     if not gmt:
