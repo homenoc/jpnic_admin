@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load mathfilters %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>自動タスクログ</h2>
+    <div class="container">
+        <div class="p-3 border bg-light">
+            <form method="get" class="needs-validation" novalidate>
+                <div class="row g-2">
+                    <div class="col-2">
+                        <label for="id_jpnic_id">{{ search_form.jpnic_id.label }}</label>
+                        {{ search_form.jpnic_id|add_class:'form-select' }}
+                    </div>
+                    <div class="col-2">
+                        <label for="id_type1">{{ search_form.type1.label }}</label>
+                        {{ search_form.type1|add_class:'form-select' }}
+                    </div>
+                    <div class="col-2">
+                        <label for="id_start_time">{{ search_form.start_time.label }}</label>
+                        {{ search_form.start_time|add_class:'form-control' }}
+                    </div>
+                    <div class="col-2">
+                        <label for="id_end_time">{{ search_form.end_time.label }}</label>
+                        {{ search_form.end_time|add_class:'form-control' }}
+                    </div>
+                </div>
+                <br/>
+                <button class="btn btn-primary" type="submit">検索</button>
+                <a href="./">
+                    <button class="btn btn-light" type="button">条件クリア</button>
+                </a>
+            </form>
+        </div>
+    </div>
+    <br/>
+
+    {% if events_page %}
+        <table id="event_table" class="table">
+            <thead>
+            <tr>
+                <th scope="col">作成日→更新日</th>
+                <th scope="col">種別</th>
+                <th scope="col">リクエスト回数</th>
+                <th scope="col">失敗理由</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for e in events_page %}
+                <tr>
+                    <td>{% time_to_str e.created_at %} → {% time_to_str e.last_checked_at %}</td>
+                    <td>
+                        <span class="badge rounded-pill bg-secondary">{{ e.type1 }}</span>
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill bg-primary">全数: {{ e.count }}</span>
+                        <span class="badge rounded-pill bg-success">成功: {{ e.count|sub:e.fail_count }}</span>
+                        <span class="badge rounded-pill bg-danger">失敗: {{ e.fail_count }}</span>
+                    </td>
+                    <td>{{ e.fail_result }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <nav aria-label="...">
+            <ul class="pagination">
+                {% if events_page.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?{% url_replace request page=events_page.previous_page_number %}">前へ</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">前へ</span>
+                    </li>
+                {% endif %}
+                {% if events_page.paginator.num_pages > 10 %}
+                    {% if events_page.number < 6 %}
+                        {#    先頭 9 ページの表示      #}
+                        {% for pg in events_page.paginator.page_range %}
+                            {% if forloop.counter0 < 9 %}
+                                {% if events_page.number == pg %}
+                                    <li class="page-item active">
+                                        {% else %}
+                                    <li class="page-item">
+                                {% endif %}
+                            <a class="page-link" href="?{% url_replace request page=pg %}">{{ pg }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                    {% elif events_page.number < events_page.paginator.num_pages|add:-4 %}
+                        {#    手前 4 ページ | 現在のページ | 続き 4 ページ      #}
+                        {% for pg in events_page.paginator.page_range %}
+                            {% if events_page.number|add:-5 < pg and pg < events_page.number|add:5 %}
+                                {% if events_page.number == pg %}
+                                    <li class="page-item active">
+                                        {% else %}
+                                    <li class="page-item">
+                                {% endif %}
+                            <a class="page-link" href="?{% url_replace request page=pg %}">{{ pg }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        {#   最後 9 ページの表示   #}
+                        {% for pg in events_page.paginator.page_range %}
+                            {% if forloop.counter0 > events_page.paginator.num_pages|add:-10 %}
+                                {% if events_page.number == pg %}
+                                    <li class="page-item active">
+                                        {% else %}
+                                    <li class="page-item">
+                                {% endif %}
+                            <a class="page-link" href="?{% url_replace request page=pg %}">{{ pg }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                {% else %}
+                    {% for pg in events_page.paginator.page_range %}
+                        {% if events_page.number == pg %}
+                            <li class="page-item active">
+                                {% else %}
+                            <li class="page-item">
+                        {% endif %}
+                    <a class="page-link" href="?{% url_replace request page=pg %}">{{ pg }}</a>
+                    </li>
+                    {% endfor %}
+                {% endif %}
+                {% if events_page.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="?{% url_replace request page=events_page.next_page_number %}">次へ</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">次へ</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% else %}
+        <p>レコードがありませんでした</p>
+    {% endif %}
+    <script type="text/javascript">
+      $(function () {
+        const config_date = {
+          enableSeconds: true,
+          enableTime: true,
+          dateFormat: "Y-m-d H:i:S",
+          maxDate: "today",
+          time_24hr: true,
+          "locale": "ja"
+        };
+
+        flatpickr("#id_start_time", config_date);
+        flatpickr("#id_end_time", config_date);
+      });
+    </script>
+{% endblock %}
