@@ -73,3 +73,20 @@ FROM resource_addrlist AS t1
 GROUP BY id, ip_address, admin_name, admin_email
 ORDER BY ip_address
 """
+
+
+sqlAddrListDateFilter = """
+WITH rs_addrlist AS (SELECT *
+                     FROM resource_resourceaddresslist T1
+                     WHERE T1.`jpnic_id` = %(id)s
+                       AND NOT (T1.`last_checked_at` < %(start_time)s)
+                       AND NOT (T1.`created_at` > %(end_time)s))
+SELECT *
+FROM rs_addrlist
+WHERE NOT EXISTS(
+        SELECT 1
+        FROM rs_addrlist AS sub
+        WHERE rs_addrlist.ip_address = sub.ip_address
+          AND rs_addrlist.last_checked_at < sub.last_checked_at
+    )
+"""

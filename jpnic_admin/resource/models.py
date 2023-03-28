@@ -137,7 +137,7 @@ class ResourceList(models.Model):
         ]
 
     created_at = models.DateTimeField("取得開始時刻", auto_now_add=True, db_index=True)
-    last_checked_at = models.DateTimeField("最終更新時刻", auto_now=True, db_index=True)
+    last_checked_at = models.DateTimeField("最終更新時刻", db_index=True)
     resource_no = models.IntegerField("資源管理者番号", db_index=True)
     resource_admin_short = models.CharField("資源管理者略称", max_length=50)
     org = models.CharField("組織名", max_length=120)

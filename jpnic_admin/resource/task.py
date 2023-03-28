@@ -182,10 +182,11 @@ class GetAddr(JPNIC):
         ):
             self.insert_resource_list(info=info_resource_list)
         else:
+            print(now)
             latest_res_list.last_checked_at = now
             latest_res_list.save()
 
-        # 資源情報(addr list)
+        # 資源IPアドレス情報(addr list)
         for res_addr_list_one in res_addr_list:
             is_new_item = True
             for latest_res_addr in latest_res_addr_list:
@@ -194,6 +195,7 @@ class GetAddr(JPNIC):
                     and latest_res_addr.assign_date == res_addr_list_one.get("assign_date")
                     and latest_res_addr.assigned_addr_count == res_addr_list_one.get("assigned_addr_count")
                 ):
+                    print(now)
                     latest_res_addr.last_checked_at = now
                     latest_res_addr.save()
                     is_new_item = False

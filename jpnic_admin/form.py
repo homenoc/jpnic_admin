@@ -3,11 +3,11 @@ import datetime
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db import connection
-from django.db.models import Q, Prefetch
+from django.db.models import Q, Prefetch, Count, Func, F, Min, Window, Max
 
 from jpnic_admin.resource.models import AddrList, ResourceList, ResourceAddressList
 from jpnic_admin.models import JPNIC as JPNICModel
-from .resource.sql import sqlDateSelect, sql_get_latest
+from .resource.sql import sqlDateSelect, sql_get_latest, sqlAddrListDateFilter
 
 
 class SearchForm(forms.Form):
@@ -164,7 +164,7 @@ class SearchResourceForm(forms.Form):
     )
 
     select_date = forms.DateField(
-        label="取得日開始",
+        label="取得日",
         input_formats=["%Y-%m-%d"],
         initial=datetime.date.today,
         widget=forms.DateTimeInput(format="%Y-%m-%d"),
@@ -189,19 +189,25 @@ class SearchResourceForm(forms.Form):
 
         # AS番号フィルタ
         q &= Q(jpnic_id=as_id)
+        params = {"as_id": as_id}
 
         # 日付フィルタ
         # 最新
         if select_date:
-            q &= ~Q(last_checked_at__lt=datetime.datetime.combine(select_date, datetime.time()))
-            q &= ~Q(created_at__gt=datetime.datetime.combine(select_date, datetime.time(23, 59, 59)))
+            # created_at < select_date && select_date < last_checked_
+            start_time = datetime.datetime.combine(select_date, datetime.time())
+            end_time = datetime.datetime.combine(select_date, datetime.time(23, 59, 59))
+            q &= ~Q(last_checked_at__lt=start_time)
+            q &= ~Q(created_at__gt=end_time)
+            rs_list = ResourceList.objects.filter(q).order_by("-last_checked_at").first()
+            rs_addr_list = ResourceAddressList.objects.raw(
+                sqlAddrListDateFilter, params={"id": as_id, "start_time": start_time, "end_time": end_time}
+            )
         else:
-            jpn = JPNICModel.objects.get(id=as_id)
-            q &= Q(last_checked_at__gt=jpn.last_resource2_checked_at)
-
-        # created_at < start_date && select_date < last_checked_
-        rs_list = ResourceList.objects.filter(q).order_by("-last_checked_at").first()
-        rs_addr_list = ResourceAddressList.objects.filter(q)
+            rs_list = ResourceList.objects.filter(jpnic_id=as_id).order_by("-last_checked_at").first()
+            rs_addr_list = ResourceAddressList.objects.filter(
+                jpnic_id=self.as_id, last_checked_at__exact=rs_list.last_checked_at
+            )
 
         return {
             "rs_list": rs_list,
