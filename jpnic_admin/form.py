@@ -189,7 +189,6 @@ class SearchResourceForm(forms.Form):
 
         # AS番号フィルタ
         q &= Q(jpnic_id=as_id)
-        params = {"as_id": as_id}
 
         # 日付フィルタ
         # 最新
@@ -206,7 +205,7 @@ class SearchResourceForm(forms.Form):
         else:
             rs_list = ResourceList.objects.filter(jpnic_id=as_id).order_by("-last_checked_at").first()
             rs_addr_list = ResourceAddressList.objects.filter(
-                jpnic_id=self.as_id, last_checked_at__exact=rs_list.last_checked_at
+                jpnic_id=as_id, last_checked_at__exact=rs_list.last_checked_at
             )
 
         return {
