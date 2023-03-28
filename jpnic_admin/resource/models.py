@@ -16,7 +16,7 @@ class JPNICHandle(models.Model):
             ["last_checked_at", "jpnic_handle", "jpnic_id"],
         ]
 
-    created_at = models.DateTimeField("取得開始時刻", auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField("取得開始時刻", db_index=True)
     last_checked_at = models.DateTimeField("最終更新時刻", db_index=True)
     jpnic_handle = models.CharField("JPNICハンドル", max_length=20, db_index=True)
     name = models.CharField("名前", max_length=120)
@@ -88,7 +88,7 @@ class AddrList(models.Model):
         (DIVISION_SUB_ALLOCATE, "v4(SUBA)/v6(再割当)"),
     )
 
-    created_at = models.DateTimeField("取得開始時刻", auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField("取得開始時刻", db_index=True)
     last_checked_at = models.DateTimeField("最終更新時刻", db_index=True)
     ip_address = models.CharField("IPアドレス", max_length=100, db_index=True)
     network_name = models.CharField("ネットワーク名", max_length=30)
@@ -136,7 +136,7 @@ class ResourceList(models.Model):
             ["last_checked_at", "jpnic_id"],
         ]
 
-    created_at = models.DateTimeField("取得開始時刻", auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField("取得開始時刻", db_index=True)
     last_checked_at = models.DateTimeField("最終更新時刻", db_index=True)
     resource_no = models.IntegerField("資源管理者番号", db_index=True)
     resource_admin_short = models.CharField("資源管理者略称", max_length=50)
@@ -175,7 +175,7 @@ class ResourceAddressList(models.Model):
         ["last_enabled_at", "jpnic_id"],
     ]
 
-    created_at = models.DateTimeField("取得開始時刻", auto_now_add=True, db_index=True)
+    created_at = models.DateTimeField("取得開始時刻", db_index=True)
     last_checked_at = models.DateTimeField("最終更新時刻", db_index=True)
     ip_address = models.CharField("IPアドレス", max_length=100, db_index=True)
     assign_date = models.DateTimeField("割振年月日")

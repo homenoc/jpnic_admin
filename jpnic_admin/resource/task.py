@@ -11,6 +11,8 @@ from django.utils import timezone
 
 from jpnic_admin.jpnic import JPNIC, request_to_sjis, request_error, JPNICReqError
 from jpnic_admin.models import JPNIC as JPNICModel
+from jpnic_admin.log.models import Task as TaskModel
+from jpnic_admin.log.models import TaskError as TaskErrorModel
 from jpnic_admin.resource.models import (
     AddrList,
     JPNICHandle,
@@ -22,41 +24,87 @@ from jpnic_admin.resource.models import (
 
 # 情報取得関数
 def get_addr_process():
-    bases = JPNICModel.objects.filter(is_active=True)
-    for base in bases:
-        if (
-            not base.last_resource1_checked_at
-        ) or datetime.datetime.now() > base.last_resource1_checked_at + datetime.timedelta(
-            minutes=base.collection_interval
-        ):
-            t = threading.Thread(target=get_addr, args=(copy.deepcopy(base),))
-            t.setDaemon(True)
-            t.start()
-            base.last_resource1_checked_at = timezone.now()
-            base.save()
+    t = threading.Thread(target=get_task, args=("アドレス情報",))
+    t.setDaemon(True)
+    t.start()
 
 
 def get_resource_process():
+    t = threading.Thread(target=get_task, args=("資源情報",))
+    t.setDaemon(True)
+    t.start()
+
+
+def manual_task(type1=None, jpnic_id=None):
+    if not type1 or not jpnic_id:
+        return
+    base = JPNICModel.objects.get(is_active=True, id=jpnic_id)
+    latest_log = TaskModel.objects.filter(jpnic_id=base.id, type1=type1).order_by("-last_checked_at").first()
+    now = copy.deepcopy(timezone.now())
+    exec_task(type1, base, latest_log, now)
+
+
+def get_task(type1=None):
+    if not type1:
+        return
     bases = JPNICModel.objects.filter(is_active=True)
     for base in bases:
-        if (
-            not base.last_resource2_checked_at
-        ) or datetime.datetime.now() > base.last_resource2_checked_at + datetime.timedelta(
-            minutes=base.collection_interval
-        ):
-            t = threading.Thread(target=get_resource, args=(copy.deepcopy(base),))
-            t.setDaemon(True)
-            t.start()
-            base.last_resource2_checked_at = timezone.now()
-            base.save()
+        now = copy.deepcopy(timezone.now())
+        latest_log = TaskModel.objects.filter(type1=type1, jpnic_id=base.id).order_by("-last_checked_at").first()
+        #  count-fail_countが1以上の場合はすっ飛ばす　(Only 資源情報)<=負荷軽減策
+        if type1 == "資源情報":
+            if latest_log.count - latest_log.fail_count > 0:
+                return
+
+        if (not latest_log) or now > latest_log.last_checked_at + datetime.timedelta(minutes=base.collection_interval):
+            exec_task(type1, base, latest_log, now)
 
 
-def get_addr(base):
-    GetAddr(base=base).search_list()
+def exec_task(type1, base, log, now):
+    fail = None
+    base_copied = copy.deepcopy(base)
+    log_copied = copy.deepcopy(log)
+    try:
+        if type1 == "アドレス情報":
+            GetAddr(base=base_copied, log=log_copied, now=now).search_list()
+        elif type1 == "資源情報":
+            GetAddr(base=base_copied, log=log_copied, now=now).get_resource()
+    except Exception as e:
+        fail = {"type": str(type(e)), "message": str(e)}
+    update_task_log(type1, base, log, now, fail)
 
 
-def get_resource(base):
-    GetAddr(base=base).get_resource()
+def update_task_log(type1, base, latest_log, now, fail):
+    # ログが今日分かどうか確認
+    if latest_log:
+        today_start_time = datetime.datetime.combine(now, datetime.time(0, 0, 0))
+        today_end_time = datetime.datetime.combine(now, datetime.time(23, 59, 59))
+        if today_start_time <= latest_log.created_at <= today_end_time:
+            with transaction.atomic():
+                latest_log.last_checked_at = now
+                latest_log.count = latest_log.count + 1
+                if fail:
+                    latest_log.fail_count = latest_log.fail_count + 1
+                    TaskErrorModel(
+                        created_at=now, type=fail.get("type"), message=fail.get("message"), task_id=latest_log.id
+                    ).save()
+                latest_log.save()
+            return
+
+    fail_count = 0
+    if fail:
+        fail_count = 1
+    taskModel = TaskModel(
+        created_at=now,
+        last_checked_at=now,
+        jpnic_id=base.id,
+        type1=type1,
+        count=1,
+        fail_count=fail_count,
+    )
+    taskModel.save()
+    if fail:
+        TaskErrorModel(created_at=now, type=fail.get("type"), message=fail.get("message"), task_id=taskModel.id).save()
 
 
 def start_getting_addr():
@@ -81,12 +129,14 @@ def convert_datetime(text, date_format="%Y/%m/%d"):
 
 
 class GetAddr(JPNIC):
-    def __init__(self, base=None):
+    def __init__(self, base=None, log=None, now=None):
         if base is None:
             print("Error: getting base info")
             return
         super().__init__(base.asn, base.is_ipv6)
         self.base = base
+        self.log = log
+        self.now = now
 
     def get_resource(self):
         self.init_get()
@@ -172,7 +222,6 @@ class GetAddr(JPNIC):
                     res_addr_list.append(tmp_rs_addr_list)
                     tmp_rs_addr_list = {}
 
-        now = copy.deepcopy(timezone.now())
         # 資源情報(main)
         if (
             latest_res_list is None
@@ -182,7 +231,7 @@ class GetAddr(JPNIC):
         ):
             self.insert_resource_list(info=info_resource_list)
         else:
-            latest_res_list.last_checked_at = now
+            latest_res_list.last_checked_at = self.now
             latest_res_list.save()
 
         # 資源IPアドレス情報(addr list)
@@ -194,30 +243,22 @@ class GetAddr(JPNIC):
                     and latest_res_addr.assign_date == res_addr_list_one.get("assign_date")
                     and latest_res_addr.assigned_addr_count == res_addr_list_one.get("assigned_addr_count")
                 ):
-                    latest_res_addr.last_checked_at = now
+                    latest_res_addr.last_checked_at = self.now
                     latest_res_addr.save()
                     is_new_item = False
                     break
 
             if is_new_item:
-                self.insert_resource_address_list(info=res_addr_list_one, now=now)
+                self.insert_resource_address_list(info=res_addr_list_one)
 
     def search_list(self):
         # 最新版を取得
         last_addr_list = AddrList.objects.filter(jpnic_id=self.base.id).order_by("-last_checked_at").first()
         addr_lists = []
-        addr_list_exists = False
         if last_addr_list:
             addr_lists = AddrList.objects.filter(
                 jpnic_id=self.base.id, last_checked_at__exact=last_addr_list.last_checked_at
             )
-            addr_list_exists = addr_lists.exists()
-
-        # 初回時に初回取得時間を記録する
-        if not addr_list_exists:
-            asn_info = JPNICModel.objects.get(id=self.base.id)
-            asn_info.first_checked_at = timezone.now()
-            asn_info.save()
 
         self.init_get()
         if self.base.is_ipv6:
@@ -307,11 +348,10 @@ class GetAddr(JPNIC):
                         no_update_data = False
                         break
 
-        now = timezone.now()
         with transaction.atomic():
             # last_checked_atだけ更新
             for updated_info_list in updated_info_lists:
-                updated_info_list.last_checked_at = now
+                updated_info_list.last_checked_at = self.now
                 updated_info_list.save()
 
         # JPNICハンドルの更新処理
@@ -344,8 +384,8 @@ class GetAddr(JPNIC):
 
         with transaction.atomic():
             # addr_listを新規登録
-            addr_list_id = self.insert_addr_list(addr_info, now)
-            self.insert_jpnic_handle(now, jpnic_handles)
+            addr_list_id = self.insert_addr_list(addr_info)
+            self.insert_jpnic_handle(jpnic_handles)
             for tech_handle in addr_info["tech_handle"]:
                 AddrListTechHandle(addr_list_id=addr_list_id, jpnic_handle=tech_handle).save()
 
@@ -535,10 +575,11 @@ class GetAddr(JPNIC):
                     info["fax"] = body
         return info
 
-    def insert_jpnic_handle(self, now, jpnic_handles, recep_number=""):
+    def insert_jpnic_handle(self, jpnic_handles, recep_number=""):
         for jpnic_handle in jpnic_handles:
             new_handle_model = JPNICHandle(
-                last_checked_at=now,
+                created_at=self.now,
+                last_checked_at=self.now,
                 jpnic_handle=jpnic_handle.get("jpnic_hdl"),
                 name=jpnic_handle.get("name"),
                 name_en=jpnic_handle.get("name_en"),
@@ -557,9 +598,10 @@ class GetAddr(JPNIC):
             )
             new_handle_model.save()
 
-    def insert_addr_list(self, addr_info, now):
+    def insert_addr_list(self, addr_info):
         insert_addrlist = AddrList(
-            last_checked_at=now,
+            created_at=self.now,
+            last_checked_at=self.now,
             ip_address=addr_info.get("ip_address"),
             network_name=addr_info.get("network_name"),
             assign_date=addr_info.get("assign_date"),
@@ -585,6 +627,8 @@ class GetAddr(JPNIC):
 
     def insert_resource_list(self, info):
         insert_resource_list = ResourceList(
+            created_at=self.now,
+            last_checked_at=self.now,
             resource_no=info.get("resource_no"),
             resource_admin_short=info.get("resource_admin_short"),
             org=info.get("org"),
@@ -609,9 +653,10 @@ class GetAddr(JPNIC):
         )
         insert_resource_list.save()
 
-    def insert_resource_address_list(self, info, now):
+    def insert_resource_address_list(self, info):
         insert_resource_address_list = ResourceAddressList(
-            last_checked_at=now,
+            created_at=self.now,
+            last_checked_at=self.now,
             ip_address=info.get("ip_address"),
             assign_date=info.get("assign_date"),
             assigned_addr_count=info.get("assigned_addr_count"),
@@ -620,6 +665,13 @@ class GetAddr(JPNIC):
         insert_resource_address_list.save()
 
     def update_handle(self):
+        # 最初に取得を始めた日付を取得
+        first_task_info = (
+            TaskModel.objects.filter(jpnic_id=self.base.id, type1="アドレス情報").order_by("last_checked_at").first()
+        )
+        if first_task_info is None:
+            print("ログデータがありません")
+
         self.get_contents_url("申請一覧")
         res = self.session.get(self.url, headers=self.header)
         res.encoding = "Shift_JIS"
@@ -633,7 +685,7 @@ class GetAddr(JPNIC):
             aplyKind="",
             aplyClass=501,
             resceAdmSnm="",
-            aplyDateS=self.base.first_checked_at.strftime("%Y/%m/%d"),
+            aplyDateS=first_task_info.created_at.strftime("%Y/%m/%d"),
             aplyDateE="",
             completDateS="",
             completDateE="",
@@ -685,14 +737,13 @@ class GetAddr(JPNIC):
             print("ERROR")
             return
 
-        now = timezone.now()
         with transaction.atomic():
             # TODO: JPNICハンドルとlast_checked_at=Nullを使って対象のテーブルを探し当てて、last_checked_atを更新する
             tmp_handle = JPNICHandle.objects.get(
                 jpnic_handle=handle_info["jpnic_handle"],
-                last_checked_at__gt=self.base.last_resource1_checked_at,
+                last_checked_at__gt=self.log.last_checked_at,
                 jpnic_id=self.base.id,
             )
-            tmp_handle.last_checked_at = now
+            tmp_handle.last_checked_at = self.now
             tmp_handle.save()
-            self.insert_jpnic_handle(now, jpnic_handles=[].append(handle_info), recep_number=info["recept_no"])
+            self.insert_jpnic_handle(jpnic_handles=[].append(handle_info), recep_number=info["recept_no"])

@@ -169,4 +169,4 @@ def add_assignment1(request):
         "form": form,
         "as": JPNICModel.objects.all(),
     }
-    return render(request, "add_assignment1.html", context)
+    return render(request, "add_assignment_test.html", context)

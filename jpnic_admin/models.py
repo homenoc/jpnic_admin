@@ -5,9 +5,6 @@ class JPNIC(models.Model):
     class Meta:
         verbose_name = verbose_name_plural = "AS"
 
-    first_checked_at = models.DateTimeField("初回取得開始時刻", null=True, blank=True, db_index=True)
-    last_resource1_checked_at = models.DateTimeField("resource1の最終更新時刻", null=True, blank=True)
-    last_resource2_checked_at = models.DateTimeField("resource2の最終更新時刻", null=True, blank=True)
     name = models.CharField("名前", unique=True, max_length=100)
     is_active = models.BooleanField("有効", blank=True)
     is_ipv6 = models.BooleanField("IPv6", blank=False)
