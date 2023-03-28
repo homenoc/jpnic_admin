@@ -4,4 +4,4 @@
 conf/*
 *.sqlite3
 *.sqlite3-*
-jpnic_admin/templates/test*
+jpnic_admin/templates/*test*.html
