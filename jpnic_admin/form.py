@@ -6,7 +6,6 @@ from django.db import connection
 from django.db.models import Q, Prefetch, Count, Func, F, Min, Window, Max
 
 from jpnic_admin.resource.models import AddrList, ResourceList, ResourceAddressList
-from jpnic_admin.models import JPNIC as JPNICModel
 from .resource.sql import sqlDateSelect, sql_get_latest, sqlAddrListDateFilter
 
 
@@ -171,7 +170,7 @@ class SearchResourceForm(forms.Form):
         required=False,
     )
 
-    def get_queryset(self, jpnic_model=None):
+    def get_queryset(self):
         if not self.is_valid():
             return None
 

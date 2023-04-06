@@ -53,7 +53,8 @@ def get_task(type1=None):
         latest_log = TaskModel.objects.filter(type1=type1, jpnic_id=base.id).order_by("-last_checked_at").first()
         #  count-fail_countが1以上の場合はすっ飛ばす　(Only 資源情報)<=負荷軽減策
         if type1 == "資源情報":
-            if latest_log.count - latest_log.fail_count > 0:
+            now_zero = datetime.datetime.combine(now, datetime.time(0, 0, 0))
+            if (now_zero < latest_log.last_checked_at) & (latest_log.count - latest_log.fail_count > 0):
                 return
 
         if (not latest_log) or now > latest_log.last_checked_at + datetime.timedelta(minutes=base.collection_interval):
