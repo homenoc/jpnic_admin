@@ -14,52 +14,35 @@
         {% csrf_token %}
         <div class="row g-2">
             <div class="col-3">
-                {{ form.name.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.name.value|default:"" }}"
-                       name="{{ form.name.name }}" id="{{ form.name.id_for_label }}" required>
+                <label for="formFile" class="form-label">{{ form.name.label }}</label>
+                {{ form.name|add_class:'form-control' }}
             </div>
             <div class="col-2">
-                {{ form.asn.label }}
-                <input type="number" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.asn.value|default:"" }}" name="{{ form.asn.name }}"
-                       id="{{ form.asn.id_for_label }}" required>
+                <label for="formFile" class="form-label">{{ form.asn.label }}</label>
+                {{ form.asn|add_class:'form-control' }}
             </div>
         </div>
         <div class="row g-2">
             <div class="col-1">
-                {{ form.ipv6.label }}
-                <div class="form-check">
+                <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" value={{ form.ipv6.value }}
                             name="{{ form.ipv6.name }}" id="{{ form.ipv6.id_for_label }}">
+                    <label class="form-check-label" for="flexCheckDefault">{{ form.ipv6.label }}</label>
                 </div>
             </div>
             <div class="col-2">
-                {{ form.ada.label }}
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value={{ form.ada.value }}
-                            name="{{ form.ada.name }}" id="{{ form.ada.id_for_label }}">
-                </div>
-            </div>
-            <div class="col-2">
-                {{ form.collection_interval.label }}
-                <input type="number" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.collection_interval.value|default:"" }}"
-                       name="{{ form.collection_interval.name }}"
-                       id="{{ form.collection_interval.id_for_label }}" required>
+                <label for="formFile" class="form-label">{{ form.collection_interval.label }}</label>
+                {{ form.collection_interval|add_class:'form-control' }}
             </div>
         </div>
         <div class="row g-2">
             <div class="col-4">
                 <label for="formFile" class="form-label">p12ファイルアップロード</label>
-                <input class="form-control" type="file" id="{{ form.p12.id_for_label }}"
-                       name="{{ form.p12.name }}" required/>
+                {{ form.p12|add_class:'form-control' }}
             </div>
             <div class="col-3">
                 <label for="formFile" class="form-label">{{ form.p12_pass.label }}</label>
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.p12_pass.value|default:"" }}"
-                       name="{{ form.p12_pass.name }}" id="{{ form.p12_pass.id_for_label }}" required>
+                {{ form.p12_pass|add_class:'form-control' }}
             </div>
         </div>
         <br/>

@@ -5,6 +5,20 @@
 
 {% block title %}Articles for {{ year }}{% endblock %}
 
+{% block extrahead %}
+    <style>
+        .fc-col-header-cell-cushion {
+            color: black;
+            text-decoration: none
+        }
+
+        .fc-daygrid-day-number {
+            color: black;
+            text-decoration: none
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
     <h2>JPNIC
         {% if search_form.start_date.value == None and search_form.end_date.value == None %}
@@ -14,31 +28,13 @@
         <div class="p-3 border bg-light">
             <form method="get" class="needs-validation" novalidate>
                 <div class="row g-2">
-                    <div class="col-2">
-                        <label for="id_start_date">{{ search_form.start_date.label }}</label>
-                        {{ search_form.start_date|add_class:'form-control' }}
+                    <div class="col-3">
+                        <label for="id_jpnic_id">{{ search_form.jpnic_id.label }}</label>
+                        {{ search_form.jpnic_id|add_class:'form-select' }}
                     </div>
-                    <div class="col-2">
-                        <label for="id_end_date">{{ search_form.end_date.label }}</label>
-                        {{ search_form.end_date|add_class:'form-control' }}
-                    </div>
-                    <div class="col-2">
-                        <label for="id_asn">{{ search_form.as_id.label }}</label>
-                        <select class="form-select" aria-label="Default select"
-                                value="{{ search_form.as_id.value }}"
-                                name="{{ search_form.as_id.name }}"
-                                id="{{ search_form.as_id.id_for_label }}">
-                            <option {% if search_form.as_id.value == None %}selected{% endif %} disabled>
-                                選択してください
-                            </option>
-                            {% for value in jpnic_model %}
-                                {% to_int value.id as jpnic_id %}
-                                {% to_int search_form.as_id.value as base_value %}
-                                <option value={{ value.id }}
-                                                {% if base_value == jpnic_id %}selected{% endif %}>{{ value.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
+                    <div class="col-3">
+                        <label for="id_select_date">{{ search_form.select_date.label }}</label>
+                        {{ search_form.select_date|add_class:'form-control' }}
                     </div>
                 </div>
                 <div class="row g-2">
@@ -55,7 +51,7 @@
                                name="{{ search_form.network_name.name }}"
                                id="{{ search_form.network_name.id_for_label }}">
                     </div>
-                    <div class="col-4">
+                    <div class="col-2">
                     </div>
                 </div>
                 <br/>
@@ -67,12 +63,17 @@
         </div>
     </div>
     <br/>
-    {% if data %}
+    {% if data.events %}
+        <h3>閲覧したい情報済みを選択してください</h3>
+        <div id='calendar'></div>
+    {% endif %}
+    <br/>
+    {% if data.info %}
         <div class="form-check">
             <input class="row_filter" type="checkbox" value="0" id="flexCheckDefault">
-            <label class="row_filter-label" for="flexCheckDefault">ASN</label>
+            <label class="row_filter-label" for="flexCheckDefault">ID</label>
             <input class="row_filter" type="checkbox" value="1" id="flexCheckDefault">
-            <label class="row_filter-label" for="flexCheckDefault">更新開始日</label>
+            <label class="row_filter-label" for="flexCheckDefault">作成日</label>
             <input class="row_filter" type="checkbox" value="2" id="flexCheckDefault" checked>
             <label class="row_filter-label" for="flexCheckDefault">更新日</label>
             <input class="row_filter" type="checkbox" value="3" id="flexCheckDefault" checked>
@@ -104,7 +105,7 @@
         <span class="badge bg-dark">全数: {{ data.count }}</span>
         <span class="badge bg-primary">ページ数: {{ data.all_pages }}</span>
         <br/>
-        <table class="table table-striped table-hover">
+        <table class="table table-striped table-hover" id="detail">
             <tr>
                 <th>ID</th>
                 <th>作成日</th>
@@ -148,8 +149,7 @@
             <ul class="pagination">
                 {% if data.prev_page %}
                     <li class="page-item">
-                        <a class="page-link"
-                           href="?{% url_replace request per_page=data.prev_page %}">前へ</a>
+                        <a class="page-link" href="?{% url_replace request per_page=data.prev_page %}">前へ</a>
                     </li>
                 {% else %}
                     <li class="page-item disabled">
@@ -158,7 +158,7 @@
                 {% endif %}
                 {% if data.all_pages > 10 %}
                     {% if per_page < 6 %}
-                        先頭 9 ページの表示
+                        {#先頭 9 ページの表示#}
                         {% for pg in data.all_range_pages %}
                             {% if forloop.counter0 < 9 %}
                                 {% if per_page == pg %}
@@ -171,7 +171,7 @@
                             {% endif %}
                         {% endfor %}
                     {% elif per_page < data.all_pages|add:-4 %}
-                        手前 4 ページ | 現在のページ | 続き 4 ページ
+                        {#手前 4 ページ | 現在のページ | 続き 4 ページ#}
                         {% for pg in data.all_range_pages %}
                             {% if page|add:-5 < pg and pg < page|add:5 %}
                                 {% if per_page == pg %}
@@ -184,7 +184,7 @@
                             {% endif %}
                         {% endfor %}
                     {% else %}
-                        最後 9 ページの表示
+                        {#最後 9 ページの表示#}
                         {% for pg in data.all_range_pages %}
                             {% if forloop.counter0 > data.all_pages|add:-10 %}
                                 {% if per_page == pg %}
@@ -221,7 +221,7 @@
             </ul>
         </nav>
     {% else %}
-        {% if search_form.as_id.value == None %}
+        {% if search_form.jpnic_id.value == None %}
             <b>AS番号を選択してください</b>
         {% endif %}
     {% endif %}
@@ -241,11 +241,9 @@
           enableTime: false,
           dateFormat: "Y-m-d",
           maxDate: "today",
-          locale: "ja"
         };
 
-        flatpickr("#id_start_date", config_date);
-        flatpickr("#id_end_date", config_date);
+        flatpickr("#id_select_date", config_date);
 
         // チェックボックスをDOMに追加
         $('body').prepend();
@@ -253,16 +251,33 @@
         $('.row_filter').change(function () {
           let colIndex = Number($(this).val());
 
-          $('td:nth-child(' + (colIndex + 1) + ')').toggle();
-          $('th')
-            .eq(colIndex)
-            .toggle();
+          $('table#detail td:nth-child(' + (colIndex + 1) + ')').toggle();
+          $('table#detail th').eq(colIndex).toggle();
         });
 
         function remove_row(index) {
-          $('td:nth-child(' + (index + 1) + ')').toggle();
-          $('th').eq(index).toggle();
+          $('table#detail td:nth-child(' + (index + 1) + ')').toggle();
+          $('table#detail th').eq(index).toggle();
         }
       };
+
+      {% if data.events %}
+        document.addEventListener('DOMContentLoaded', function () {
+          const calendarEl = document.getElementById('calendar');
+          const calendar = new FullCalendar.Calendar(calendarEl, {
+            themeSystem: 'bootstrap5',
+            timeZone: 'JST',
+            locale: 'jp',
+            initialView: 'multiMonthYear',
+            headerToolbar: {
+              left: 'prev,next today',
+              center: 'title',
+              right: 'multiMonthYear,dayGridMonth'
+            },
+            events: {% autoescape off %}{{ data }}{% endautoescape %},
+          });
+          calendar.render();
+        });
+      {% endif %}
     </script>
 {% endblock %}

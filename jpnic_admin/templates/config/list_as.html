@@ -47,7 +47,7 @@
                 {% endif %}
                 <th>{{ j.data.asn }}</th>
                 <th>{{ j.data.name }}</th>
-                {% if j.data.ada %}
+                {% if j.data.collection_interval != 0 %}
                     <th class="table-success">{{ j.data.collection_interval }}分</th>
                 {% else %}
                     <th class="table-danger">{{ j.data.collection_interval }}分</th>

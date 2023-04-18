@@ -1,6 +1,14 @@
 from django.db import models
 
 
+class MediumTextField(models.TextField):
+    def db_type(self, connection):
+        if connection.settings_dict["ENGINE"] == "django.db.backends.mysql":
+            return "mediumtext"
+        else:
+            return super(MediumTextField, self).db_type(connection=connection)
+
+
 class JPNIC(models.Model):
     class Meta:
         verbose_name = verbose_name_plural = "AS"
@@ -8,7 +16,7 @@ class JPNIC(models.Model):
     name = models.CharField("名前", unique=True, max_length=100)
     is_active = models.BooleanField("有効", blank=True)
     is_ipv6 = models.BooleanField("IPv6", blank=False)
-    ada = models.BooleanField("データの自動取得", blank=False)
+    option_collection_no_filter = models.BooleanField("取得フィルタを解除(オプション)", blank=False, default=False)
     collection_interval = models.IntegerField("収集頻度(分)", blank=False, default=60)
     asn = models.IntegerField("ASN")
     p12_base64 = models.CharField("p12 base64", max_length=10000, default="")
@@ -16,11 +24,3 @@ class JPNIC(models.Model):
 
     def __str__(self):
         return self.name
-
-
-# class RequestLog(models.Model):
-#     class Meta:
-#         verbose_name = verbose_name_plural = "申請ログ"
-#
-#     name = models.CharField("名前", max_length=100)
-#     # result = models.CharField("結果", max_length=65530)

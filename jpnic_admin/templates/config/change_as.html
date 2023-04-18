@@ -17,14 +17,11 @@
         <div class="row g-2">
             <div class="col-4">
                 <label for="formFile" class="form-label">p12ファイルアップロード</label>
-                <input class="form-control" type="file" id="{{ form.p12.id_for_label }}"
-                       name="{{ form.p12.name }}" required/>
+                {{ form.p12|add_class:'form-control' }}
             </div>
             <div class="col-3">
                 <label for="formFile" class="form-label">{{ form.p12_pass.label }}</label>
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.p12_pass.value|default:"" }}"
-                       name="{{ form.p12_pass.name }}" id="{{ form.p12_pass.id_for_label }}" required>
+                {{ form.p12_pass|add_class:'form-control' }}
             </div>
         </div>
         <br/>

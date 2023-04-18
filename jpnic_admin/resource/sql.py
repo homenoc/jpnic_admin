@@ -74,6 +74,16 @@ GROUP BY id, ip_address, admin_name, admin_email
 ORDER BY ip_address
 """
 
+sqlDateSelectCount = """
+SELECT resource_addrlist.ip_address   AS ip_address,
+       resource_addrlist.division     AS division
+FROM resource_addrlist 
+WHERE NOT (resource_addrlist.last_checked_at <= %s OR %s <= resource_addrlist.created_at)
+ AND resource_addrlist.jpnic_id = %s
+ AND resource_addrlist.network_name like %s
+ AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
+GROUP BY  ip_address, division
+"""
 
 sqlAddrListDateFilter = """
 WITH rs_addrlist AS (SELECT *

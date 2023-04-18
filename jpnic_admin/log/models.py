@@ -1,6 +1,6 @@
 from django.db import models
 
-from jpnic_admin.models import JPNIC
+from jpnic_admin.models import JPNIC, MediumTextField
 
 
 class SmallTextField(models.TextField):
@@ -9,14 +9,6 @@ class SmallTextField(models.TextField):
             return "text"
         else:
             return super(SmallTextField, self).db_type(connection=connection)
-
-
-class MediumTextField(models.TextField):
-    def db_type(self, connection):
-        if connection.settings_dict["ENGINE"] == "django.db.backends.mysql":
-            return "mediumtext"
-        else:
-            return super(MediumTextField, self).db_type(connection=connection)
 
 
 class Task(models.Model):

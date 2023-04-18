@@ -17,11 +17,12 @@ from django.contrib import admin
 from django.urls import path, include
 
 from jpnic_admin import views
+from jpnic_admin.resource import views as resource
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", views.index, name="index"),
-    path("resource/", views.resource, name="resource"),
+    path("", resource.ip_address, name="index"),
+    path("info/", include("jpnic_admin.resource.urls")),
     path("log/", include("jpnic_admin.log.urls")),
     path("config/", include("jpnic_admin.config.urls")),
     path("assignment/", include("jpnic_admin.assignment.urls")),

@@ -1,6 +1,6 @@
 from django.db import models
 
-from jpnic_admin.models import JPNIC
+from jpnic_admin.models import JPNIC, MediumTextField
 
 
 class JPNICHandle(models.Model):
@@ -158,6 +158,11 @@ class ResourceList(models.Model):
     all_addr_count = models.IntegerField("総アドレス数")
     assigned_addr_count = models.IntegerField("割当数")
     ad_ratio = models.FloatField("AD Ratio")
+    html_source = MediumTextField(
+        verbose_name="出力HTML",
+        null=True,
+        blank=True,
+    )
     jpnic = models.ForeignKey(JPNIC, on_delete=models.CASCADE)
 
 

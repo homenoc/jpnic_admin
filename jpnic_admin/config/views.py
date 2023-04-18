@@ -36,7 +36,6 @@ def add_as(request):
                 name=form.cleaned_data.get("name"),
                 is_active=True,
                 is_ipv6=form.cleaned_data.get("ipv6"),
-                ada=form.cleaned_data.get("ada"),
                 collection_interval=form.cleaned_data.get("collection_interval"),
                 asn=form.cleaned_data.get("asn"),
                 p12_base64=p12_base64.decode("ascii"),

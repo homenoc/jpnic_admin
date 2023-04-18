@@ -8,44 +8,14 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 
 from jpnic_admin.form import (
-    SearchForm,
     AddAssignment,
     GetIPAddressForm,
-    SearchResourceForm,
 )
 from jpnic_admin.jpnic import (
     JPNIC,
     JPNICReqError,
 )
 from jpnic_admin.models import JPNIC as JPNICModel
-
-
-def index(request):
-    jpnic_model_all = JPNICModel.objects.all()
-    form = SearchForm(request.GET)
-
-    per_page = int(request.GET.get("per_page", 1))
-    data = form.get_queryset(page=per_page)
-
-    context = {
-        "jpnic_model": jpnic_model_all,
-        "data": data,
-        "per_page": per_page,
-        "search_form": form,
-    }
-    return render(request, "jpnic_admin/index.html", context)
-
-
-def resource(request):
-    form = SearchResourceForm(request.GET)
-    events_page = form.get_queryset()
-
-    context = {
-        "jpnic_model": JPNICModel.objects.all(),
-        "data": events_page,
-        "search_form": form,
-    }
-    return render(request, "jpnic_admin/resource.html", context)
 
 
 def get_jpnic_info(request):

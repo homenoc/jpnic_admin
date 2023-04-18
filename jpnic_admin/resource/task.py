@@ -1,9 +1,8 @@
 import copy
 import datetime
 import re
-import threading
+import time
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.db import transaction
@@ -23,18 +22,6 @@ from jpnic_admin.resource.models import (
 
 
 # 情報取得関数
-def get_addr_process():
-    t = threading.Thread(target=get_task, args=("アドレス情報",))
-    t.setDaemon(True)
-    t.start()
-
-
-def get_resource_process():
-    t = threading.Thread(target=get_task, args=("資源情報",))
-    t.setDaemon(True)
-    t.start()
-
-
 def manual_task(type1=None, jpnic_id=None):
     if not type1 or not jpnic_id:
         return
@@ -49,16 +36,22 @@ def get_task(type1=None):
         return
     bases = JPNICModel.objects.filter(is_active=True)
     for base in bases:
+        if not base.is_active:
+            continue
         now = copy.deepcopy(timezone.now())
         latest_log = TaskModel.objects.filter(type1=type1, jpnic_id=base.id).order_by("-last_checked_at").first()
         #  count-fail_countが1以上の場合はすっ飛ばす　(Only 資源情報)<=負荷軽減策
-        if type1 == "資源情報":
+        if type1 == "資源情報" and latest_log is not None:
             now_zero = datetime.datetime.combine(now, datetime.time(0, 0, 0))
             if (now_zero < latest_log.last_checked_at) & (latest_log.count - latest_log.fail_count > 0):
-                return
-
+                continue
+        if (not settings.DEBUG) and base.collection_interval == 0:
+            continue
         if (not latest_log) or now > latest_log.last_checked_at + datetime.timedelta(minutes=base.collection_interval):
+            print(base.asn, type1, "START")
             exec_task(type1, base, latest_log, now)
+            print(base.asn, "END")
+        time.sleep(1)
 
 
 def exec_task(type1, base, log, now):
@@ -75,21 +68,21 @@ def exec_task(type1, base, log, now):
     update_task_log(type1, base, log, now, fail)
 
 
+@transaction.atomic
 def update_task_log(type1, base, latest_log, now, fail):
     # ログが今日分かどうか確認
     if latest_log:
         today_start_time = datetime.datetime.combine(now, datetime.time(0, 0, 0))
         today_end_time = datetime.datetime.combine(now, datetime.time(23, 59, 59))
         if today_start_time <= latest_log.created_at <= today_end_time:
-            with transaction.atomic():
-                latest_log.last_checked_at = now
-                latest_log.count = latest_log.count + 1
-                if fail:
-                    latest_log.fail_count = latest_log.fail_count + 1
-                    TaskErrorModel(
-                        created_at=now, type=fail.get("type"), message=fail.get("message"), task_id=latest_log.id
-                    ).save()
-                latest_log.save()
+            latest_log.last_checked_at = now
+            latest_log.count = latest_log.count + 1
+            if fail:
+                latest_log.fail_count = latest_log.fail_count + 1
+                TaskErrorModel(
+                    created_at=now, type=fail.get("type"), message=fail.get("message"), task_id=latest_log.id
+                ).save()
+            latest_log.save()
             return
 
     fail_count = 0
@@ -106,20 +99,6 @@ def update_task_log(type1, base, latest_log, now, fail):
     taskModel.save()
     if fail:
         TaskErrorModel(created_at=now, type=fail.get("type"), message=fail.get("message"), task_id=taskModel.id).save()
-
-
-def start_getting_addr():
-    # start_process()
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(get_addr_process, "interval", seconds=5)
-    scheduler.start()
-
-
-def start_getting_resource():
-    # start_process()
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(get_resource_process, "interval", seconds=5)
-    scheduler.start()
 
 
 def convert_datetime(text, date_format="%Y/%m/%d"):
@@ -139,6 +118,7 @@ class GetAddr(JPNIC):
         self.log = log
         self.now = now
 
+    @transaction.atomic
     def get_resource(self):
         self.init_get()
         self.get_contents_url("資源管理者情報")
@@ -230,9 +210,10 @@ class GetAddr(JPNIC):
             or latest_res_list.all_addr_count != info_resource_list.get("all_addr_count")
             or latest_res_list.update_date != info_resource_list.get("update_date")
         ):
-            self.insert_resource_list(info=info_resource_list)
+            self.insert_resource_list(info=info_resource_list, html=soup.prettify())
         else:
             latest_res_list.last_checked_at = self.now
+            latest_res_list.html_source = soup.prettify()
             latest_res_list.save()
 
         # 資源IPアドレス情報(addr list)
@@ -252,9 +233,13 @@ class GetAddr(JPNIC):
             if is_new_item:
                 self.insert_resource_address_list(info=res_addr_list_one)
 
+    @transaction.atomic
     def search_list(self):
         # 最新版を取得
+        print("================")
+        print(self.base.asn, "now", self.now)
         last_addr_list = AddrList.objects.filter(jpnic_id=self.base.id).order_by("-last_checked_at").first()
+        print("last_addr_list", last_addr_list)
         addr_lists = []
         if last_addr_list:
             addr_lists = AddrList.objects.filter(
@@ -270,11 +255,13 @@ class GetAddr(JPNIC):
         res.encoding = "Shift_JIS"
         soup = BeautifulSoup(res.text, "html.parser")
         ipaddr = ""
-        is_over_list = True
         addr_info = {}
-        no_update_data = True
-        updated_info_lists = []
-        while is_over_list:
+        # 存在しない情報のアップデート
+        update_info_lists = []
+        # 日付のみのアップデート
+        date_update_info_only_lists = []
+        while True:
+            print("TEST")
             req = dict(
                 destdisp=soup.find("input", attrs={"name": "destdisp"})["value"],
                 ipaddr=ipaddr,
@@ -295,16 +282,11 @@ class GetAddr(JPNIC):
             post_url = soup.find("form")["action"].split("/")[-1]
             res = self.session.post(self.base_url + "/" + post_url, data=req_data, headers=self.header)
             res.encoding = "Shift_JIS"
-            # 1000件以上か確認
-            if "該当する情報が1000件を超えました (1000件まで表示します)" in res.text:
-                is_over_list = True
-            else:
-                is_over_list = False
 
             soup = BeautifulSoup(res.text, "html.parser")
             addr_info = {}
-            max_len = enumerate(soup.findAll("td", attrs={"class": "dataRow_mnt04"}))
             for idx, td in enumerate(soup.findAll("td", attrs={"class": "dataRow_mnt04"})):
+                is_exist_addr_lists = False
                 text = td.text.strip()
                 if ((not self.base.is_ipv6) and (0 <= idx < 11)) or (self.base.is_ipv6 and (0 <= idx < 9)):
                     continue
@@ -332,34 +314,51 @@ class GetAddr(JPNIC):
                 elif (not self.base.is_ipv6) and (idx % 11 == 10):
                     addr_info["kind2"] = text
                     # 1000件超え対処用
-                    if max_len == idx + 1:
-                        ipaddr = addr_info["ip_address"]
-                    is_exist_addr_lists = False
+                    ipaddr = addr_info["ip_address"]
                     # addr_listsから一致するものを抜き出す
+                    is_exist_addr_lists = False
                     for addr_list in addr_lists:
                         if (
                             addr_list.ip_address == addr_info["ip_address"]
+                            and addr_list.division == addr_info["kind2"]
                             and addr_list.recep_number == addr_info["recept_no"]
                         ):
                             is_exist_addr_lists = True
                             # 存在する場合は確認OKなので、last_checkedを更新する
-                            updated_info_lists.append(addr_list)
+                            date_update_info_only_lists.append(addr_list)
                             break
+                    print(is_exist_addr_lists, copy.deepcopy(addr_info))
+
                     if not is_exist_addr_lists:
-                        no_update_data = False
-                        break
+                        update_info_lists.append(copy.deepcopy(addr_info))
+            # 1000件以上ではない場合は抜ける
+            if "該当する情報が1000件を超えました (1000件まで表示します)" not in res.text:
+                break
 
-        with transaction.atomic():
-            # last_checked_atだけ更新
-            for updated_info_list in updated_info_lists:
-                updated_info_list.last_checked_at = self.now
-                updated_info_list.save()
+        print("update_info_lists", len(update_info_lists), update_info_lists)
+        print("date_update_info_only_lists", len(date_update_info_only_lists), date_update_info_only_lists)
+        if (
+            (not self.base.option_collection_no_filter)
+            and len(addr_lists) != 0
+            and len(date_update_info_only_lists) == 0
+        ):
+            return
 
-        # JPNICハンドルの更新処理
-        if no_update_data:
+        # last_checked_atだけ更新
+        for date_update_info_only_list in date_update_info_only_lists:
+            date_update_info_only_list.last_checked_at = self.now
+            date_update_info_only_list.save()
+
+        # すべて更新済みの場合は、JPNICハンドルの更新処理を行う
+        if len(date_update_info_only_lists) != 0 and len(update_info_lists) == 0:
             print("update only jpnic handle.")
             self.update_handle()
             return
+
+        if len(update_info_lists) == 0:
+            return
+
+        addr_info = update_info_lists[0]
         addr_info = self.get_detail_address(url=addr_info["ip_address_url"], info=addr_info)
 
         jpnic_handles = []
@@ -383,14 +382,12 @@ class GetAddr(JPNIC):
             except JPNICReqError as exc:
                 print(exc)
 
-        with transaction.atomic():
-            # addr_listを新規登録
-            addr_list_id = self.insert_addr_list(addr_info)
-            self.insert_jpnic_handle(jpnic_handles)
-            for tech_handle in addr_info["tech_handle"]:
-                AddrListTechHandle(addr_list_id=addr_list_id, jpnic_handle=tech_handle).save()
+        # addr_listを新規登録
+        addr_list_id = self.insert_addr_list(addr_info)
+        self.insert_jpnic_handle(jpnic_handles)
+        for tech_handle in addr_info["tech_handle"]:
+            AddrListTechHandle(addr_list_id=addr_list_id, jpnic_handle=tech_handle).save()
 
-        return
         # if len(infos) == 0:
         #     raise JPNICReqError("該当するデータが見つかりませんでした。", res.text)
 
@@ -626,7 +623,7 @@ class GetAddr(JPNIC):
         insert_addrlist.save()
         return insert_addrlist.id
 
-    def insert_resource_list(self, info):
+    def insert_resource_list(self, info, html=""):
         insert_resource_list = ResourceList(
             created_at=self.now,
             last_checked_at=self.now,
@@ -650,6 +647,7 @@ class GetAddr(JPNIC):
             all_addr_count=info.get("all_addr_count"),
             assigned_addr_count=info.get("assigned_addr_count"),
             ad_ratio=info.get("ad_ratio"),
+            html_source=html,
             jpnic_id=self.base.id,
         )
         insert_resource_list.save()
@@ -738,13 +736,12 @@ class GetAddr(JPNIC):
             print("ERROR")
             return
 
-        with transaction.atomic():
-            # TODO: JPNICハンドルとlast_checked_at=Nullを使って対象のテーブルを探し当てて、last_checked_atを更新する
-            tmp_handle = JPNICHandle.objects.get(
-                jpnic_handle=handle_info["jpnic_handle"],
-                last_checked_at__gt=self.log.last_checked_at,
-                jpnic_id=self.base.id,
-            )
-            tmp_handle.last_checked_at = self.now
-            tmp_handle.save()
-            self.insert_jpnic_handle(jpnic_handles=[].append(handle_info), recep_number=info["recept_no"])
+        # TODO: JPNICハンドルとlast_checked_at=Nullを使って対象のテーブルを探し当てて、last_checked_atを更新する
+        tmp_handle = JPNICHandle.objects.get(
+            jpnic_handle=handle_info["jpnic_handle"],
+            last_checked_at__gt=self.log.last_checked_at,
+            jpnic_id=self.base.id,
+        )
+        tmp_handle.last_checked_at = self.now
+        tmp_handle.save()
+        self.insert_jpnic_handle(jpnic_handles=[].append(handle_info), recep_number=info["recept_no"])
