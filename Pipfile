@@ -24,6 +24,7 @@ apscheduler = "*"
 dt = "*"
 q = "*"
 conditions = "*"
+openpyxl = "*"
 
 [requires]
 python_version = "3.8"

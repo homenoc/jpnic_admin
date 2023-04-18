@@ -21,7 +21,24 @@ class Data(AppConfig):
         self.scheduler = BackgroundScheduler()
         self.scheduler.add_job(self.get_addr_process, "interval", seconds=5, id="get_addr")
         self.scheduler.add_job(self.get_resource_process, "interval", seconds=5, id="get_resource")
+        self.scheduler.add_job(
+            self.post_resource_info,
+            "cron",
+            year="*",
+            month="*",
+            day=2,
+            week="*",
+            hour=9,
+            minute=0,
+            id="post_resource_info",
+        )
+        # self.post_resource_info()
         self.scheduler.start()
+
+    def post_resource_info(self):
+        from .task import post_resource_info
+
+        post_resource_info()
 
     def get_addr_process(self):
         from .task import get_task

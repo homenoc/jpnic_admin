@@ -152,3 +152,8 @@ STATIC_ROOT = "/opt/app/static/"
 
 CA_PATH = "/Users/y-yoneda/Documents/doornoc-cert/rootcacert_r3.cer"
 JPNIC_BASE_URL = "https://iphostmaster.nic.ad.jp"
+
+LOG_SLACK_WEBHOOK_URL = ""
+SLACK_WEBHOOK_URL = ""
+
+DOMAIN_URL = "http://localhost:8000"

@@ -1,7 +1,9 @@
 import copy
 import datetime
+import json
 import re
 import time
+import requests
 
 from bs4 import BeautifulSoup
 from django.conf import settings
@@ -19,6 +21,45 @@ from jpnic_admin.resource.models import (
     ResourceList,
     ResourceAddressList,
 )
+
+
+def post_resource_info():
+    bases = JPNICModel.objects.filter(is_active=True)
+    for base in bases:
+        latest_log = TaskModel.objects.filter(jpnic_id=base.id, type1="資源情報").order_by("-last_checked_at")
+        for log in latest_log:
+            if log.count == log.fail_count:
+                continue
+            else:
+                text = (
+                    base.name
+                    + "\n"
+                    + settings.DOMAIN_URL
+                    + "/info/resource/?jpnic_id="
+                    + str(base.id)
+                    + "&select_date="
+                    + log.created_at.strftime("%Y-%m-%d")
+                )
+                text += (
+                    "\n"
+                    + base.name
+                    + "\n"
+                    + settings.DOMAIN_URL
+                    + "/info/resource/export/?jpnic_id="
+                    + str(base.id)
+                    + "&select_date="
+                    + log.created_at.strftime("%Y-%m-%d")
+                )
+                requests.post(
+                    settings.SLACK_WEBHOOK_URL,
+                    data=json.dumps(
+                        {
+                            "text": text,
+                            "link_names": 1,
+                        }
+                    ),
+                )
+                break
 
 
 # 情報取得関数

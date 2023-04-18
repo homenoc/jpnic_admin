@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}資源情報{% endblock %}
+
+{% block content %}
+    <h2>資源情報(Export)</h2>
+    <div class="container">
+        <div class="p-3 border bg-light">
+            <form method="get" class="needs-validation" novalidate>
+                <div class="row g-2">
+                    <div class="col-3">
+                        <label for="id_jpnic_ids">{{ search_form.jpnic_ids.label }}</label>
+                        {{ search_form.jpnic_ids|add_class:'list-group' }}
+                    </div>
+                    <div class="col-3">
+                        <label for="id_select_date">{{ search_form.select_date.label }}</label>
+                        {{ search_form.select_date|add_class:'form-control' }}
+                    </div>
+                    <div class="col-4">
+                    </div>
+                </div>
+                <br/>
+                <button class="btn btn-primary" type="submit">ダウンロード</button>
+                <a href="./">
+                    <button class="btn btn-light" type="button">クリア</button>
+                </a>
+            </form>
+        </div>
+    </div>
+    <br/>
+    <h3>ダウンロード</h3>
+    <p>取得日空欄で最新の情報をダウンロード出来ます</p>
+
+
+    <script>
+      window.onload = function () {
+        // flatpickr
+        const config_date = {
+          enableTime: false,
+          dateFormat: "Y-m-d",
+          maxDate: "today",
+        };
+
+        flatpickr("#id_select_date", config_date);
+      };
+    </script>
+{% endblock %}

@@ -204,3 +204,58 @@ class SearchResourceForm(forms.Form):
                 )
 
             return {"events": events}
+
+
+class SearchResourcesForm(forms.Form):
+    jpnic_ids = forms.ModelMultipleChoiceField(queryset=JPNICModel.objects)
+    select_date = forms.DateField(
+        label="取得日",
+        input_formats=["%Y-%m-%d"],
+        initial=datetime.date.today,
+        widget=forms.DateTimeInput(format="%Y-%m-%d"),
+        required=False,
+    )
+
+    def get_queryset(self):
+        if not self.is_valid():
+            return None
+
+        cleaned_data = self.cleaned_data
+
+        jpnic_ids = cleaned_data.get("jpnic_ids")
+        select_date = cleaned_data.get("select_date")
+
+        if jpnic_ids is None:
+            return None
+
+        # 条件
+        conditions = {}
+
+        info = []
+
+        # AS番号フィルタ
+        for jpnic_id in jpnic_ids:
+            q = Q(**conditions)
+            q &= Q(jpnic_id=jpnic_id.id)
+            if select_date:
+                # 日付フィルタ
+                # created_at < select_date && select_date < last_checked_
+                start_time = datetime.datetime.combine(select_date, datetime.time())
+                end_time = datetime.datetime.combine(select_date, datetime.time(23, 59, 59))
+                q &= ~Q(last_checked_at__lt=start_time)
+                q &= ~Q(created_at__gt=end_time)
+                rs_list = ResourceList.objects.filter(q).order_by("-last_checked_at").first()
+                rs_addr_lists = ResourceAddressList.objects.raw(
+                    sqlAddrListDateFilter,
+                    params={"id": jpnic_id.id, "start_time": start_time, "end_time": end_time},
+                )
+
+            else:
+                rs_list = ResourceList.objects.filter(q).order_by("-last_checked_at").first()
+                rs_addr_lists = ResourceAddressList.objects.filter(q).order_by("-last_checked_at")
+
+            info.append(
+                {"name": jpnic_id.name, "asn": jpnic_id.asn, "rs_list": rs_list, "rs_addr_lists": rs_addr_lists}
+            )
+
+        return info
