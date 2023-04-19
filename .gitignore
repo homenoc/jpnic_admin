@@ -5,3 +5,4 @@ conf/*
 *.sqlite3
 *.sqlite3-*
 jpnic_admin/templates/*test*.html
+jpnic_admin/*_settings.py
