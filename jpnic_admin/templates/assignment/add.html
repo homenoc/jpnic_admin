@@ -419,7 +419,7 @@
 
         $.ajax({
           type: "POST",
-          url: "{% url 'add_assignment' %}",
+          url: "{% url 'assignment:add' %}",
           entries: "application/json",
           data: {
             data: JSON.stringify(data),
@@ -443,7 +443,7 @@
 
         $.ajax({
           type: "POST",
-          url: "{% url 'add_assignment' %}",
+          url: "{% url 'assignment:add' %}",
           enctype: "multipart/form-data",
           data: formData,
           processData: false,
