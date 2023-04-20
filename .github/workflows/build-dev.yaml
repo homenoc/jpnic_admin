@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - develop
+    paths:
+    - '.github/**'
+    - 'files/**'
+    - 'jpnic_admin/**'
+    - 'Dockerfile'
+    - 'requirements.txt'
 
 jobs:
   push_to_registry:
