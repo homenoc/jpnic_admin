@@ -6,3 +6,4 @@ conf/*
 *.sqlite3-*
 jpnic_admin/templates/*test*.html
 jpnic_admin/*_settings.py
+**/__pycache__/**
