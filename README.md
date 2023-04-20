@@ -6,8 +6,6 @@
 ## デプロイ(Docker)方法
 `/docker`フォルダにサンプルファイルとREADMEをご覧ください。
 
-### Memo
-
 ```
 pipenv run python3 manage.py migrate
 pipenv run python3 manage.py createdomain
@@ -21,4 +19,12 @@ DJANGO_SETTINGS_MODULE=jpnic_admin.production_settings
 echo ${DJANGO_SETTINGS_MODULE}
 sudo docker-compose build
 sudo docker-compose up
+```
+
+### develop environment
+```
+mkdir ~/.venv
+python3 -m venv ~/.venv/jpnic_admin
+source ~/.venv/jpnic_admin/bin/activate
+pip install -r requirements.txt
 ```
