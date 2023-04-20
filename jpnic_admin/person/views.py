@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -15,11 +16,13 @@ from jpnic_admin.jpnic import (
 )
 
 
+@login_required
 def result(request):
     context = request.GET.get("context")
     return render(request, "result.html", context=context)
 
 
+@login_required
 def add(request):
     if request.method == "POST":
         if "manual" in request.POST:
@@ -100,6 +103,7 @@ def add(request):
     return render(request, "person/add.html", context)
 
 
+@login_required
 def change(request):
     if request.method == "POST":
         if "search" in request.POST:

@@ -1,9 +1,11 @@
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.shortcuts import render
 
 from jpnic_admin.log.form import SearchForm
 
 
+@login_required
 def index(request):
     form = SearchForm(request.GET)
     events = form.get_queryset().order_by(

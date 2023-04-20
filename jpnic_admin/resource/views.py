@@ -1,5 +1,6 @@
 import tempfile
 
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, FileResponse
 from django.shortcuts import render
 
@@ -11,6 +12,7 @@ from .form import (
 )
 
 
+@login_required
 def ip_address(request):
     form = SearchForm(request.GET)
 
@@ -25,6 +27,7 @@ def ip_address(request):
     return render(request, "jpnic_admin/index.html", context)
 
 
+@login_required
 def resource(request):
     form = SearchResourceForm(request.GET)
     events_page = form.get_queryset()
@@ -36,6 +39,7 @@ def resource(request):
     return render(request, "jpnic_admin/resource.html", context)
 
 
+@login_required
 def resources(request):
     form = SearchResourcesForm(request.GET)
     events_page = form.get_queryset()
@@ -49,6 +53,7 @@ def resources(request):
     return render(request, "jpnic_admin/resource.html", context)
 
 
+@login_required
 def export_resources(request):
     form = SearchResourcesForm(request.GET)
     events_page = form.get_queryset()

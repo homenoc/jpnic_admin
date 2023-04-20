@@ -1,6 +1,7 @@
 import base64
 
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -15,12 +16,14 @@ from jpnic_admin.jpnic import (
 from jpnic_admin.models import JPNIC as JPNICModel
 
 
+@login_required
 def get_as(request):
     with open(settings.CA_PATH, "r", encoding="UTF-8") as file_handle:
         ca_data = file_handle.read()
         return HttpResponse(content=ca_data, content_type="text/plain")
 
 
+@login_required
 def add_as(request):
     if request.method == "POST":
         form = ASForm(request.POST, request.FILES)
@@ -52,6 +55,7 @@ def add_as(request):
     return render(request, "config/add_as.html", context)
 
 
+@login_required
 def list_as(request):
     if request.method == "POST":
         if "apply" in request.POST:

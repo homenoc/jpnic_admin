@@ -1,6 +1,7 @@
 import json
 from html import escape
 
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -24,6 +25,7 @@ from jpnic_admin.jpnic import (
 from jpnic_admin.models import JPNIC as JPNICModel
 
 
+@login_required
 def add(request):
     if request.method == "POST":
         print("POST")
@@ -91,6 +93,7 @@ def add(request):
     return render(request, "assignment/add.html", context)
 
 
+@login_required
 def change(request):
     if request.method == "POST":
         if "search" in request.POST:
@@ -237,6 +240,7 @@ def change(request):
     return render(request, "get_ip_address.html", context)
 
 
+@login_required
 def delete(request):
     if request.method == "POST":
         form = ReturnAssignment(request.POST)
@@ -293,6 +297,7 @@ def delete(request):
     return render(request, "assignment/delete.html", context=context)
 
 
+@login_required
 def result(request):
     context = request.GET.get("context")
     return render(request, "result.html", context=context)

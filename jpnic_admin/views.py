@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 from jpnic_admin.form import (
@@ -11,6 +12,7 @@ from jpnic_admin.jpnic import (
 )
 
 
+@login_required
 def search(request):
     if request.method == "POST":
         if "search" in request.POST:
