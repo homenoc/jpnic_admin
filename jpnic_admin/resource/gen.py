@@ -42,7 +42,6 @@ class GenFile:
         wb = openpyxl.Workbook()
         sheet = wb.active
         sheet.title = "BASE"
-        sheet_row_index = 2
         sheet.cell(column=1, row=1, value="最終更新日")
         sheet.cell(column=2, row=1, value="資源管理者番号")
         sheet.cell(column=3, row=1, value="資源管理者略称")

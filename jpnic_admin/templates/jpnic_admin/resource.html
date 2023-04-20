@@ -5,20 +5,6 @@
 
 {% block title %}資源情報{% endblock %}
 
-{% block extrahead %}
-    <style>
-        .fc-col-header-cell-cushion {
-            color: black;
-            text-decoration: none
-        }
-
-        .fc-daygrid-day-number {
-            color: black;
-            text-decoration: none
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
     <h2>資源情報 <span class="badge bg-secondary">
         {% if search_form.select_date.value == None or search_form.select_date.value == "" %} 現{% else %}
@@ -61,7 +47,8 @@
                 <th>資源管理者略称</th>
                 <th>資源管理責任者</th>
                 <th>AD Ratio</th>
-                <th>アドレス数</th>
+                <th>使用率</th>
+                <th>割当数/全数</th>
             </tr>
             <tr>
                 <td>{% time_to_str data.rs_list.created_at %}</td>
@@ -70,6 +57,7 @@
                 <td>{{ data.rs_list.resource_admin_short }}</td>
                 <td>{{ data.rs_list.admin_handle }}</td>
                 <td>{{ data.rs_list.ad_ratio }}</td>
+                <td>{% get_usage data.rs_list.assigned_addr_count data.rs_list.all_addr_count %}</td>
                 <td>{{ data.rs_list.assigned_addr_count }}/{{ data.rs_list.all_addr_count }}</td>
             </tr>
         </table>
@@ -90,14 +78,17 @@
                 <th>作成日/更新日</th>
                 <th>IPアドレス</th>
                 <th>割振年月日</th>
-                <th>割当数</th>
+                <th>使用率</th>
+                <th>割当数/全数</th>
             </tr>
             {% for info in data.rs_addr_list %}
                 <tr>
+                    {% get_addr_count 4 info.ip_address as all_addr_count %}
                     <td>{% time_to_str info.created_at %} → {% time_to_str info.last_checked_at %}</td>
                     <td>{{ info.ip_address }}</td>
                     <td>{{ info.assign_date }}</td>
-                    <td>{{ info.assigned_addr_count }}</td>
+                    <td>{% get_usage info.assigned_addr_count all_addr_count %}</td>
+                    <td>{{ info.assigned_addr_count }}/{{ all_addr_count }}</td>
                 </tr>
             {% endfor %}
         </table>

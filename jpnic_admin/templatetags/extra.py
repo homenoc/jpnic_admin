@@ -34,3 +34,20 @@ def to_jst(gmt):
     if not gmt:
         return "取得失敗"
     return jst.strftime("%Y/%m/%d %H:%M(JST)")
+
+
+@register.simple_tag
+def get_usage(addr_count, total_addr):
+    return "{:.2%}".format(addr_count / total_addr)
+
+
+@register.simple_tag
+def get_addr_count(ip_version, addr=None):
+    if addr is None:
+        return 0
+    if ip_version == 4:
+        return 2 ** (32 - int(str(addr).split("/")[1]))
+    elif ip_version == 6:
+        return 2 ** (128 - int(str(addr).split("/")[1]))
+    else:
+        return 0
