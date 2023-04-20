@@ -83,23 +83,25 @@
             <input class="row_filter" type="checkbox" value="5" id="flexCheckDefault" checked>
             <label class="row_filter-label" for="flexCheckDefult">ネットワーク名</label>
             <input class="row_filter" type="checkbox" value="6" id="flexCheckDefault" checked>
+            <label class="row_filter-label" for="flexCheckDefult">Abuse</label>
+            <input class="row_filter" type="checkbox" value="7" id="flexCheckDefault" checked>
             <label class="row_filter-label" for="flexCheckDefault">Org</label>
             <br/>
-            <input class="row_filter" type="checkbox" value="7" id="flexCheckDefault" checked>
-            <label class="row_filter-label" for="flexCheckDefault">郵便番号</label>
             <input class="row_filter" type="checkbox" value="8" id="flexCheckDefault" checked>
-            <label class="row_filter-label" for="flexCheckDefault">住所</label>
+            <label class="row_filter-label" for="flexCheckDefault">郵便番号</label>
             <input class="row_filter" type="checkbox" value="9" id="flexCheckDefault" checked>
+            <label class="row_filter-label" for="flexCheckDefault">住所</label>
+            <input class="row_filter" type="checkbox" value="10" id="flexCheckDefault" checked>
             <label class="row_filter-label" for="flexCheckDefault">管理者連絡窓口</label>
-            <input class="row_filter" type="checkbox" value="10" id="flexCheckDefault">
-            <label class="row_filter-label" for="flexCheckDefault">名前(管理者)</label>
             <input class="row_filter" type="checkbox" value="11" id="flexCheckDefault">
+            <label class="row_filter-label" for="flexCheckDefault">名前(管理者)</label>
+            <input class="row_filter" type="checkbox" value="12" id="flexCheckDefault">
             <label class="row_filter-label" for="flexCheckDefault">E-Mail(管理者)</label>
-            <input class="row_filter" type="checkbox" value="12" id="flexCheckDefault" checked>
+            <input class="row_filter" type="checkbox" value="13" id="flexCheckDefault" checked>
             <label class="row_filter-label" for="flexCheckDefault">技術連絡担当者</label>
-            <input class="row_filter" type="checkbox" value="13" id="flexCheckDefault">
-            <label class="row_filter-label" for="flexCheckDefault">名前(技術)</label>
             <input class="row_filter" type="checkbox" value="14" id="flexCheckDefault">
+            <label class="row_filter-label" for="flexCheckDefault">名前(技術)</label>
+            <input class="row_filter" type="checkbox" value="15" id="flexCheckDefault">
             <label class="row_filter-label" for="flexCheckDefault">E-Mail(技術)</label>
         </div>
         <span class="badge bg-dark">全数: {{ data.count }}</span>
@@ -113,6 +115,7 @@
                 <th>IP Address</th>
                 <th>Type</th>
                 <th>ネットワーク名</th>
+                <th>Abuse</th>
                 <th>Org</th>
                 <th>郵便番号</th>
                 <th>住所</th>
@@ -132,6 +135,7 @@
                     <td>{% if info.kind %}<span class="badge bg-primary">{{ info.kind }}</span>{% endif %}
                         {% if info.kind %}<span class="badge bg-success">{{ info.division }}</span>{% endif %}</td>
                     <td>{{ info.network_name }}</td>
+                    <td>{{ info.abuse }}</td>
                     <td>{{ info.org }}</td>
                     <td>{{ info.postcode }}</td>
                     <td>{{ info.address }}</td>
@@ -231,10 +235,11 @@
 
         remove_row(0)
         remove_row(1)
-        remove_row(10)
+        remove_row(7)
         remove_row(11)
-        remove_row(13)
+        remove_row(12)
         remove_row(14)
+        remove_row(15)
 
         // flatpickr
         const config_date = {
