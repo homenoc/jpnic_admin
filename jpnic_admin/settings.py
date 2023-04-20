@@ -21,12 +21,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "t6jc5slun++eivayq5cu_2t$$cf08r3912^wroq*p&$x&%7-m&"
+SECRET_KEY = os.getenv("SECRET_KEY", "")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [os.getenv("ALLOWED_HOST", "")]
 
 SITE_TITLE = "JPNIC管理システム"
 SITE_HEADER = "JPNIC管理システム"
@@ -93,11 +93,11 @@ DATABASES = {
     # }
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "jpnic_admin",
-        "USER": "testuser",
-        "PASSWORD": "password",
-        "HOST": "localhost",
-        "PORT": 3306,
+        "NAME": os.getenv("DATABASE_NAME", "jpnic-admin"),
+        "USER": os.getenv("DATABASE_USER", "jpnic-admin"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD", ""),
+        "HOST": os.getenv("DATABASE_HOST", "localhost"),
+        "PORT": os.getenv("DATABASE_PORT", 3306),
         "OPTIONS": {
             "charset": "utf8mb4",
         },
@@ -150,10 +150,13 @@ USE_TZ = False
 STATIC_URL = "/static/"
 STATIC_ROOT = "/opt/app/static/"
 
-CA_PATH = "/Users/y-yoneda/Documents/doornoc-cert/rootcacert_r3.cer"
+CA_PATH = os.getenv("CA_PATH", "/rootcacert_r3.cer")
 JPNIC_BASE_URL = "https://iphostmaster.nic.ad.jp"
 
-LOG_SLACK_WEBHOOK_URL = ""
-SLACK_WEBHOOK_URL = ""
+LOG_SLACK_WEBHOOK_URL = os.getenv("LOG_SLACK_WEBHOOK_URL", "")
+SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL", "")
 
-DOMAIN_URL = "http://localhost:8000"
+DOMAIN_URL = os.getenv("DOMAIN_URL", "http://localhost")
+
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "/"
