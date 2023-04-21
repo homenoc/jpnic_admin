@@ -73,7 +73,8 @@ def request_to_sjis(request={}):
         if value is None:
             value = ""
         req_data += (
-            parse.quote_plus(key, encoding="shift-jis") + "=" + parse.quote_plus(str(value), encoding="shift-jis") + "&"
+                parse.quote_plus(key, encoding="shift-jis") + "=" + parse.quote_plus(str(value),
+                                                                                     encoding="shift-jis") + "&"
         )
     req_data = req_data[:-1]
 
@@ -131,19 +132,16 @@ def verify_expire_p12_file(p12_base64="", p12_pass=""):
 
 
 class JPNIC:
-    def __init__(self, asn=None, ipv6=False):
+    def __init__(self, base=None):
+        if base is None:
+            raise Exception("[base] base(jpnic_id) is None")
+        self.base = base
         self.menu_url = None
         self.base_url = settings.JPNIC_BASE_URL
-        self.is_ipv6 = ipv6
-        if asn is None:
-            raise Exception("AS number is undefined.")
-        as_base_object = JPNICModel.objects.filter(asn=asn, is_ipv6=ipv6)
-        if not as_base_object.exists():
-            raise Exception("[database] no data")
-        p12_base64 = as_base_object.first().p12_base64
+        p12_base64 = base.p12_base64
         p12_base64 += "=" * ((4 - len(p12_base64) % 4) % 4)
         p12 = base64.b64decode(p12_base64)
-        p12_pass_bytes = bytes(as_base_object.first().p12_pass, "utf-8")
+        p12_pass_bytes = bytes(base.p12_pass, "utf-8")
         pk, cert, option_cert = load_key_and_certificates(p12, p12_pass_bytes)
 
         tfw = tempfile.NamedTemporaryFile(delete=False)
@@ -193,7 +191,7 @@ class JPNIC:
     def init_get(self):
         # login page
         res = self.session.get(self.url, headers=self.header)
-        res.encoding = res.apparent_encoding
+        res.encoding = "Shift_JIS"
         if "ただいまメンテナンス中です" in res.text:
             raise Exception("[login sequence #1] メンテナンス中のため取得不能")
         if not res:
@@ -220,24 +218,24 @@ class JPNIC:
         self.url = self.base_url + "/" + menu_path
 
     def generate_req_contact(
-        self,
-        kind="group",
-        jpnic_handle="",
-        name="",
-        name_en="",
-        email="",
-        org="",
-        org_en="",
-        zipcode="",
-        address="",
-        address_en="",
-        division="",
-        division_en="",
-        title="",
-        title_en="",
-        tel="",
-        fax="",
-        notify_email="",
+            self,
+            kind="group",
+            jpnic_handle="",
+            name="",
+            name_en="",
+            email="",
+            org="",
+            org_en="",
+            zipcode="",
+            address="",
+            address_en="",
+            division="",
+            division_en="",
+            title="",
+            title_en="",
+            tel="",
+            fax="",
+            notify_email="",
     ):
         data = {
             "kind": kind,
@@ -262,26 +260,26 @@ class JPNIC:
         return data
 
     def generate_req_assignment(
-        self,
-        ip_address="",
-        network_name="",
-        infra_usr_kind=1,
-        org="",
-        org_en="",
-        zipcode="",
-        address="",
-        address_en="",
-        admin_handle="",
-        tech_handle="",
-        abuse="",
-        notify_email="",
-        plan_data="",
-        deli_no="",
-        return_date="",
-        apply_from_email="",
-        nameservers=[],
-        contacts=[],
-        **kwargs,
+            self,
+            ip_address="",
+            network_name="",
+            infra_usr_kind=1,
+            org="",
+            org_en="",
+            zipcode="",
+            address="",
+            address_en="",
+            admin_handle="",
+            tech_handle="",
+            abuse="",
+            notify_email="",
+            plan_data="",
+            deli_no="",
+            return_date="",
+            apply_from_email="",
+            nameservers=[],
+            contacts=[],
+            **kwargs,
     ):
         data = {
             "ipaddr": ip_address,
@@ -311,7 +309,7 @@ class JPNIC:
         for contact in contacts:
             con = self.generate_req_contact(**contact)
             for key, value in con.items():
-                if self.is_ipv6:
+                if self.base.is_ipv6:
                     data["emps[" + str(index) + "]." + key] = value
                 else:
                     data["emp[" + str(index) + "]." + key] = value
@@ -321,8 +319,7 @@ class JPNIC:
 
     def add_assignment(self, **kwargs):
         self.init_get()
-        form_name = ""
-        if self.is_ipv6:
+        if self.base.is_ipv6:
             self.get_contents_url("IPv6割り当て報告申請　〜ユーザ用〜")
             form_name = "K01640Form"
         else:
@@ -335,7 +332,7 @@ class JPNIC:
         soup = BeautifulSoup(res.text, "html.parser")
         token = ""
         aplyid = ""
-        if not self.is_ipv6:
+        if not self.base.is_ipv6:
             token = soup.find("input", attrs={"name": "org.apache.struts.taglib.html.TOKEN"})["value"]
             aplyid = soup.find("input", attrs={"name": "aplyid"})["value"]
         destdisp = soup.find("input", attrs={"name": "destdisp"})
@@ -347,7 +344,7 @@ class JPNIC:
             for num in range(contact_count):
                 contact_lists.append({})
             req = self.generate_req_assignment(**{"contacts": contact_lists})
-            if not self.is_ipv6:
+            if not self.base.is_ipv6:
                 req["org.apache.struts.taglib.html.TOKEN"] = token
                 req["aplyid"] = aplyid
             req["destdisp"] = destdisp["value"]
@@ -356,12 +353,12 @@ class JPNIC:
             res = self.session.post(self.base_url + "/" + post_url, data=req_data, headers=self.header)
             res.encoding = "Shift_JIS"
             soup = BeautifulSoup(res.text, "html.parser")
-            if not self.is_ipv6:
+            if not self.base.is_ipv6:
                 token = soup.find("input", attrs={"name": "org.apache.struts.taglib.html.TOKEN"})["value"]
                 aplyid = soup.find("input", attrs={"name": "aplyid"})["value"]
             destdisp = soup.find("input", attrs={"name": "destdisp"})
         req = self.generate_req_assignment(**kwargs)
-        if not self.is_ipv6:
+        if not self.base.is_ipv6:
             req["org.apache.struts.taglib.html.TOKEN"] = token
             req["aplyid"] = aplyid
         req["destdisp"] = destdisp["value"]
@@ -372,7 +369,7 @@ class JPNIC:
         soup = BeautifulSoup(res.text, "html.parser")
         request_error(soup, res.text)
         req = {}
-        if not self.is_ipv6:
+        if not self.base.is_ipv6:
             req["destdisp"] = (soup.find("input", attrs={"name": "destdisp"})["value"],)
             req["org.apache.struts.taglib.html.TOKEN"] = soup.find(
                 "input", attrs={"name": "org.apache.struts.taglib.html.TOKEN"}
@@ -384,7 +381,7 @@ class JPNIC:
             req["action"] = "確認"
 
         req_data = request_to_sjis(req)
-        if self.is_ipv6:
+        if self.base.is_ipv6:
             post_url = soup.find("form", attrs={"name": "K01640Form"})["action"].split("/")[-1]
         else:
             post_url = soup.find("form", attrs={"name": "ConfApplyForInsider"})["action"].split("/")[-1]
@@ -398,7 +395,7 @@ class JPNIC:
     def get_ip_address(self, ip_address="", kind=3):
         self.init_get()
         form_name = ""
-        if self.is_ipv6:
+        if self.base.is_ipv6:
             self.get_contents_url("登録情報検索(IPv6)")
         else:
             self.get_contents_url("登録情報検索(IPv4)")
@@ -439,7 +436,7 @@ class JPNIC:
         info = {}
         for idx, td in enumerate(soup.findAll("td", attrs={"class": "dataRow_mnt04"})):
             text = td.text.strip()
-            if self.is_ipv6:
+            if self.base.is_ipv6:
                 if ((idx + 1) // 9 == 0) or (idx == 8):
                     continue
                 if (idx + 1) % 9 == 0:
@@ -496,6 +493,12 @@ class JPNIC:
             raise JPNICReqError("該当するデータが見つかりませんでした。", res.text)
         return {"infos": infos, "html": res.text}
 
+    def get_change_assignment(self, ip_address="", kind=0):
+        if self.base.is_ipv6:
+            return self.v6_get_change_assignment(ip_address=ip_address)
+        else:
+            return self.v4_get_change_assignment(ip_address=ip_address, kind=kind)
+
     def v4_get_change_assignment(self, ip_address="", kind=0):
         self.init_get()
         ## IPv4ネットワーク情報変更申請
@@ -539,7 +542,6 @@ class JPNIC:
         }
         ## ネームサーバ
         self.get_contents_url("IPv4逆引きネームサーバ追加・削除")
-        print("Menu URL:", self.url)
         res = self.session.get(self.url, headers=self.header)
         res.encoding = "Shift_JIS"
         soup = BeautifulSoup(res.text, "html.parser")
@@ -597,6 +599,12 @@ class JPNIC:
         dns = soup.findAll("table", attrs={"cellpadding": "1"})
         data = get_request_add_change(html_bs=soup, change_req={})
         return {"data": data, "dns": dns}
+
+    def change_assignment(self, ip_address="", kind=0, change_req={}):
+        if self.base.is_ipv6:
+            return self.v6_change_assignment(ip_address=ip_address, change_req=change_req)
+        else:
+            return self.v4_change_assignment(ip_address=ip_address, kind=kind, change_req=change_req)
 
     def v4_change_assignment(self, ip_address="", kind=0, change_req={}):
         self.init_get()
@@ -699,6 +707,12 @@ class JPNIC:
         soup = BeautifulSoup(res.text, "html.parser")
         data = application_complete(html_bs=soup)
         return {"data": data, "html": res.text}
+
+    def return_assignment(self, ip_address="", return_date=None, notify_address=""):
+        if self.base.is_ipv6:
+            return self.v6_return_assignment(ip_address=ip_address, return_date=return_date, notify_address=notify_address)
+        else:
+            return self.v4_return_assignment(ip_address=ip_address, return_date=return_date, notify_address=notify_address)
 
     def v4_return_assignment(self, ip_address="", return_date=None, notify_address=""):
         self.init_get()

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>JPNIC {{ name }}</h2>
+    <br/>
+    <div class="container">
+        <div class="p-3 border bg-light">
+            <form method="get" class="needs-validation" novalidate>
+                <div class="row g-2">
+                    <div class="col-2">
+                        <label for="id_jpnic_id">{{ form.jpnic_id.label }}</label>
+                        {{ form.jpnic_id|add_class:'form-select' }}
+                    </div>
+                    <div class="col-4">
+                        <label for="id_ip_address">{{ form.ip_address.label }}</label>
+                        {{ form.ip_address|add_class:'form-control' }}
+                    </div>
+                    <div class="col-2">
+                        <label for="id_kind">{{ form.kind.label }}</label>
+                        {{ form.kind|add_class:'form-select' }}
+                    </div>
+                </div>
+                <br/>
+                <button class="btn btn-primary" type="submit" name="search">検索</button>
+                <a href=".">
+                    <button class="btn btn-light" type="button">条件クリア</button>
+                </a>
+            </form>
+        </div>
+        <p>*本システムはDNSやDSレコードの追加・削除に対応しておりません。</p>
+    </div>
+{% endblock %}

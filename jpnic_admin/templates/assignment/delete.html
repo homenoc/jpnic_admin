@@ -8,51 +8,51 @@
 {% block content %}
     <h2>JPNIC IPアドレス割り当て返却</h2>
     <br/>
-    <form method="post">
-        {% csrf_token %}
-        {% if form.errors %}
-            {{ form.errors }}
-        {% endif %}
-        <div class="row g-2">
-            <div class="col-1">
-                {{ form.ipv6.label }}
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value={{ form.ipv6.value }}
-                            name="{{ form.ipv6.name }}" id="{{ form.ipv6.id_for_label }}">
+    <div class="container">
+        <div class="p-3 border bg-light">
+            <form method="post">
+                {% csrf_token %}
+                {% if form.errors %}
+                    {{ form.errors }}
+                {% endif %}
+                <div class="row g-2">
+                    <div class="col-2">
+                        <label for="id_jpnic_id">{{ form.jpnic_id.label }}</label>
+                        {{ form.jpnic_id|add_class:'form-select' }}
+                    </div>
+                    <div class="col-4">
+                        <label for="id_ip_address">{{ form.ip_address.label }}</label>
+                        {{ form.ip_address|add_class:'form-control' }}
+                    </div>
+                    <div class="col-3">
+                        <label for="id_return_date">{{ form.return_date.label }}</label>
+                        {{ form.return_date|add_class:'form-control' }}
+                    </div>
                 </div>
-            </div>
-            <div class="col-2">
-                {{ form.asn.label }}
-                <input type="number" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.asn.value|default:"" }}" name="{{ form.asn.name }}"
-                       id="{{ form.asn.id_for_label }}" required>
-            </div>
-            <div class="col-5">
-                {{ form.ip_address.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.ip_address.value|default:"" }}" name="{{ form.ip_address.name }}"
-                       id="{{ form.ip_address.id_for_label }}" required>
-            </div>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <label for="id_ip_address">{{ form.notify_address.label }}</label>
+                        {{ form.notify_address|add_class:'form-control' }}
+                    </div>
+                </div>
+                <br/>
+                <button class="btn btn-primary" type="submit" name="search">返却処理</button>
+            </form>
         </div>
-        <div class="row g-2">
-            <div class="col-2">
-                {{ form.return_date.label }}
-                <input autocomplete="off" class="form-control"
-                       name="{{ form.return_date.name }}" id="{{ form.return_date.id_for_label }}"
-                       value="{{ form.return_date.value }}">
-            </div>
-            <div class="col-4">
-                {{ form.notify_address.label }}
-                <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                       value="{{ form.notify_address.value|default:"" }}" name="{{ form.notify_address.name }}"
-                       id="{{ form.notify_address.id_for_label }}" required>
-            </div>
-        </div>
-        <br/>
-        <button class="btn btn-primary" type="submit" name="search">返却処理</button>
-    </form>
+    </div>
 {% endblock %}
 
 {% block javascript %}
+    <script>
+      window.onload = function () {
+        // flatpickr
+        const config_date = {
+          enableTime: false,
+          dateFormat: "Y-m-d",
+          maxDate: "today",
+        };
 
+        flatpickr("#id_return_date", config_date);
+      };
+    </script>
 {% endblock javascript %}

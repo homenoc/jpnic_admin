@@ -29,6 +29,5 @@ urlpatterns = [
     path("config/", include("jpnic_admin.config.urls")),
     path("assignment/", include("jpnic_admin.assignment.urls")),
     path("person/", include("jpnic_admin.person.urls")),
-    path("search/", views.search, name="search"),
     path("__debug__/", include("debug_toolbar.urls")),
 ]

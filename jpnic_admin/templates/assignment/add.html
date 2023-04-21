@@ -44,20 +44,9 @@
                 <h4>Manual</h4>
                 <form class="row g-3 needs-validation" id="assignment_form" novalidate>
                     <div class="row g-2">
-                        <div class="col-2">
-                            AS番号
-                            <input type="number" autocomplete="off" list="agent_region" class="form-control"
-                                   name="as" id="as" required>
-                        </div>
-                        <div class="col-5">
-                            IPv6であるか否か
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" value="" id="ipv6" name="ipv6"
-                                       onclick="check_is_ipv6()">
-                                <label class="form-check-label" for="flexCheckChecked">
-                                    IPv6
-                                </label>
-                            </div>
+                        <div class="col-3">
+                            <label for="id_jpnic_id">{{ form.jpnic_id.label }}</label>
+                            {{ form.jpnic_id|add_class:'form-select' }}
                         </div>
                     </div>
                     <div class="row g-2">
@@ -73,60 +62,50 @@
                     </div>
                     <div class="row g-2">
                         <div class="col-5">
-                            IPアドレス
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="ip_address" id="ip_address" required>
+                            <label for="id_ip_address">{{ form.ip_address.label }}</label>
+                            {{ form.ip_address|add_class:'form-control' }}
                         </div>
                         <div class="col-5">
-                            ネットワーク名
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="network_name" id="network_name" required>
+                            <label for="id_network_name">{{ form.network_name.label }}</label>
+                            {{ form.network_name|add_class:'form-control' }}
                         </div>
                     </div>
                     <div class="row g-2">
                         <div class="col-5">
-                            組織名
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="org" id="org" required>
+                            <label for="id_org">{{ form.org.label }}</label>
+                            {{ form.org|add_class:'form-control' }}
                         </div>
                         <div class="col-5">
-                            組織名(English)
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="org_en" id="org_en" required>
+                            <label for="id_org_en">{{ form.org_en.label }}</label>
+                            {{ form.org_en|add_class:'form-control' }}
                         </div>
                     </div>
                     <div class="row g-2">
                         <div class="col-2">
-                            郵便番号
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="zipcode" id="zipcode" required>
+                            <label for="id_zipcode">{{ form.zipcode.label }}</label>
+                            {{ form.zipcode|add_class:'form-control' }}
                         </div>
                         <div class="col-4">
-                            住所
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="address" id="address" required>
+                            <label for="id_address">{{ form.address.label }}</label>
+                            {{ form.address|add_class:'form-control' }}
                         </div>
                         <div class="col-4">
-                            住所(English)
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="address_en" id="address_en" required>
+                            <label for="id_address_en">{{ form.address_en.label }}</label>
+                            {{ form.address_en|add_class:'form-control' }}
                         </div>
                     </div>
                     <div class="row g-2">
                         <div class="col-3">
-                            管理者連絡窓口
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="admin_handle" id="admin_handle" required>
+                            <label for="id_admin_handle">{{ form.admin_handle.label }}</label>
+                            {{ form.admin_handle|add_class:'form-control' }}
                         </div>
                         <div class="col-3">
-                            技術連絡窓口
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="tech_handle" id="tech_handle" required>
+                            <label for="id_tech_handle">{{ form.tech_handle.label }}</label>
+                            {{ form.tech_handle|add_class:'form-control' }}
                         </div>
                         <div class="col-4">
-                            Abuse
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="abuse" id="abuse">
+                            <label for="id_abuse">{{ form.abuse.label }}</label>
+                            {{ form.abuse|add_class:'form-control' }}
                         </div>
                     </div>
                     <div class="row g-2">
@@ -144,28 +123,24 @@
                     </div>
                     <div class="row g-2">
                         <div class="col-6">
-                            Plan
-                            <textarea class="form-control" aria-label="plan(v4)" name="plan_data"
-                                      id="plan_data"></textarea>
+                            <label for="id_plan_data">{{ form.plan_data.label }}</label>
+                            {{ form.plan_data|add_class:'form-control' }}
                         </div>
                     </div>
                     <div class="row g-2">
                         <div class="col-2">
-                            審議番号
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="deli_no" id="deli_no">
+                            <label for="id_deli_no">{{ form.deli_no.label }}</label>
+                            {{ form.deli_no|add_class:'form-control' }}
                         </div>
                         <div class="col-2">
-                            返却年月日
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="return_date" id="return_date">
+                            <label for="id_return_date">{{ form.return_date.label }}</label>
+                            {{ form.return_date|add_class:'form-control' }}
                         </div>
                     </div>
                     <div class="row g-2">
                         <div class="col-3">
-                            申請者メールアドレス
-                            <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                                   name="apply_from_email" id="apply_from_email" required>
+                            <label for="id_apply_from_email">{{ form.apply_from_email.label }}</label>
+                            {{ form.apply_from_email|add_class:'form-control' }}
                         </div>
                     </div>
                     <br/>
@@ -202,6 +177,17 @@
 
 {% block javascript %}
     <script>
+      window.onload = function () {
+        // flatpickr
+        const config_date = {
+          enableTime: false,
+          dateFormat: "Y-m-d",
+          maxDate: "today",
+        };
+
+        flatpickr("#id_return_date", config_date);
+      };
+
       $(document).on("click", "#add_nameserver", function () {
         let count = $('#parent_nameserver > div').length;
         console.log(count)
