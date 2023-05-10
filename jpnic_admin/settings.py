@@ -158,5 +158,6 @@ SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL", "")
 
 DOMAIN_URL = os.getenv("DOMAIN_URL", "http://localhost")
 
+ORG_FILTER = []
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/"

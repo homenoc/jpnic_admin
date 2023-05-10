@@ -23,6 +23,12 @@ from jpnic_admin.resource.models import (
 )
 
 
+def text_check(text="", org=""):
+    if org in settings.ORG_FILTER:
+        return text
+    return ""
+
+
 def post_resource_info():
     bases = JPNICModel.objects.filter(is_active=True)
     for base in bases:
@@ -32,23 +38,23 @@ def post_resource_info():
                 continue
             else:
                 text = (
-                    base.name
-                    + "\n"
-                    + settings.DOMAIN_URL
-                    + "/info/resource/?jpnic_id="
-                    + str(base.id)
-                    + "&select_date="
-                    + log.created_at.strftime("%Y-%m-%d")
+                        base.name
+                        + "\n"
+                        + settings.DOMAIN_URL
+                        + "/info/resource/?jpnic_id="
+                        + str(base.id)
+                        + "&select_date="
+                        + log.created_at.strftime("%Y-%m-%d")
                 )
                 text += (
-                    "\n"
-                    + base.name
-                    + "\n"
-                    + settings.DOMAIN_URL
-                    + "/info/resource/export/?jpnic_id="
-                    + str(base.id)
-                    + "&select_date="
-                    + log.created_at.strftime("%Y-%m-%d")
+                        "\n"
+                        + base.name
+                        + "\n"
+                        + settings.DOMAIN_URL
+                        + "/info/resource/export/?jpnic_id="
+                        + str(base.id)
+                        + "&select_date="
+                        + log.created_at.strftime("%Y-%m-%d")
                 )
                 requests.post(
                     settings.SLACK_WEBHOOK_URL,
@@ -151,10 +157,7 @@ def convert_datetime(text, date_format="%Y/%m/%d"):
 
 class GetAddr(JPNIC):
     def __init__(self, base=None, log=None, now=None):
-        if base is None:
-            print("Error: getting base info")
-            return
-        super().__init__(base.asn, base.is_ipv6)
+        super().__init__(base=base)
         self.base = base
         self.log = log
         self.now = now
@@ -246,10 +249,10 @@ class GetAddr(JPNIC):
 
         # 資源情報(main)
         if (
-            latest_res_list is None
-            or latest_res_list.assigned_addr_count != info_resource_list.get("assigned_addr_count")
-            or latest_res_list.all_addr_count != info_resource_list.get("all_addr_count")
-            or latest_res_list.update_date != info_resource_list.get("update_date")
+                latest_res_list is None
+                or latest_res_list.assigned_addr_count != info_resource_list.get("assigned_addr_count")
+                or latest_res_list.all_addr_count != info_resource_list.get("all_addr_count")
+                or latest_res_list.update_date != info_resource_list.get("update_date")
         ):
             self.insert_resource_list(info=info_resource_list, html=soup.prettify())
         else:
@@ -262,9 +265,9 @@ class GetAddr(JPNIC):
             is_new_item = True
             for latest_res_addr in latest_res_addr_list:
                 if (
-                    latest_res_addr.ip_address == res_addr_list_one.get("ip_address")
-                    and latest_res_addr.assign_date == res_addr_list_one.get("assign_date")
-                    and latest_res_addr.assigned_addr_count == res_addr_list_one.get("assigned_addr_count")
+                        latest_res_addr.ip_address == res_addr_list_one.get("ip_address")
+                        and latest_res_addr.assign_date == res_addr_list_one.get("assign_date")
+                        and latest_res_addr.assigned_addr_count == res_addr_list_one.get("assigned_addr_count")
                 ):
                     latest_res_addr.last_checked_at = self.now
                     latest_res_addr.save()
@@ -360,9 +363,9 @@ class GetAddr(JPNIC):
                     is_exist_addr_lists = False
                     for addr_list in addr_lists:
                         if (
-                            addr_list.ip_address == addr_info["ip_address"]
-                            and addr_list.division == addr_info["kind2"]
-                            and addr_list.recep_number == addr_info["recept_no"]
+                                addr_list.ip_address == addr_info["ip_address"]
+                                and addr_list.division == addr_info["kind2"]
+                                and addr_list.recep_number == addr_info["recept_no"]
                         ):
                             is_exist_addr_lists = True
                             # 存在する場合は確認OKなので、last_checkedを更新する
@@ -379,9 +382,9 @@ class GetAddr(JPNIC):
         print("update_info_lists", len(update_info_lists), update_info_lists)
         print("date_update_info_only_lists", len(date_update_info_only_lists), date_update_info_only_lists)
         if (
-            (not self.base.option_collection_no_filter)
-            and len(addr_lists) != 0
-            and len(date_update_info_only_lists) == 0
+                (not self.base.option_collection_no_filter)
+                and len(addr_lists) != 0
+                and len(date_update_info_only_lists) == 0
         ):
             return
 
@@ -616,21 +619,22 @@ class GetAddr(JPNIC):
 
     def insert_jpnic_handle(self, jpnic_handles, recep_number=""):
         for jpnic_handle in jpnic_handles:
+            org_name = jpnic_handle.get("org")
             new_handle_model = JPNICHandle(
                 created_at=self.now,
                 last_checked_at=self.now,
                 jpnic_handle=jpnic_handle.get("jpnic_hdl"),
-                name=jpnic_handle.get("name"),
-                name_en=jpnic_handle.get("name_en"),
-                email=jpnic_handle.get("email"),
-                org=jpnic_handle.get("org"),
+                name=text_check(text=jpnic_handle.get("name"), org=org_name),
+                name_en=text_check(text=jpnic_handle.get("name_en"), org=org_name),
+                email=text_check(text=jpnic_handle.get("email"), org=org_name),
+                org=org_name,
                 org_en=jpnic_handle.get("org_en"),
-                division=jpnic_handle.get("division"),
-                division_en=jpnic_handle.get("division_en"),
-                title=jpnic_handle.get("title", ""),
-                title_en=jpnic_handle.get("title_en", ""),
-                tel=",".join(jpnic_handle.get("phone")),
-                fax=",".join(jpnic_handle.get("fax")),
+                division=text_check(text=jpnic_handle.get("division"), org=org_name),
+                division_en=text_check(text=jpnic_handle.get("division_en"), org=org_name),
+                title=text_check(text=jpnic_handle.get("title"), org=org_name),
+                title_en=text_check(text=jpnic_handle.get("title_en"), org=org_name),
+                tel=text_check(text=",".join(jpnic_handle.get("phone")), org=org_name),
+                fax=text_check(text=",".join(jpnic_handle.get("fax")), org=org_name),
                 updated_at=jpnic_handle.get("update_date"),
                 recep_number=recep_number,
                 jpnic_id=self.base.id,
@@ -638,6 +642,7 @@ class GetAddr(JPNIC):
             new_handle_model.save()
 
     def insert_addr_list(self, addr_info):
+        org_name = addr_info.get("org")
         insert_addrlist = AddrList(
             created_at=self.now,
             last_checked_at=self.now,
@@ -645,16 +650,16 @@ class GetAddr(JPNIC):
             network_name=addr_info.get("network_name"),
             assign_date=addr_info.get("assign_date"),
             return_date=addr_info.get("return_date"),
-            org=addr_info.get("org"),
+            org=org_name,
             org_en=addr_info.get("org_en"),
             resource_admin_short=addr_info.get("admin_org"),
             recep_number=addr_info.get("recept_no"),
             deli_number=addr_info.get("deli_no"),
             type=addr_info.get("kind1"),
             division=addr_info.get("kind2"),
-            post_code=addr_info.get("postcode"),
-            address=addr_info.get("address"),
-            address_en=addr_info.get("address_en"),
+            post_code=text_check(text=addr_info.get("postcode"), org=org_name),
+            address=text_check(text=addr_info.get("address"), org=org_name),
+            address_en=text_check(text=addr_info.get("address_en"), org=org_name),
             nameserver=",".join(addr_info.get("nameserver")),
             abuse=",".join(addr_info.get("abuse")),
             updated_at=addr_info.get("update_date"),
