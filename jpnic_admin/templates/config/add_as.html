@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>AS・証明書の追加</h2>
+    <br/>
+    <p><b>ASや証明書の削除は管理メニュー＝＞管理画面からお願いします。</b></p>
+    <br/>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-2">
+            <div class="col-3">
+                <label for="formFile" class="form-label">{{ form.name.label }}</label>
+                {{ form.name|add_class:'form-control' }}
+            </div>
+            <div class="col-2">
+                <label for="formFile" class="form-label">{{ form.asn.label }}</label>
+                {{ form.asn|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-1">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" value={{ form.ipv6.value }}
+                            name="{{ form.ipv6.name }}" id="{{ form.ipv6.id_for_label }}">
+                    <label class="form-check-label" for="flexCheckDefault">{{ form.ipv6.label }}</label>
+                </div>
+            </div>
+            <div class="col-2">
+                <label for="formFile" class="form-label">{{ form.collection_interval.label }}</label>
+                {{ form.collection_interval|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-4">
+                <label for="formFile" class="form-label">p12ファイルアップロード</label>
+                {{ form.p12|add_class:'form-control' }}
+            </div>
+            <div class="col-3">
+                <label for="formFile" class="form-label">{{ form.p12_pass.label }}</label>
+                {{ form.p12_pass|add_class:'form-control' }}
+            </div>
+        </div>
+        <br/>
+        <button class="btn btn-primary" type="submit">登録</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,21 @@
+[tool.black]
+line-length = 120
+target-version = ['py36', 'py37']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+#[tool.pylint.MASTER]
+#init-hook = "import runpy; runpy.run_path('./jpnic_admin/pylint_init_hook.py');'"

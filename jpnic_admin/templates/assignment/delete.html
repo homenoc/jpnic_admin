@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>JPNIC IPアドレス割り当て返却</h2>
+    <br/>
+    <div class="container">
+        <div class="p-3 border bg-light">
+            <form method="post">
+                {% csrf_token %}
+                {% if form.errors %}
+                    {{ form.errors }}
+                {% endif %}
+                <div class="row g-2">
+                    <div class="col-2">
+                        <label for="id_jpnic_id">{{ form.jpnic_id.label }}</label>
+                        {{ form.jpnic_id|add_class:'form-select' }}
+                    </div>
+                    <div class="col-4">
+                        <label for="id_ip_address">{{ form.ip_address.label }}</label>
+                        {{ form.ip_address|add_class:'form-control' }}
+                    </div>
+                    <div class="col-3">
+                        <label for="id_return_date">{{ form.return_date.label }}</label>
+                        {{ form.return_date|add_class:'form-control' }}
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <label for="id_ip_address">{{ form.notify_address.label }}</label>
+                        {{ form.notify_address|add_class:'form-control' }}
+                    </div>
+                </div>
+                <br/>
+                <button class="btn btn-primary" type="submit" name="search">返却処理</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+      window.onload = function () {
+        // flatpickr
+        const config_date = {
+          enableTime: false,
+          dateFormat: "Y-m-d",
+          maxDate: "today",
+        };
+
+        flatpickr("#id_return_date", config_date);
+      };
+    </script>
+{% endblock javascript %}

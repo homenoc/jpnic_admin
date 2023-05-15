@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>JPNIC 担当者変更</h2>
+    <br/>
+    <br/>
+    <form method="post">
+        {% csrf_token %}
+        <div class="card">
+            <div class="card-body">
+                <h5>申請AS</h5>
+                <label for="id_jpnic_id">{{ base_form.jpnic_id.label }}</label>
+                {{ base_form.jpnic_id|add_class:'form-select' }}
+            </div>
+        </div>
+        <br/>
+        <p>最終更新日: {{ update_date }}</p>
+        <br/>
+        <div class="row g-2">
+            <div class="col-4">
+                <label for="id_kind">{{ form.kind.label }}</label>
+                {{ form.kind|add_class:'form-select' }}
+            </div>
+            <div class="col-2">
+                <label for="id_jpnic_hdl">{{ form.jpnic_hdl.label }}</label>
+                <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                       value="{{ form.jpnic_hdl.value|default:"" }}"
+                       name="{{ form.jpnic_hdl.name }}"
+                       id="{{ form.jpnic_hdl.id_for_label }}" readonly="readonly">
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-4">
+                <label for="id_name_jp">{{ form.name_jp.label }}</label>
+                {{ form.name_jp|add_class:'form-control' }}
+            </div>
+            <div class="col-4">
+                <label for="id_name">{{ form.name.label }}</label>
+                {{ form.name|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-5">
+                <label for="id_org_nm_jp">{{ form.org_nm_jp.label }}</label>
+                {{ form.org_nm_jp|add_class:'form-control' }}
+            </div>
+            <div class="col-5">
+                <label for="id_org_nm">{{ form.org_nm.label }}</label>
+                {{ form.org_nm|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-2">
+                <label for="id_zipcode">{{ form.zipcode.label }}</label>
+                {{ form.zipcode|add_class:'form-control' }}
+            </div>
+            <div class="col-4">
+                <label for="id_addr_jp">{{ form.addr_jp.label }}</label>
+                {{ form.addr_jp|add_class:'form-control' }}
+            </div>
+            <div class="col-4">
+                <label for="id_addr">{{ form.addr.label }}</label>
+                {{ form.addr|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-2">
+                <label for="id_division_jp">{{ form.division_jp.label }}</label>
+                {{ form.division_jp|add_class:'form-control' }}
+            </div>
+            <div class="col-2">
+                <label for="id_division">{{ form.division.label }}</label>
+                {{ form.division|add_class:'form-control' }}
+            </div>
+            <div class="col-2">
+                <label for="id_title_jp">{{ form.title_jp.label }}</label>
+                {{ form.title_jp|add_class:'form-control' }}
+            </div>
+            <div class="col-2">
+                <label for="id_title">{{ form.title.label }}</label>
+                {{ form.title|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-2">
+                <label for="id_phone">{{ form.phone.label }}</label>
+                {{ form.phone|add_class:'form-control' }}
+            </div>
+            <div class="col-2">
+                <label for="id_fax">{{ form.fax.label }}</label>
+                {{ form.fax|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-4">
+                <label for="id_email">{{ form.email.label }}</label>
+                {{ form.email|add_class:'form-control' }}
+            </div>
+            <div class="col-4">
+                <label for="id_ntfy_mail">{{ form.ntfy_mail.label }}</label>
+                {{ form.ntfy_mail|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-4">
+                <label for="id_aply_from_addr">{{ form.aply_from_addr.label }}</label>
+                {{ form.aply_from_addr|add_class:'form-control' }}
+            </div>
+        </div>
+        <br/>
+        <button class="btn btn-primary" type="submit" name="apply">登録</button>
+        <button class="btn btn-primary" type="submit" name="download">Download(JSON *Test*)</button>
+    </form>
+{% endblock %}

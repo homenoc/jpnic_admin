@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>AS・証明書一覧</h2>
+    <br/>
+    <p>この画面では、証明書の更新にのみ対応しております。それ以外の項目を更新する場合は管理画面にアクセスしてください。</p>
+    <br/>
+    <div class="card">
+        <div class="card-body">
+            <h6>CA(中間証明書)</h6>
+            <table class="table table-striped table-hover">
+                <tr>
+                    <th>ファイルパス</th>
+                    <th>証明書有効期限</th>
+                </tr>
+                <tr>
+                    <th>{{ ca_path }}</th>
+                    <th>{{ ca_expiry_date.before }} - {{ ca_expiry_date.after }}</th>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <br/>
+    <br/>
+    <table class="table table-striped table-hover">
+        <tr>
+            <th>ID</th>
+            <th>Version</th>
+            <th>ASN</th>
+            <th>Name</th>
+            <th>データ自動取得</th>
+            <th>証明書期限</th>
+            <th></th>
+        </tr>
+        {% for j in jpnic %}
+            <tr>
+                <th>{{ j.data.id }}</th>
+                {% if j.data.is_ipv6 %}
+                    <th>IPv6</th>
+                {% else %}
+                    <th>IPv4</th>
+                {% endif %}
+                <th>{{ j.data.asn }}</th>
+                <th>{{ j.data.name }}</th>
+                {% if j.data.collection_interval != 0 %}
+                    <th class="table-success">{{ j.data.collection_interval }}分</th>
+                {% else %}
+                    <th class="table-danger">{{ j.data.collection_interval }}分</th>
+                {% endif %}
+                <th>{% if j.expiry_date == None %}    <span class="badge bg-danger">p12ファイルが壊れています</span>
+{% else %}{{ j.expiry_date.after }}{% endif %}</th>
+                <th>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="text" value={{ j.data.id }} name="id" hidden>
+                        <button type="submit" name="renew_cert" class="btn btn-primary btn-sm">証明書の更新</button>
+                    </form>
+                </th>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

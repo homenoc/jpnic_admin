@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>証明書の更新</h2>
+    <br/>
+    <p><b>対象のID: {{ id }}</b></p>
+    <br/>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="number" autocomplete="off" list="agent_region" class="form-control"
+               value={{ id }} name="id" id="id" required hidden>
+        <div class="row g-2">
+            <div class="col-4">
+                <label for="formFile" class="form-label">p12ファイルアップロード</label>
+                {{ form.p12|add_class:'form-control' }}
+            </div>
+            <div class="col-3">
+                <label for="formFile" class="form-label">{{ form.p12_pass.label }}</label>
+                {{ form.p12_pass|add_class:'form-control' }}
+            </div>
+        </div>
+        <br/>
+        <button class="btn btn-primary" type="submit" name="apply">登録</button>
+    </form>
+{% endblock %}

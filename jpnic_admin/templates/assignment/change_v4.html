@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>JPNIC 割り当て変更</h2>
+    <br/>
+    <form method="post">
+        {% csrf_token %}
+        <div class="container">
+            <div class="p-3 border bg-light">
+                <div class="row g-2">
+                    <div class="col-5">
+                        <span class="badge bg-primary">jpnic_id: {{ base_form.jpnic_id.value }}</span>
+                        <span class="badge bg-primary">IPアドレス: {{ base_form.ip_address.value }}</span>
+                        {% if not base_form.jpnic_id.is_ipv6 %}
+                            <span class="badge bg-primary">種類: {{ base_form.kind.value }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if form.errors %}
+            {{ form.errors }}
+        {% endif %}
+        <div class="col-5">
+            <div class="col-5">
+                <label for="id_netwrk_nm">{{ form.netwrk_nm.label }}</label>
+                {{ form.netwrk_nm|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-5">
+                <label for="id_org_nm_jp">{{ form.org_nm_jp.label }}</label>
+                {{ form.org_nm_jp|add_class:'form-control' }}
+            </div>
+            <div class="col-5">
+                <label for="id_org_nm">{{ form.org_nm.label }}</label>
+                {{ form.org_nm|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-2">
+                <label for="id_zipcode">{{ form.zipcode.label }}</label>
+                {{ form.zipcode|add_class:'form-control' }}
+            </div>
+            <div class="col-4">
+                <label for="id_addr_jp">{{ form.addr_jp.label }}</label>
+                {{ form.addr_jp|add_class:'form-control' }}
+            </div>
+            <div class="col-4">
+                <label for="id_addr">{{ form.addr.label }}</label>
+                {{ form.addr|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-3">
+                <label for="id_adm_hdl">{{ form.adm_hdl.label }}</label>
+                {{ form.adm_hdl|add_class:'form-control' }}
+            </div>
+            <div class="col-3">
+                <label for="id_tech_hdl">{{ form.tech_hdl.label }}</label>
+                {{ form.tech_hdl|add_class:'form-control' }}
+            </div>
+            <div class="col-4">
+                <label for="id_abuse">{{ form.abuse.label }}</label>
+                {{ form.abuse|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-10">
+                <label for="id_chg_reason">{{ form.chg_reason.label }}</label>
+                {{ form.chg_reason|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-4">
+                <label for="id_ntfy_mail">{{ form.ntfy_mail.label }}</label>
+                {{ form.ntfy_mail|add_class:'form-control' }}
+            </div>
+            <div class="col-2">
+                <label for="id_return_date">{{ form.rtn_date.label }}</label>
+                {{ form.rtn_date|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-3">
+                <label for="id_aply_from_addr">{{ form.aply_from_addr.label }}</label>
+                {{ form.aply_from_addr|add_class:'form-control' }}
+            </div>
+        </div>
+        <br/>
+        <button class="btn btn-primary" type="submit" name="v4_change">申請</button>
+        <br/>
+        <br/>
+        {% if dns %}
+            <h4>DNS関連</h4>
+            <iframe name="dns1" srcdoc="{{ dns }}" width="1200" height="200"></iframe>
+        {% endif %}
+    </form>
+    <br/>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+      window.onload = function () {
+        // flatpickr
+        const config_date = {
+          enableTime: false,
+          dateFormat: "Y-m-d",
+          maxDate: "today",
+        };
+
+        flatpickr("#id_return_date", config_date);
+      };
+    </script>
+{% endblock javascript %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>JPNIC担当者変更</h2>
+    <br/>
+    <form method="post">
+        {% csrf_token %}
+        {% if form.errors %}
+            {{ form.errors }}
+        {% endif %}
+        <div class="row g-2">
+            <div class="col-3">
+                <label for="id_jpnic_id">{{ form.jpnic_id.label }}</label>
+                {{ form.jpnic_id|add_class:'form-select' }}
+            </div>
+            <div class="col-5">
+                <label for="id_jpnic_handle">{{ form.jpnic_handle.label }}</label>
+                {{ form.jpnic_handle|add_class:'form-control' }}
+            </div>
+            <button class="btn btn-primary" type="submit" name="search">検索</button>
+        </div>
+    </form>
+{% endblock %}

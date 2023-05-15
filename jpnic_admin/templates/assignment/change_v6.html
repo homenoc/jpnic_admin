@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>JPNIC 割り当て変更</h2>
+    <br/>
+    <form method="post">
+        {% csrf_token %}
+        <div class="container">
+            <div class="p-3 border bg-light">
+                <div class="row g-2">
+                    <div class="col-2">
+                        <label for="id_jpnic_id">{{ base_form.jpnic_id.label }}</label>
+                        {{ base_form.jpnic_id|add_class:'form-select' }}
+                    </div>
+                    <div class="col-4">
+                        <label for="id_ip_address">{{ base_form.ip_address.label }}</label>
+                        {{ base_form.ip_address|add_class:'form-control' }}
+                    </div>
+                    {% if not base_form.jpnic_id.is_ipv6 %}
+                        <div class="col-2">
+                            <label for="id_kind">{{ base_form.kind.label }}</label>
+                            {{ base_form.kind|add_class:'form-select' }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% if form.errors %}
+            {{ form.errors }}
+        {% endif %}
+        <div class="col-5">
+            <div class="col-5">
+                <label for="id_netwrk_nm">{{ form.netwrk_nm.label }}</label>
+                {{ form.netwrk_nm|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-5">
+                <label for="id_sosikiname">{{ form.sosikiname.label }}</label>
+                {{ form.sosikiname|add_class:'form-control' }}
+            </div>
+            <div class="col-5">
+                <label for="id_sosikiorg">{{ form.sosikiorg.label }}</label>
+                {{ form.sosikiorg|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-2">
+                <label for="id_postcode">{{ form.postcode.label }}</label>
+                {{ form.postcode|add_class:'form-control' }}
+            </div>
+            <div class="col-4">
+                <label for="id_address">{{ form.address.label }}</label>
+                {{ form.address|add_class:'form-control' }}
+            </div>
+            <div class="col-4">
+                <label for="id_address2">{{ form.address2.label }}</label>
+                {{ form.address2|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-3">
+                <label for="id_kanrimadoguchi">{{ form.kanrimadoguchi.label }}</label>
+                {{ form.kanrimadoguchi|add_class:'form-control' }}
+            </div>
+            <div class="col-3">
+                <label for="id_gijyutureraku">{{ form.gijyutureraku.label }}</label>
+                {{ form.gijyutureraku|add_class:'form-control' }}
+            </div>
+            <div class="col-4">
+                <label for="id_abuse">{{ form.abuse.label }}</label>
+                {{ form.abuse|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-10">
+                <label for="id_henkouriyu">{{ form.henkouriyu.label }}</label>
+                {{ form.henkouriyu|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-4">
+                <label for="id_tuuchiaddress">{{ form.tuuchiaddress.label }}</label>
+                {{ form.tuuchiaddress|add_class:'form-control' }}
+            </div>
+            <div class="col-2">
+                <label for="id_return_date">{{ form.returndate.label }}</label>
+                {{ form.returndate|add_class:'form-control' }}
+            </div>
+        </div>
+        <div class="row g-2">
+            <div class="col-3">
+                <label for="id_applymailaddr">{{ form.applymailaddr.label }}</label>
+                {{ form.applymailaddr|add_class:'form-control' }}
+            </div>
+        </div>
+        <br/>
+        <button class="btn btn-primary" type="submit" name="v6_change">申請</button>
+        <br/>
+        <br/>
+        {% if dns %}
+            <h4>DNS関連</h4>
+            <iframe name="dns1" srcdoc="{{ dns }}" width="1200" height="200"></iframe>
+        {% endif %}
+    </form>
+    <br/>
+{% endblock %}
+
+{% block javascript %}
+    <script>
+      window.onload = function () {
+        // flatpickr
+        const config_date = {
+          enableTime: false,
+          dateFormat: "Y-m-d",
+          maxDate: "today",
+        };
+
+        flatpickr("#id_return_date", config_date);
+      };
+    </script>
+{% endblock javascript %}
