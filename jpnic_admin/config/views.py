@@ -86,11 +86,9 @@ def list_as(request):
             return render(request, "config/change_as.html", context)
 
     jpnic_model = JPNICModel.objects.all()
-    print(jpnic_model)
     data = []
     ca_expiry_date = verify_expire_ca()
     for jpn in jpnic_model:
-        print(jpn)
         try:
             p12_expiry_date = verify_expire_p12_file(
                 p12_base64=jpn.p12_base64, p12_pass=jpn.p12_pass

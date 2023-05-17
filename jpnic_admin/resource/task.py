@@ -24,7 +24,7 @@ from jpnic_admin.resource.models import (
 
 
 def text_check(text="", org=""):
-    if org in settings.ORG_FILTER:
+    if org in settings.ORG_FILTER or len(settings.ORG_FILTER) == 0:
         return text
     return ""
 
@@ -283,7 +283,7 @@ class GetAddr(JPNIC):
         print("================")
         print(self.base.asn, "now", self.now)
         last_addr_list = AddrList.objects.filter(jpnic_id=self.base.id).order_by("-last_checked_at").first()
-        print("last_addr_list", last_addr_list)
+        print("last_checked_at", last_addr_list.last_checked_at)
         addr_lists = []
         if last_addr_list:
             addr_lists = AddrList.objects.filter(
@@ -305,7 +305,6 @@ class GetAddr(JPNIC):
         # 日付のみのアップデート
         date_update_info_only_lists = []
         while True:
-            print("TEST")
             req = dict(
                 destdisp=soup.find("input", attrs={"name": "destdisp"})["value"],
                 ipaddr=ipaddr,
@@ -360,7 +359,7 @@ class GetAddr(JPNIC):
                     # 1000件超え対処用
                     ipaddr = addr_info["ip_address"]
                     # addr_listsから一致するものを抜き出す
-                    is_exist_addr_lists = False
+                    # last_checked更新listの判定
                     for addr_list in addr_lists:
                         if (
                                 addr_list.ip_address == addr_info["ip_address"]
@@ -371,16 +370,14 @@ class GetAddr(JPNIC):
                             # 存在する場合は確認OKなので、last_checkedを更新する
                             date_update_info_only_lists.append(addr_list)
                             break
-                    print(is_exist_addr_lists, copy.deepcopy(addr_info))
-
                     if not is_exist_addr_lists:
                         update_info_lists.append(copy.deepcopy(addr_info))
             # 1000件以上ではない場合は抜ける
             if "該当する情報が1000件を超えました (1000件まで表示します)" not in res.text:
                 break
 
-        print("update_info_lists", len(update_info_lists), update_info_lists)
-        print("date_update_info_only_lists", len(date_update_info_only_lists), date_update_info_only_lists)
+        print("update_info_lists", len(update_info_lists))
+        print("date_update_info_only_lists", len(date_update_info_only_lists))
         if (
                 (not self.base.option_collection_no_filter)
                 and len(addr_lists) != 0
@@ -388,7 +385,7 @@ class GetAddr(JPNIC):
         ):
             return
 
-        # last_checked_atだけ更新
+        # last_checked_atのみ更新
         for date_update_info_only_list in date_update_info_only_lists:
             date_update_info_only_list.last_checked_at = self.now
             date_update_info_only_list.save()
