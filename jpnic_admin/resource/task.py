@@ -283,7 +283,6 @@ class GetAddr(JPNIC):
         print("================")
         print(self.base.asn, "now", self.now)
         last_addr_list = AddrList.objects.filter(jpnic_id=self.base.id).order_by("-last_checked_at").first()
-        print("last_checked_at", last_addr_list.last_checked_at)
         addr_lists = []
         if last_addr_list:
             addr_lists = AddrList.objects.filter(
