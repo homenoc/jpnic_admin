@@ -2,10 +2,10 @@ import datetime
 
 from django import forms
 from django.db import connection
-from django.db.models import Q, Prefetch, Count, Func, F, Min, Window, Max
+from django.db.models import Q
 
-from jpnic_admin.resource.models import AddrList, ResourceList, ResourceAddressList
-from .sql import sqlDateSelect, sql_get_latest, sqlAddrListDateFilter, sqlDateSelectCount
+from jpnic_admin.resource.models import ResourceList, ResourceAddressList
+from .sql import sqlDateSelect, sqlAddrListDateFilter, sqlDateSelectCount
 from jpnic_admin.models import JPNIC as JPNICModel
 from jpnic_admin.log.models import Task
 
@@ -78,9 +78,11 @@ class SearchForm(forms.Form):
                 cursor.execute(sqlDateSelectCount, input_array)
                 count = len(cursor.fetchall())
 
-            # pages数
-            all_pages = count // 50
-            if count % 50 != 0:
+            # 1つのpageあたりに入るリスト
+            list_count = 50
+
+            all_pages = count // list_count
+            if count % list_count != 0:
                 all_pages += 1
             # range_pages
             all_range_pages = []
@@ -96,8 +98,8 @@ class SearchForm(forms.Form):
 
             # データ出力
             with connection.cursor() as cursor:
-                input_array.append(50)
-                input_array.append((page - 1) * 50)
+                input_array.append(list_count)
+                input_array.append((page - 1) * list_count)
                 cursor.execute(sql, input_array)
                 sql_result = cursor.fetchall()
             data = []
