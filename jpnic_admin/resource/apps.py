@@ -19,8 +19,8 @@ class Data(AppConfig):
             SharedMemory(create=True, size=1, name="apscheduler_start")
 
         self.scheduler = BackgroundScheduler()
-        self.scheduler.add_job(self.get_addr_process, "interval", seconds=5, id="get_addr")
-        self.scheduler.add_job(self.get_resource_process, "interval", seconds=5, id="get_resource")
+        self.scheduler.add_job(self.get_addr_process, "interval", seconds=20, id="get_addr")
+        self.scheduler.add_job(self.get_resource_process, "interval", seconds=20, id="get_resource")
         self.scheduler.add_job(
             self.post_resource_info,
             "cron",

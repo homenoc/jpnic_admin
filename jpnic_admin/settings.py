@@ -129,6 +129,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CSRF_TRUSTED_ORIGINS = []
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
@@ -149,6 +151,7 @@ USE_TZ = False
 
 STATIC_URL = "/static/"
 STATIC_ROOT = "/opt/app/static/"
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 
 CA_PATH = os.getenv("CA_PATH", "/rootcacert_r3.cer")
 JPNIC_BASE_URL = "https://iphostmaster.nic.ad.jp"
