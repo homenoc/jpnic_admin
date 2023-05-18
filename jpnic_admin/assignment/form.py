@@ -3,7 +3,11 @@ from jpnic_admin.models import JPNIC as JPNICModel
 
 
 class AddAssignment(forms.Form):
-    jpnic_id = forms.ModelChoiceField(queryset=JPNICModel.objects, required=True)
+    jpnic_id = forms.ModelChoiceField(
+        label="JPNIC証明書",
+        queryset=JPNICModel.objects,
+        required=True
+    )
 
     ip_address = forms.CharField(
         label="IPアドレス",
@@ -101,7 +105,11 @@ class AddAssignment(forms.Form):
 class SearchForm(forms.Form):
     KIND_CHOICE = [(1, "割振"), (2, "ユーザ割当"), (3, "インフラ割当"), (4, "SUBA")]
 
-    jpnic_id = forms.ModelChoiceField(queryset=JPNICModel.objects, required=True)
+    jpnic_id = forms.ModelChoiceField(
+        label="JPNIC証明書",
+        queryset=JPNICModel.objects,
+        required=True
+    )
 
     ip_address = forms.CharField(
         label="IPアドレス",
@@ -118,7 +126,11 @@ class SearchForm(forms.Form):
 class SearchChangeAssignmentForm(forms.Form):
     KIND_CHOICE = [(0, "割り当て"), (2, "SUBA登録"), (3, "歴史的PI")]
 
-    jpnic_id = forms.ModelChoiceField(queryset=JPNICModel.objects, required=True)
+    jpnic_id = forms.ModelChoiceField(
+        label="JPNIC証明書",
+        queryset=JPNICModel.objects,
+        required=True
+    )
 
     ip_address = forms.CharField(
         label="IPアドレス",
@@ -275,7 +287,11 @@ class ChangeV6AssignmentForm(forms.Form):
 
 
 class ReturnForm(forms.Form):
-    jpnic_id = forms.ModelChoiceField(queryset=JPNICModel.objects, required=True)
+    jpnic_id = forms.ModelChoiceField(
+        label="JPNIC証明書",
+        queryset=JPNICModel.objects,
+        required=True
+    )
 
     ip_address = forms.CharField(
         label="IP Address",

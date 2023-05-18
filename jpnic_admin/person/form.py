@@ -3,11 +3,18 @@ from jpnic_admin.models import JPNIC as JPNICModel
 
 
 class BaseForm(forms.Form):
-    jpnic_id = forms.ModelChoiceField(queryset=JPNICModel.objects, required=True)
-
+    jpnic_id = forms.ModelChoiceField(
+        label="JPNIC証明書",
+        queryset=JPNICModel.objects,
+        required=True
+    )
 
 class GetJPNICHandleForm(forms.Form):
-    jpnic_id = forms.ModelChoiceField(queryset=JPNICModel.objects, required=True)
+    jpnic_id = forms.ModelChoiceField(
+        label="JPNIC証明書",
+        queryset=JPNICModel.objects,
+        required=True
+    )
 
     jpnic_handle = forms.CharField(
         label="JPNICハンドル",
