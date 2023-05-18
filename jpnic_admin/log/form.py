@@ -15,7 +15,11 @@ class SearchForm(forms.Form):
         (RESOURCE_ADDRESS, "アドレス情報"),
     ]
 
-    jpnic_id = forms.ModelChoiceField(queryset=JPNICModel.objects)
+    jpnic_id = forms.ModelChoiceField(
+        label="JPNIC証明書",
+        queryset=JPNICModel.objects,
+        required=True
+    )
 
     type1 = forms.TypedChoiceField(
         label="種類",

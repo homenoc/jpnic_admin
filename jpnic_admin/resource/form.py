@@ -11,7 +11,11 @@ from jpnic_admin.log.models import Task
 
 
 class SearchForm(forms.Form):
-    jpnic_id = forms.ModelChoiceField(queryset=JPNICModel.objects)
+    jpnic_id = forms.ModelChoiceField(
+        label="JPNIC証明書",
+        queryset=JPNICModel.objects,
+        required=True
+    )
 
     network_name = forms.CharField(
         label="ネットワーク名(一部含む)",
@@ -153,7 +157,11 @@ class SearchForm(forms.Form):
 
 
 class SearchResourceForm(forms.Form):
-    jpnic_id = forms.ModelChoiceField(queryset=JPNICModel.objects)
+    jpnic_id = forms.ModelChoiceField(
+        label="JPNIC証明書",
+        queryset=JPNICModel.objects,
+        required=True
+    )
     select_date = forms.DateField(
         label="取得日",
         input_formats=["%Y-%m-%d"],
@@ -210,7 +218,11 @@ class SearchResourceForm(forms.Form):
 
 
 class SearchResourcesForm(forms.Form):
-    jpnic_ids = forms.ModelMultipleChoiceField(queryset=JPNICModel.objects)
+    jpnic_ids = forms.ModelMultipleChoiceField(
+        label="JPNIC証明書",
+        queryset=JPNICModel.objects,
+        required=True
+    )
     select_date = forms.DateField(
         label="取得日",
         input_formats=["%Y-%m-%d"],
