@@ -177,7 +177,7 @@
                     {% elif per_page < data.all_pages|add:-4 %}
                         {#手前 4 ページ | 現在のページ | 続き 4 ページ#}
                         {% for pg in data.all_range_pages %}
-                            {% if page|add:-5 < pg and pg < page|add:5 %}
+                            {% if per_page|add:-5 < pg and pg < per_page|add:5 %}
                                 {% if per_page == pg %}
                                     <li class="page-item active">
                                         {% else %}
