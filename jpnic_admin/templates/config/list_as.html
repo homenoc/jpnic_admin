@@ -20,7 +20,10 @@
                 </tr>
                 <tr>
                     <th>{{ ca_path }}</th>
-                    <th>{{ ca_expiry_date.before }} - {{ ca_expiry_date.after }}</th>
+                    <th>{{ ca_expiry_date.before }} - {{ ca_expiry_date.after }}　{% if ca_expiry_date.expire == 0 %}
+                        <span class="badge bg-success">正常</span>{% elif ca_expiry_date.expire == 1 %}
+                        <span class="badge bg-warning text-dark">失効まで90日以内</span>{% elif ca_expiry_date.expire == 2 %}
+                        <span class="badge bg-danger">失効中</span>{% endif %}</th>
                 </tr>
             </table>
         </div>
@@ -53,7 +56,11 @@
                     <th class="table-danger">{{ j.data.collection_interval }}分</th>
                 {% endif %}
                 <th>{% if j.expiry_date == None %}    <span class="badge bg-danger">p12ファイルが壊れています</span>
-{% else %}{{ j.expiry_date.after }}{% endif %}</th>
+                    {% else %}{{ j.expiry_date.after }}　{% if ca_expiry_date.expire == 0 %}
+                        <span class="badge bg-success">正常</span>{% elif ca_expiry_date.expire == 1 %}
+                        <span class="badge bg-warning text-dark">失効まで90日以内</span>
+                    {% elif ca_expiry_date.expire == 2 %}
+                        <span class="badge bg-danger">失効中</span>{% endif %}{% endif %}</th>
                 <th>
                     <form method="post">
                         {% csrf_token %}
