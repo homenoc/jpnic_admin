@@ -1,5 +1,5 @@
 APScheduler==3.10.1
-asgiref==3.6.0
+asgiref==3.7.1
 beautifulsoup4==4.12.2
 certifi==2023.5.7
 cffi==1.15.1
@@ -23,9 +23,10 @@ pyOpenSSL==23.1.1
 python3-saml==1.15.0
 pytz==2023.3
 pytz-deprecation-shim==0.1.0.post0
-requests==2.30.0
+requests==2.31.0
 self==2020.12.3
 six==1.16.0
+slack-sdk==3.21.3
 soupsieve==2.4.1
 sqlparse==0.4.4
 tzdata==2023.3

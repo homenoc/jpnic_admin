@@ -29,46 +29,6 @@ def text_check(text="", org=""):
     return ""
 
 
-def post_resource_info():
-    bases = JPNICModel.objects.filter(is_active=True)
-    for base in bases:
-        latest_log = TaskModel.objects.filter(jpnic_id=base.id, type1="資源情報").order_by("-last_checked_at")
-        for log in latest_log:
-            if log.count == log.fail_count:
-                continue
-            else:
-                text = (
-                        base.name
-                        + "\n"
-                        + settings.DOMAIN_URL
-                        + "/info/resource/?jpnic_id="
-                        + str(base.id)
-                        + "&select_date="
-                        + log.created_at.strftime("%Y-%m-%d")
-                )
-                text += (
-                        "\n"
-                        + base.name
-                        + "\n"
-                        + settings.DOMAIN_URL
-                        + "/info/resource/export/?jpnic_id="
-                        + str(base.id)
-                        + "&select_date="
-                        + log.created_at.strftime("%Y-%m-%d")
-                )
-                requests.post(
-                    settings.SLACK_WEBHOOK_URL,
-                    data=json.dumps(
-                        {
-                            "text": text,
-                            "link_names": 1,
-                        }
-                    ),
-                )
-                break
-
-
-# 情報取得関数
 def manual_task(type1=None, jpnic_id=None):
     if not type1 or not jpnic_id:
         return
@@ -303,7 +263,9 @@ class GetAddr(JPNIC):
         update_info_lists = []
         # 日付のみのアップデート
         date_update_info_only_lists = []
+        page = 0
         while True:
+            page += 1
             req = dict(
                 destdisp=soup.find("input", attrs={"name": "destdisp"})["value"],
                 ipaddr=ipaddr,
@@ -355,8 +317,10 @@ class GetAddr(JPNIC):
                     addr_info["kind1"] = text
                 elif (not self.base.is_ipv6) and (idx % 11 == 10):
                     addr_info["kind2"] = text
-                    # 1000件超え対処用
-                    ipaddr = addr_info["ip_address"]
+                    # page遷移時に重複除去を行う
+                    if page > 1:
+                        if addr_info in date_update_info_only_lists or addr_info in update_info_lists:
+                            continue
                     # addr_listsから一致するものを抜き出す
                     # last_checked更新listの判定
                     for addr_list in addr_lists:
@@ -374,6 +338,8 @@ class GetAddr(JPNIC):
             # 1000件以上ではない場合は抜ける
             if "該当する情報が1000件を超えました (1000件まで表示します)" not in res.text:
                 break
+            else:
+                ipaddr = addr_info["ip_address"].split("/")[0] + "-255.255.255.255"
 
         print("update_info_lists", len(update_info_lists))
         print("date_update_info_only_lists", len(date_update_info_only_lists))

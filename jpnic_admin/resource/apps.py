@@ -22,23 +22,23 @@ class Data(AppConfig):
         self.scheduler.add_job(self.get_addr_process, "interval", seconds=20, id="get_addr")
         self.scheduler.add_job(self.get_resource_process, "interval", seconds=20, id="get_resource")
         self.scheduler.add_job(
-            self.post_resource_info,
+            self.notice_etc,
             "cron",
             year="*",
             month="*",
-            day=2,
+            day=1,
             week="*",
             hour=9,
             minute=0,
-            id="post_resource_info",
+            id="notice_etc",
         )
-        # self.post_resource_info()
         self.scheduler.start()
 
-    def post_resource_info(self):
-        from .task import post_resource_info
+    def notice_etc(self):
+        from .notify import NoticeResource, NoticeCertExpired
 
-        post_resource_info()
+        NoticeResource().to_slack()
+        NoticeCertExpired().to_slack()
 
     def get_addr_process(self):
         from .task import get_task
