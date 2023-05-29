@@ -164,3 +164,9 @@ DOMAIN_URL = os.getenv("DOMAIN_URL", "http://localhost")
 ORG_FILTER = []
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/"
+
+# Slack通知
+NOTICE_MONTH = "*"
+NOTICE_DAY = 1
+NOTICE_HOUR = 9
+NOTICE_MINUTE = 0
