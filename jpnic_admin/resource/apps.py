@@ -3,6 +3,8 @@ from multiprocessing.shared_memory import SharedMemory
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.apps import AppConfig
 
+import settings
+
 
 class Data(AppConfig):
     name = "jpnic_admin.resource"
@@ -25,11 +27,11 @@ class Data(AppConfig):
             self.notice_etc,
             "cron",
             year="*",
-            month="*",
-            day=1,
+            month=settings.NOTICE_MONTH,
+            day=settings.NOTICE_DAY,
             week="*",
-            hour=9,
-            minute=0,
+            hour=settings.NOTICE_HOUR,
+            minute=settings.NOTICE_MINUTE,
             id="notice_etc",
         )
         self.scheduler.start()
