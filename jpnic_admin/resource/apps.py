@@ -3,7 +3,7 @@ from multiprocessing.shared_memory import SharedMemory
 from apscheduler.schedulers.background import BackgroundScheduler
 from django.apps import AppConfig
 
-import settings
+from django.conf import settings
 
 
 class Data(AppConfig):
