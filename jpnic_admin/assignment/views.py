@@ -22,6 +22,8 @@ from jpnic_admin.models import JPNIC as JPNICModel
 
 @login_required
 def add(request):
+    if not request.user.is_superuser:
+        return render(request, "no_auth.html", {"name": "割当ツール(追加)"})
     form = AddAssignment(request.POST, request.FILES)
     if request.method == "POST":
         if form.is_valid():
@@ -74,6 +76,8 @@ def add(request):
 
 @login_required
 def change(request):
+    if not request.user.is_superuser:
+        return render(request, "no_auth.html", {"name": "割当ツール(変更)"})
     form = SearchChangeAssignmentForm(request.GET, request.POST)
     context = {
         "name": "アドレスの割り当て変更",
@@ -173,6 +177,8 @@ def change(request):
 
 @login_required
 def delete(request):
+    if not request.user.is_superuser:
+        return render(request, "no_auth.html", {"name": "割当ツール(返却)"})
     form = ReturnForm(request.POST or None)
     context = {"form": form}
     if not form.is_valid():
@@ -241,5 +247,7 @@ def search(request):
 
 @login_required
 def result(request):
+    if not request.user.is_superuser:
+        return render(request, "no_auth.html", {"name": "割当ツール(結果)"})
     context = request.GET.get("context")
     return render(request, "result.html", context=context)

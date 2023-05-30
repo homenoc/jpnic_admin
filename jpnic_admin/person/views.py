@@ -18,12 +18,16 @@ from jpnic_admin.jpnic import (
 
 @login_required
 def result(request):
+    if not request.user.is_superuser:
+        return render(request, "no_auth.html", {"name": "担当者ツール(結果)"})
     context = request.GET.get("context")
     return render(request, "result.html", context=context)
 
 
 @login_required
 def add(request):
+    if not request.user.is_superuser:
+        return render(request, "no_auth.html", {"name": "担当者ツール(追加)"})
     if "manual" in request.POST:
         base_form = BaseForm(request.POST)
         manual_form = AddForm(request.POST)
@@ -100,6 +104,8 @@ def add(request):
 
 @login_required
 def change(request):
+    if not request.user.is_superuser:
+        return render(request, "no_auth.html", {"name": "担当者ツール(変更)"})
     if "search" in request.POST:
         search_form = GetJPNICHandleForm(request.POST)
         context = {
