@@ -17,14 +17,9 @@ from jpnic_admin.models import JPNIC as JPNICModel
 
 
 @login_required
-def get_as(request):
-    with open(settings.CA_PATH, "r", encoding="UTF-8") as file_handle:
-        ca_data = file_handle.read()
-        return HttpResponse(content=ca_data, content_type="text/plain")
-
-
-@login_required
 def add_as(request):
+    if not request.user.is_superuser:
+        return render(request, "no_auth.html", {"name": "AS・証明書の追加"})
     if request.method == "POST":
         form = ASForm(request.POST, request.FILES)
         context = {
@@ -57,6 +52,8 @@ def add_as(request):
 
 @login_required
 def list_as(request):
+    if not request.user.is_superuser:
+        return render(request, "no_auth.html", {"name": "AS・証明書の確認/変更"})
     if request.method == "POST":
         if "apply" in request.POST:
             form = ChangeCertForm(request.POST, request.FILES)
