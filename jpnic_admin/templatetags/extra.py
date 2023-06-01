@@ -63,3 +63,8 @@ def get_resource_notify():
 @register.simple_tag
 def beta():
     return settings.BETA
+
+
+@register.simple_tag
+def debug():
+    return settings.DEBUG

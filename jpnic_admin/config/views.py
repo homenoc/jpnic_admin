@@ -1,8 +1,8 @@
 import base64
+import threading
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
 from django.shortcuts import render
 
 from jpnic_admin.form import (
@@ -15,6 +15,7 @@ from jpnic_admin.jpnic import (
 )
 from jpnic_admin.models import JPNIC as JPNICModel
 from jpnic_admin.resource.notify import NoticeResource, NoticeCertExpired
+from jpnic_admin.resource.task import manual_task
 
 
 @login_required
@@ -82,6 +83,13 @@ def list_as(request):
                 "form": form,
             }
             return render(request, "config/change_as.html", context)
+        elif "manual_ip" in request.POST:
+            jpnic_id = int(request.POST.get("id"))
+            threading.Thread(manual_task(type1="アドレス情報", jpnic_id=jpnic_id))
+
+        elif "manual_resource" in request.POST:
+            jpnic_id = int(request.POST.get("id"))
+            threading.Thread(manual_task(type1="資源情報", jpnic_id=jpnic_id))
 
     jpnic_model = JPNICModel.objects.all()
     data = []

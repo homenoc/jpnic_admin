@@ -1,9 +1,7 @@
 import copy
 import datetime
-import json
 import re
 import time
-import requests
 
 from bs4 import BeautifulSoup
 from django.conf import settings
