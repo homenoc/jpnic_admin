@@ -42,12 +42,12 @@
         <a class="nav-link dropdown-toggle" href="#" id="dropdown01" role="button" data-bs-toggle="dropdown"
            aria-expanded="false">管理メニュー</a>
         <div class="dropdown-menu" aria-labelledby="dropdown01">
-            <a class="dropdown-item" href="{% url 'log:index' %}">自動タスクログ</a>
+            <a class="dropdown-item" href="{% url 'log:index' %}">タスクログ</a>
             {% if request.user.is_superuser %}
-                <a class="dropdown-item" href="{% url 'admin:index' %}">管理者画面</a>
+                <a class="dropdown-item" href="{% url 'config:notice' %}">通知機能</a>
                 <a class="dropdown-item" href="{% url 'config:add_as' %}">AS・証明書の追加</a>
                 <a class="dropdown-item" href="{% url 'config:list_as' %}">AS・証明書の確認/変更</a>
-                <a class="dropdown-item" href="{% url 'config:notice' %}">通知機能</a>
+                <a class="dropdown-item" href="{% url 'admin:index' %}">管理者画面</a>
             {% endif %}
             <a class="dropdown-item" href="{% url 'logout' %}">ログアウト</a>
         </div>
