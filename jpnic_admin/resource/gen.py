@@ -114,16 +114,23 @@ class GenFile:
             ws.cell(column=5, row=8, value="全体(個)")
             row_index = 9
             for rs_addr_list in info["rs_addr_lists"]:
-                total_addr = 2 ** (32 - int(str(rs_addr_list.ip_address).split("/")[1]))
                 ws.cell(column=1, row=row_index, value=rs_addr_list.ip_address)
                 ws.cell(column=2, row=row_index, value=rs_addr_list.assign_date.strftime("%Y/%m/%d"))
-                ws.cell(
-                    column=3,
-                    row=row_index,
-                    value="{:.2%}".format(rs_addr_list.assigned_addr_count / total_addr),
-                )
+                if rs_addr_list.all_addr_count == 0:
+                    ws.cell(column=3, row=row_index, value="---")
+                else:
+                    ws.cell(
+                        column=3,
+                        row=row_index,
+                        value="{:.2%}".format(rs_addr_list.assigned_addr_count / rs_addr_list.all_addr_count),
+                    )
                 ws.cell(column=4, row=row_index, value=rs_addr_list.assigned_addr_count)
-                ws.cell(column=5, row=row_index, value=total_addr)
+                ws.cell(column=5, row=row_index, value=rs_addr_list.all_addr_count)
+                if rs_addr_list.all_addr_count == 0:
+                    ws.cell(column=5, row=row_index, value=rs_addr_list.all_addr_count)
+                else:
+                    ws.cell(column=5, row=row_index, value=rs_addr_list.all_addr_count)
+
                 row_index += 1
             adjust_cell(ws)
 

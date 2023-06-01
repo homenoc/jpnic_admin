@@ -52,7 +52,7 @@ class NoticeResource:
                                 "text": "ダウンロード(" + now_str + ")",
                                 "emoji": True
                             },
-                            "url": download_base_url + "/info/resource/export/?jpnic_ids=" + ','.join(
+                            "url": download_base_url + "/info/resource/export/?jpnic_ids=" + '&jpnic_ids='.join(
                                 ids) + "&select_date=" + now_str
                         },
                         {
@@ -62,7 +62,7 @@ class NoticeResource:
                                 "text": "ダウンロード(現時点)",
                                 "emoji": True
                             },
-                            "url": download_base_url + "/info/resource/export/?jpnic_ids=" + ','.join(
+                            "url": download_base_url + "/info/resource/export/?jpnic_ids=" + '&jpnic_ids='.join(
                                 ids) + "&select_date="
                         }
                     ]

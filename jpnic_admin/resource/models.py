@@ -184,5 +184,6 @@ class ResourceAddressList(models.Model):
     last_checked_at = models.DateTimeField("最終更新時刻", db_index=True)
     ip_address = models.CharField("IPアドレス", max_length=100, db_index=True)
     assign_date = models.DateTimeField("割振年月日")
+    all_addr_count = models.IntegerField("アドレス数", db_index=True, default=0)
     assigned_addr_count = models.IntegerField("割当数", db_index=True)
     jpnic = models.ForeignKey(JPNIC, on_delete=models.CASCADE)

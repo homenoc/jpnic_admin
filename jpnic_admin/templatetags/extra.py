@@ -1,6 +1,7 @@
 import datetime
 
 from django import template
+from django.conf import settings
 
 register = template.Library()
 
@@ -51,3 +52,9 @@ def get_addr_count(ip_version, addr=None):
         return 2 ** (128 - int(str(addr).split("/")[1]))
     else:
         return 0
+
+
+@register.simple_tag
+def get_resource_notify():
+    return str(settings.NOTICE_MINUTE) + " " + str(settings.NOTICE_HOUR) + " " + str(settings.NOTICE_DAY) + " " + str(
+        settings.NOTICE_MONTH) + " *"

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load extra %}
+{% load extra %}
+{% load mathfilters %}
+{% load widget_tweaks %}
+
+{% block title %}Articles for {{ year }}{% endblock %}
+
+{% block content %}
+    <h2>通知機能</h2>
+    <br/>
+    <p>自動通知日を変更する場合は、管理者にお問い合わせください。</p>
+    <br/>
+    <table class="table table-striped table-hover">
+        <tr>
+            <th>Name</th>
+            <th>内容</th>
+            <th>自動通知日</th>
+            <th>Action</th>
+        </tr>
+        <tr>
+            <th>証明書期限の確認</th>
+            <th>証明書の期限を確認します</th>
+            <th>{% get_resource_notify %}</th>
+            <th>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="text" name="id" value="notice_cert_expire" hidden>
+                    <button type="submit" class="btn btn-primary btn-sm">手動実行</button>
+                </form>
+            </th>
+        </tr>
+        <tr>
+            <th>資源情報通知</th>
+            <th>資源情報のダウンロードURLを通知します</th>
+            <th>{% get_resource_notify %}</th>
+            <th>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="text" name="id" value="notice_resource" hidden>
+                    <button type="submit" class="btn btn-primary btn-sm">手動実行</button>
+                </form>
+            </th>
+        </tr>
+    </table>
+{% endblock %}

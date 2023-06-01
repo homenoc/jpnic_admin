@@ -14,6 +14,7 @@ from jpnic_admin.jpnic import (
     verify_expire_ca,
 )
 from jpnic_admin.models import JPNIC as JPNICModel
+from jpnic_admin.resource.notify import NoticeResource, NoticeCertExpired
 
 
 @login_required
@@ -99,3 +100,16 @@ def list_as(request):
             )
     context = {"jpnic": data, "ca_path": settings.CA_PATH, "ca_expiry_date": ca_expiry_date}
     return render(request, "config/list_as.html", context)
+
+
+@login_required
+def notice(request):
+    if not request.user.is_superuser:
+        return render(request, "no_auth.html", {"name": "通知機能"})
+    if request.method == "POST":
+        if request.POST.get("id", "") == "notice_cert_expire":
+            NoticeCertExpired().to_slack()
+        elif request.POST.get("id", "") == "notice_resource":
+            NoticeResource().to_slack()
+
+    return render(request, "config/notice.html", {})
