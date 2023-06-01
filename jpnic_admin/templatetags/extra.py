@@ -58,3 +58,8 @@ def get_addr_count(ip_version, addr=None):
 def get_resource_notify():
     return str(settings.NOTICE_MINUTE) + " " + str(settings.NOTICE_HOUR) + " " + str(settings.NOTICE_DAY) + " " + str(
         settings.NOTICE_MONTH) + " *"
+
+
+@register.simple_tag
+def beta():
+    return settings.BETA
