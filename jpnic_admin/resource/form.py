@@ -267,6 +267,8 @@ class SearchResourcesForm(forms.Form):
 
             else:
                 rs_list = ResourceList.objects.filter(q).order_by("-last_checked_at").first()
+                rs_addr_list_first = ResourceAddressList.objects.filter(q).order_by("-last_checked_at").first()
+                q &= Q(last_checked_at=rs_addr_list_first.last_checked_at)
                 rs_addr_lists = ResourceAddressList.objects.filter(q).order_by("-last_checked_at")
 
             info.append(

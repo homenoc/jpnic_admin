@@ -66,6 +66,16 @@ def export_resources(request):
     if events_page is None:
         return render(request, "jpnic_admin/resources.html", context)
 
+    error = ""
+    for event in events_page:
+        name = event["name"]
+        if event["rs_list"] is None:
+            error += name + "のデータがありません\n"
+
+    if error != "":
+        context["error"] = error
+        return render(request, "jpnic_admin/resources.html", context)
+
     with tempfile.TemporaryDirectory(prefix="tmp_") as dirPath:
         response = HttpResponse(content_type="application/zip")
         zip_path = GenFile(path=dirPath).resource(infos=events_page, response=response)

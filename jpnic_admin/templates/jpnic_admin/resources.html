@@ -33,6 +33,13 @@
     <br/>
     <p>取得日空欄で最新の情報をダウンロード出来ます</p>
 
+    {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <b>取得日フォームを空白(最新)又は別日でお試しください</b>
+            <br/>
+            {{ error }}
+        </div>
+    {% endif %}
 
     <script>
       window.onload = function () {

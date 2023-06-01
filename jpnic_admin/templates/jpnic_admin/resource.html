@@ -83,12 +83,11 @@
             </tr>
             {% for info in data.rs_addr_list %}
                 <tr>
-                    {% get_addr_count 4 info.ip_address as all_addr_count %}
                     <td>{% time_to_str info.created_at %} → {% time_to_str info.last_checked_at %}</td>
                     <td>{{ info.ip_address }}</td>
                     <td>{{ info.assign_date }}</td>
-                    <td>{% get_usage info.assigned_addr_count all_addr_count %}</td>
-                    <td>{{ info.assigned_addr_count }}/{{ all_addr_count }}</td>
+                    <td>{{ info.all_addr_count }}</td>
+                    <td>{{ info.assigned_addr_count }}/{{ info.all_addr_count }}</td>
                 </tr>
             {% endfor %}
         </table>

@@ -204,6 +204,7 @@ class GetAddr(JPNIC):
                     tmp_rs_addr_list["assign_date"] = convert_datetime(text=text)
                 if idx % 3 == 2:
                     tmp_rs_addr_list["assigned_addr_count"] = int(re.findall("(?<=\().+?(?=\))", text)[0].split("/")[0])
+                    tmp_rs_addr_list["all_addr_count"] = int(re.findall("(?<=\().+?(?=\))", text)[0].split("/")[1])
                     res_addr_list.append(tmp_rs_addr_list)
                     tmp_rs_addr_list = {}
 
@@ -226,6 +227,7 @@ class GetAddr(JPNIC):
             for latest_res_addr in latest_res_addr_list:
                 if (
                         latest_res_addr.ip_address == res_addr_list_one.get("ip_address")
+                        and latest_res_addr.all_addr_count == res_addr_list_one.get("all_addr_count")
                         and latest_res_addr.assign_date == res_addr_list_one.get("assign_date")
                         and latest_res_addr.assigned_addr_count == res_addr_list_one.get("assigned_addr_count")
                 ):
@@ -341,8 +343,8 @@ class GetAddr(JPNIC):
             else:
                 ipaddr = addr_info["ip_address"].split("/")[0] + "-255.255.255.255"
 
-        print("update_info_lists", len(update_info_lists))
-        print("date_update_info_only_lists", len(date_update_info_only_lists))
+        # print("update_info_lists", len(update_info_lists))
+        # print("date_update_info_only_lists", len(date_update_info_only_lists))
         if (
                 (not self.base.option_collection_no_filter)
                 and len(addr_lists) != 0
@@ -666,6 +668,7 @@ class GetAddr(JPNIC):
             last_checked_at=self.now,
             ip_address=info.get("ip_address"),
             assign_date=info.get("assign_date"),
+            all_addr_count=info.get("all_addr_count"),
             assigned_addr_count=info.get("assigned_addr_count"),
             jpnic_id=self.base.id,
         )
