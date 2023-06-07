@@ -27,12 +27,23 @@ class SearchForm(forms.Form):
         required=False,
     )
 
+    abuse = forms.CharField(
+        label="Abuse(一部含む)",
+        required=False,
+    )
+
     select_date = forms.DateField(
         label="取得日",
         input_formats=["%Y-%m-%d"],
         initial=datetime.date.today,
         widget=forms.DateTimeInput(format="%Y-%m-%d"),
         required=False,
+    )
+
+    is_abuse_none = forms.BooleanField(
+        label='Abuse未登録',
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'check'}),
     )
 
     def get_queryset(self, page=1):
@@ -44,7 +55,11 @@ class SearchForm(forms.Form):
         jpnic_id = cleaned_data.get("jpnic_id")
         network_name = cleaned_data.get("network_name")
         address = cleaned_data.get("address")
+        abuse = cleaned_data.get("abuse")
+        is_abuse_none = cleaned_data.get("is_abuse_none")
         select_date = cleaned_data.get("select_date")
+
+        abuse_match = False
 
         conditions = {}
         q = Q(**conditions)
@@ -63,7 +78,16 @@ class SearchForm(forms.Form):
         if address != "":
             q &= Q(address__contains=address) | Q(address_en__contains=address)
 
-        sql = sqlDateSelect
+        # Abuse一部含むフィルタ
+        if is_abuse_none:
+            abuse_match = True
+            q &= Q(abuse='')
+            abuse = ""
+        else:
+            q &= Q(abuse__contains=abuse)
+            abuse = "%%%s%%" % abuse
+
+        sql = sqlDateSelect(abuse_match)
         # 日付フィルタ
         # フィルタなし時現在の日付にする
         if select_date:
@@ -77,9 +101,10 @@ class SearchForm(forms.Form):
                 "%%%s%%" % network_name,
                 "%%%s%%" % address,
                 "%%%s%%" % address,
+                abuse
             ]
             with connection.cursor() as cursor:
-                cursor.execute(sqlDateSelectCount, input_array)
+                cursor.execute(sqlDateSelectCount(abuse_match), input_array)
                 count = len(cursor.fetchall())
 
             # 1つのpageあたりに入るリスト
