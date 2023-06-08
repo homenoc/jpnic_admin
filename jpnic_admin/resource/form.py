@@ -78,14 +78,16 @@ class SearchForm(forms.Form):
         if address != "":
             q &= Q(address__contains=address) | Q(address_en__contains=address)
 
+        abuse_filter = ""
+
         # Abuse一部含むフィルタ
         if is_abuse_none:
             abuse_match = True
             q &= Q(abuse='')
-            abuse = ""
         else:
-            q &= Q(abuse__contains=abuse)
-            abuse = "%%%s%%" % abuse
+            abuse_filter = "%%%s%%" % abuse
+            if abuse != "":
+                q &= Q(abuse__contains=abuse)
 
         sql = sqlDateSelect(abuse_match)
         # 日付フィルタ
@@ -101,7 +103,7 @@ class SearchForm(forms.Form):
                 "%%%s%%" % network_name,
                 "%%%s%%" % address,
                 "%%%s%%" % address,
-                abuse
+                abuse_filter
             ]
             with connection.cursor() as cursor:
                 cursor.execute(sqlDateSelectCount(abuse_match), input_array)
