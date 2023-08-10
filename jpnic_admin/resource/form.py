@@ -127,6 +127,8 @@ class SearchForm(forms.Form):
             if page != 1:
                 prev_page = page - 1
 
+            input_array.append(jpnic_id.id)
+            input_array.append(jpnic_id.id)
             # データ出力
             with connection.cursor() as cursor:
                 input_array.append(list_count)
