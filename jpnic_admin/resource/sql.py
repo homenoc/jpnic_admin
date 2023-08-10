@@ -14,11 +14,11 @@ SELECT t1.id                                  AS ID,
        t1.address                             AS address,
        t1.address_en                          AS address_en,
        t1.admin_handle                        AS admin_handle,
-       tb_admin_handle.name                   AS admin_name,
-       tb_admin_handle.email                  AS admin_email,
-       GROUP_CONCAT(tech_handle.jpnic_handle) AS tech_handle,
-       GROUP_CONCAT(tech_handle.name)         AS tech_name,
-       GROUP_CONCAT(tech_handle.email)        AS tech_email
+       tb_admin_handle1.name                   AS admin_name,
+       tb_admin_handle1.email                  AS admin_email,
+       GROUP_CONCAT(tech_handle1.jpnic_handle) AS tech_handle,
+       GROUP_CONCAT(tech_handle1.name)         AS tech_name,
+       GROUP_CONCAT(tech_handle1.email)        AS tech_email
 FROM resource_addrlist AS t1
          JOIN (SELECT MAX(id) AS id, admin_handle
                FROM resource_addrlist
@@ -37,11 +37,23 @@ FROM resource_addrlist AS t1
                # HAVING MAX(id)
                ORDER BY ip_address
                LIMIT %s OFFSET %s) AS t2 ON t1.id = t2.id
-         INNER JOIN resource_jpnichandle AS tb_admin_handle ON t2.admin_handle = tb_admin_handle.jpnic_handle
-         INNER JOIN resource_addrlisttechhandle ON t2.id = resource_addrlisttechhandle.addr_list_id
-         INNER JOIN resource_jpnichandle AS tech_handle
-                    ON resource_addrlisttechhandle.jpnic_handle = tech_handle.jpnic_handle
-GROUP BY id, ip_address, admin_name, admin_email
+         JOIN resource_addrlisttechhandle ON t1.id = resource_addrlisttechhandle.addr_list_id
+         JOIN resource_jpnichandle AS tech_handle1
+              ON (t1.admin_handle = tech_handle1.jpnic_handle AND tech_handle1.jpnic_id = %s)
+         LEFT JOIN resource_jpnichandle AS tech_handle2
+                   ON (t1.admin_handle = tech_handle2.jpnic_handle AND tech_handle2.jpnic_id = tech_handle1.jpnic_id AND
+                       (tech_handle1.last_checked_at < tech_handle2.last_checked_at))
+         JOIN resource_jpnichandle AS tb_admin_handle1
+              ON (t1.admin_handle = tb_admin_handle1.jpnic_handle AND tb_admin_handle1.jpnic_id = %s)
+         LEFT JOIN resource_jpnichandle AS tb_admin_handle2
+                   ON (t1.admin_handle = tb_admin_handle2.jpnic_handle AND
+                       tb_admin_handle2.jpnic_id = tb_admin_handle1.jpnic_id AND
+                       (tb_admin_handle1.last_checked_at < tb_admin_handle2.last_checked_at))
+WHERE (tech_handle2.id IS NULL
+    or tech_handle1.id = tech_handle2.id)
+  AND (tb_admin_handle2.id IS NULL
+    or tb_admin_handle1.id = tb_admin_handle2.id)
+GROUP BY id, ip_address, tb_admin_handle1.name, tb_admin_handle1.email
 ORDER BY ip_address
     """
     return sql

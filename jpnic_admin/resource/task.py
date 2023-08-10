@@ -390,7 +390,8 @@ class GetAddr(JPNIC):
 
         # addr_listを新規登録
         addr_list_id = self.insert_addr_list(addr_info)
-        self.insert_jpnic_handle(jpnic_handles)
+        print("UPDATE_LATEST_DATA")
+        self.update_latest_data(handles=jpnic_handles)
         for tech_handle in addr_info["tech_handle"]:
             AddrListTechHandle(addr_list_id=addr_list_id, jpnic_handle=tech_handle).save()
 
@@ -579,9 +580,10 @@ class GetAddr(JPNIC):
                     info["fax"] = body
         return info
 
-    def insert_jpnic_handle(self, jpnic_handles, recep_number=""):
+    def insert_jpnic_handle(self, jpnic_handles):
         for jpnic_handle in jpnic_handles:
             org_name = jpnic_handle.get("org")
+            recep_number = jpnic_handle.get("recep_number", "")
             new_handle_model = JPNICHandle(
                 created_at=self.now,
                 last_checked_at=self.now,
@@ -745,12 +747,29 @@ class GetAddr(JPNIC):
             print("ERROR")
             return
 
-        # TODO: JPNICハンドルとlast_checked_at=Nullを使って対象のテーブルを探し当てて、last_checked_atを更新する
-        tmp_handle = JPNICHandle.objects.get(
-            jpnic_handle=handle_info["jpnic_handle"],
-            last_checked_at__gt=self.log.last_checked_at,
-            jpnic_id=self.base.id,
-        )
-        tmp_handle.last_checked_at = self.now
-        tmp_handle.save()
-        self.insert_jpnic_handle(jpnic_handles=[].append(handle_info), recep_number=info["recept_no"])
+        handle_info["recep_number"] = info["recept_no"]
+
+    def update_latest_data(self, handles=None):
+        last_handle = JPNICHandle.objects.filter(jpnic_id=self.base.id).order_by("-last_checked_at").first()
+        base_handle_lists = []
+        if last_handle:
+            base_handle_lists = JPNICHandle.objects.filter(
+                jpnic_id=self.base.id, last_checked_at__exact=last_handle.last_checked_at
+            )
+        handle_update_lists = []
+
+        if not handles:
+            for base_handle in base_handle_lists:
+                is_exists = False
+                for input_handle in handles:
+                    if input_handle["jpnic_handle"] == base_handle.jpnic_handle:
+                        is_exists = True
+                        break
+                if not is_exists:
+                    handle_update_lists.append(base_handle)
+
+        for handle_update in handle_update_lists:
+            handle_update.last_checked_at = self.now
+            handle_update.save()
+
+        self.insert_jpnic_handle(handles)
