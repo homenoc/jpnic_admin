@@ -739,6 +739,7 @@ class GetAddr(JPNIC):
                     break
         if is_find:
             print("SKIP: update jpnic_handle")
+            self.update_latest_data()
             return
         try:
             handle_info = self.get_recept(url=info["recept_no_url"])
