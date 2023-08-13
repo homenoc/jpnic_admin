@@ -73,10 +73,12 @@ class SearchForm(forms.Form):
         # ネットワーク名フィルタ
         if network_name != "":
             q &= Q(network_name__contains=network_name)
+            network_name = "%%%s%%" % network_name
 
         # 住所/住所(English)一部含むフィルタ
         if address != "":
             q &= Q(address__contains=address) | Q(address_en__contains=address)
+            address = "%%%s%%" % address
 
         abuse_filter = ""
 
@@ -84,12 +86,17 @@ class SearchForm(forms.Form):
         if is_abuse_none:
             abuse_match = True
             q &= Q(abuse='')
-        else:
+        elif abuse:
             abuse_filter = "%%%s%%" % abuse
             if abuse != "":
                 q &= Q(abuse__contains=abuse)
 
-        sql = sqlDateSelect(abuse_match)
+        sql = sqlDateSelect(
+            network_name=network_name,
+            address=address,
+            abuse=abuse_filter,
+            abuse_match=abuse_match
+        )
         # 日付フィルタ
         # フィルタなし時現在の日付にする
         if select_date:
@@ -100,13 +107,16 @@ class SearchForm(forms.Form):
                 start_time,
                 end_time,
                 jpnic_id.id,
-                "%%%s%%" % network_name,
-                "%%%s%%" % address,
-                "%%%s%%" % address,
-                abuse_filter
             ]
             with connection.cursor() as cursor:
-                cursor.execute(sqlDateSelectCount(abuse_match), input_array)
+                cursor.execute(
+                    sqlDateSelectCount(
+                        network_name=network_name,
+                        address=address,
+                        abuse=abuse_filter,
+                        abuse_match=abuse_match
+                    ),
+                    input_array)
                 count = len(cursor.fetchall())
 
             # 1つのpageあたりに入るリスト
@@ -126,13 +136,12 @@ class SearchForm(forms.Form):
                 next_page = page + 1
             if page != 1:
                 prev_page = page - 1
-
-            input_array.append(jpnic_id.id)
-            input_array.append(jpnic_id.id)
             # データ出力
             with connection.cursor() as cursor:
                 input_array.append(list_count)
                 input_array.append((page - 1) * list_count)
+                input_array.append(jpnic_id.id)
+                input_array.append(jpnic_id.id)
                 cursor.execute(sql, input_array)
                 sql_result = cursor.fetchall()
             data = []
