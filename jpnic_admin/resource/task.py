@@ -390,7 +390,6 @@ class GetAddr(JPNIC):
 
         # addr_listを新規登録
         addr_list_id = self.insert_addr_list(addr_info)
-        print("UPDATE_LATEST_DATA")
         self.update_latest_data(handles=jpnic_handles)
         for tech_handle in addr_info["tech_handle"]:
             AddrListTechHandle(addr_list_id=addr_list_id, jpnic_handle=tech_handle).save()
@@ -748,6 +747,7 @@ class GetAddr(JPNIC):
             return
 
         handle_info["recep_number"] = info["recept_no"]
+        self.update_latest_data(handles=[].append(handle_info))
 
     def update_latest_data(self, handles=None):
         last_handle = JPNICHandle.objects.filter(jpnic_id=self.base.id).order_by("-last_checked_at").first()
