@@ -759,7 +759,7 @@ class GetAddr(JPNIC):
             )
         handle_update_lists = []
 
-        if not handles:
+        if handles:
             for base_handle in base_handle_lists:
                 is_exists = False
                 for input_handle in handles:
