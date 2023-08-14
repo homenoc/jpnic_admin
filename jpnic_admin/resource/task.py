@@ -359,7 +359,7 @@ class GetAddr(JPNIC):
         # last_checked_atのみ更新
         for date_update_info_only_list in date_update_info_only_lists:
             date_update_info_only_list.last_checked_at = self.now
-            date_update_info_only_list.save()
+        AddrList.objects.bulk_update(date_update_info_only_lists, fields=["last_checked_at"])
 
         # すべて更新済みの場合は、JPNICハンドルの更新処理を行う
         if len(date_update_info_only_lists) != 0 and len(update_info_lists) == 0:
@@ -774,9 +774,10 @@ class GetAddr(JPNIC):
                         break
                 if not is_exists:
                     handle_update_lists.append(base_handle)
-
+            for handle in handles:
+                self.insert_jpnic_handle(handle)
+        else:
+            handle_update_lists = base_handle_lists
         for handle_update in handle_update_lists:
             handle_update.last_checked_at = self.now
-            handle_update.save()
-
-        self.insert_jpnic_handle(handles)
+        JPNICHandle.objects.bulk_update(handle_update_lists, fields=["last_checked_at"])
