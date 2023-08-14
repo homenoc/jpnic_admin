@@ -73,12 +73,10 @@ class SearchForm(forms.Form):
         # ネットワーク名フィルタ
         if network_name != "":
             q &= Q(network_name__contains=network_name)
-            network_name = "%%%s%%" % network_name
 
         # 住所/住所(English)一部含むフィルタ
         if address != "":
             q &= Q(address__contains=address) | Q(address_en__contains=address)
-            address = "%%%s%%" % address
 
         abuse_filter = ""
 
@@ -91,12 +89,7 @@ class SearchForm(forms.Form):
             if abuse != "":
                 q &= Q(abuse__contains=abuse)
 
-        sql = sqlDateSelect(
-            network_name=network_name,
-            address=address,
-            abuse=abuse_filter,
-            abuse_match=abuse_match
-        )
+        sql = sqlDateSelect(abuse_match=abuse_match)
         # 日付フィルタ
         # フィルタなし時現在の日付にする
         if select_date:
@@ -107,16 +100,14 @@ class SearchForm(forms.Form):
                 start_time,
                 end_time,
                 jpnic_id.id,
+                "%%%s%%" % network_name,
+                "%%%s%%" % address,
+                "%%%s%%" % address,
+                "%%%s%%" % abuse_filter
             ]
             with connection.cursor() as cursor:
                 cursor.execute(
-                    sqlDateSelectCount(
-                        network_name=network_name,
-                        address=address,
-                        abuse=abuse_filter,
-                        abuse_match=abuse_match
-                    ),
-                    input_array)
+                    sqlDateSelectCount(abuse_match=abuse_match), input_array)
                 count = len(cursor.fetchall())
 
             # 1つのpageあたりに入るリスト

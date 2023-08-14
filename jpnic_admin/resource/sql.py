@@ -1,4 +1,4 @@
-def sqlDateSelect(network_name=None, address=None, abuse=None, abuse_match=False):
+def sqlDateSelect(abuse_match=False):
     sql = """
 SELECT t1.id                                  AS ID,
        t1.jpnic_id                            AS JPNIC_ID,
@@ -24,15 +24,13 @@ FROM resource_addrlist AS t1
                FROM resource_addrlist
                WHERE NOT (resource_addrlist.last_checked_at <= %s OR %s <= resource_addrlist.created_at)
                  AND resource_addrlist.jpnic_id = %s
+                 AND resource_addrlist.network_name like %s
+                 AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
     """
-    if network_name:
-        sql += " AND resource_addrlist.network_name like %s" % (network_name,)
-    if address:
-        sql += " AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)" % (address, address)
-    if abuse_match and abuse:
-        sql += " AND resource_addrlist.abuse = %s" % (abuse,)
-    elif not abuse_match and abuse:
-        sql += " AND resource_addrlist.abuse like %s" % (abuse,)
+    if abuse_match:
+        sql += " AND resource_addrlist.abuse = %s"
+    else:
+        sql += " AND resource_addrlist.abuse like %s"
 
     sql += """
                GROUP BY ip_address, admin_handle, assign_date, type, division
@@ -61,22 +59,21 @@ ORDER BY ip_address
     return sql
 
 
-def sqlDateSelectCount(network_name=None, address=None, abuse=None, abuse_match=False):
+def sqlDateSelectCount(abuse_match=False):
     sql = """
 SELECT resource_addrlist.ip_address   AS ip_address,
        resource_addrlist.division     AS division
 FROM resource_addrlist 
 WHERE NOT (resource_addrlist.last_checked_at <= %s OR %s <= resource_addrlist.created_at)
  AND resource_addrlist.jpnic_id = %s
+ AND resource_addrlist.network_name like %s
+ AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
+ 
 """
-    if network_name:
-        sql += " AND resource_addrlist.network_name like %s" % (network_name,)
-    if address:
-        sql += " AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)" % (address, address)
-    if abuse_match and abuse:
-        sql += " AND resource_addrlist.abuse = %s" % (abuse,)
-    elif not abuse_match and abuse:
-        sql += " AND resource_addrlist.abuse like %s" % (abuse,)
+    if abuse_match:
+        sql += " AND resource_addrlist.abuse = %s"
+    else:
+        sql += " AND resource_addrlist.abuse like %s"
 
     sql += """
 GROUP BY  ip_address, division
