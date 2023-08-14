@@ -74,7 +74,7 @@ def exec_task(type1, base, log, now):
         exc = sys.exception()
         fail = {
             "type": str(type(e)),
-            "message": "[%s] %s" % (str(e), repr(traceback.format_tb(exc.__traceback__)))
+            "message": "%s" % (str(traceback.format_tb(exc.__traceback__)))
         }
     update_task_log(type1, base, log, now, fail)
 
@@ -245,7 +245,6 @@ class GetAddr(JPNIC):
 
     @transaction.atomic
     def search_list(self):
-        # raise "oops...."
         # 最新版を取得
         print("================")
         print(self.base.asn, "now", self.now)
