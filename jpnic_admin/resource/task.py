@@ -1,6 +1,9 @@
 import copy
 import datetime
+import inspect
+import os
 import re
+import sys
 import time
 
 from bs4 import BeautifulSoup
@@ -69,7 +72,11 @@ def exec_task(type1, base, log, now):
         elif type1 == "資源情報":
             GetAddr(base=base_copied, log=log_copied, now=now).get_resource()
     except Exception as e:
-        fail = {"type": str(type(e)), "message": str(e)}
+        exc = sys.exception()
+        fail = {
+            "type": str(type(e)),
+            "message": "[%s] %s" % (str(e), str(inspect.getframeinfo(exc.__traceback__.tb_frame)))
+        }
     update_task_log(type1, base, log, now, fail)
 
 
