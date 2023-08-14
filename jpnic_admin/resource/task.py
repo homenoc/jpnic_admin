@@ -1,10 +1,9 @@
 import copy
 import datetime
-import inspect
-import os
 import re
 import sys
 import time
+import traceback
 
 from bs4 import BeautifulSoup
 from django.conf import settings
@@ -75,7 +74,7 @@ def exec_task(type1, base, log, now):
         exc = sys.exception()
         fail = {
             "type": str(type(e)),
-            "message": "[%s] %s" % (str(e), str(inspect.getframeinfo(exc.__traceback__.tb_frame)))
+            "message": "[%s] %s" % (str(e), repr(traceback.format_tb(exc.__traceback__)))
         }
     update_task_log(type1, base, log, now, fail)
 
