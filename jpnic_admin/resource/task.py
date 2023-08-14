@@ -245,6 +245,7 @@ class GetAddr(JPNIC):
 
     @transaction.atomic
     def search_list(self):
+        # raise "oops...."
         # 最新版を取得
         print("================")
         print(self.base.asn, "now", self.now)
