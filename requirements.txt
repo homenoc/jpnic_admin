@@ -20,7 +20,7 @@ mysqlclient==2.1.1
 openpyxl==3.1.2
 pycparser==2.21
 pyOpenSSL==23.1.1
-python3-saml==1.15.0
+python3-saml==1.16.0
 pytz==2023.3
 pytz-deprecation-shim==0.1.0.post0
 requests==2.31.0
