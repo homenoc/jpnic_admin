@@ -2,14 +2,13 @@ name: Publish Docker image(prod)
 
 on:
   push:
-    branches:
-      - master
     tags:
-      - 'v*'
+    - "v[0-9]+.[0-9]+.[0-9]+"
     paths:
     - '.github/**'
     - 'files/**'
     - 'jpnic_admin/**'
+    - 'manage.py'
     - 'Dockerfile'
     - 'requirements.txt'
 

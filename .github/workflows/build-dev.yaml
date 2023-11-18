@@ -2,12 +2,11 @@ name: Publish Docker image(dev)
 
 on:
   push:
-    branches:
-      - develop
     paths:
     - '.github/**'
     - 'files/**'
     - 'jpnic_admin/**'
+    - 'manage.py'
     - 'Dockerfile'
     - 'requirements.txt'
 
