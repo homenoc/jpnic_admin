@@ -45,21 +45,21 @@ class Data(AppConfig):
     def get_addr_process(self):
         from .task import get_task
 
+        self.scheduler.pause_job("get_addr")
         try:
-            self.scheduler.pause_job("get_addr")
             get_task(type1="アドレス情報")
-            self.scheduler.resume_job("get_addr")
         except:
             print("ERROR: get_addr_process")
             pass
+        self.scheduler.resume_job("get_addr")
 
     def get_resource_process(self):
         from .task import get_task
+
+        self.scheduler.pause_job("get_resource")
         try:
-            self.scheduler.pause_job("get_resource")
             get_task(type1="資源情報")
-            self.scheduler.resume_job("get_resource")
         except:
             print("ERROR: get_resource_process")
             pass
-
+        self.scheduler.resume_job("get_resource")
