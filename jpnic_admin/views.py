@@ -18,7 +18,6 @@ def login(request):
 
     else:
         form = LoginForm()
-        print(form)
     context = {'form': form}
     return render(request, "login.html", context)
 
