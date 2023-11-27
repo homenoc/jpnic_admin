@@ -13,7 +13,7 @@ django-mathfilters==1.0.0
 django-widget-tweaks==1.5.0
 et-xmlfile==1.1.0
 gunicorn==21.2.0
-idna==3.4
+idna==3.6
 isodate==0.6.1
 lxml==4.9.3
 mysqlclient==2.2.0
