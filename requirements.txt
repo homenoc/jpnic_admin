@@ -26,7 +26,7 @@ pytz-deprecation-shim==0.1.0.post0
 requests==2.31.0
 self==2020.12.3
 six==1.16.0
-slack-sdk==3.26.0
+slack-sdk==3.26.1
 soupsieve==2.5
 sqlparse==0.4.4
 tzdata==2023.3
