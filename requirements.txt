@@ -4,7 +4,7 @@ beautifulsoup4==4.12.2
 certifi==2023.11.17
 cffi==1.16.0
 charset-normalizer==3.3.2
-cryptography==41.0.7
+cryptography==41.0.5
 decorator==5.1.1
 Django==4.2.7
 django-configurations==2.5
@@ -13,7 +13,7 @@ django-mathfilters==1.0.0
 django-widget-tweaks==1.5.0
 et-xmlfile==1.1.0
 gunicorn==21.2.0
-idna==3.6
+idna==3.4
 isodate==0.6.1
 lxml==4.9.3
 mysqlclient==2.2.0
@@ -26,7 +26,7 @@ pytz-deprecation-shim==0.1.0.post0
 requests==2.31.0
 self==2020.12.3
 six==1.16.0
-slack-sdk==3.26.1
+slack-sdk==3.24.0
 soupsieve==2.5
 sqlparse==0.4.4
 tzdata==2023.3

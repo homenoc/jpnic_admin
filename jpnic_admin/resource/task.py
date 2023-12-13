@@ -214,10 +214,10 @@ class GetAddr(JPNIC):
 
         # 資源情報(main)
         if (
-                latest_res_list is None
-                or latest_res_list.assigned_addr_count != info_resource_list.get("assigned_addr_count")
-                or latest_res_list.all_addr_count != info_resource_list.get("all_addr_count")
-                or latest_res_list.update_date != info_resource_list.get("update_date")
+            latest_res_list is None
+            or latest_res_list.assigned_addr_count != info_resource_list.get("assigned_addr_count")
+            or latest_res_list.all_addr_count != info_resource_list.get("all_addr_count")
+            or latest_res_list.update_date != info_resource_list.get("update_date")
         ):
             self.insert_resource_list(info=info_resource_list, html=soup.prettify())
         else:
@@ -230,10 +230,10 @@ class GetAddr(JPNIC):
             is_new_item = True
             for latest_res_addr in latest_res_addr_list:
                 if (
-                        latest_res_addr.ip_address == res_addr_list_one.get("ip_address")
-                        and latest_res_addr.all_addr_count == res_addr_list_one.get("all_addr_count")
-                        and latest_res_addr.assign_date == res_addr_list_one.get("assign_date")
-                        and latest_res_addr.assigned_addr_count == res_addr_list_one.get("assigned_addr_count")
+                    latest_res_addr.ip_address == res_addr_list_one.get("ip_address")
+                    and latest_res_addr.all_addr_count == res_addr_list_one.get("all_addr_count")
+                    and latest_res_addr.assign_date == res_addr_list_one.get("assign_date")
+                    and latest_res_addr.assigned_addr_count == res_addr_list_one.get("assigned_addr_count")
                 ):
                     latest_res_addr.last_checked_at = self.now
                     latest_res_addr.save()
@@ -331,9 +331,9 @@ class GetAddr(JPNIC):
                     # last_checked更新listの判定
                     for addr_list in addr_lists:
                         if (
-                                addr_list.ip_address == addr_info["ip_address"]
-                                and addr_list.division == addr_info["kind2"]
-                                and addr_list.recep_number == addr_info["recept_no"]
+                            addr_list.ip_address == addr_info["ip_address"]
+                            and addr_list.division == addr_info["kind2"]
+                            and addr_list.recep_number == addr_info["recept_no"]
                         ):
                             is_exist_addr_lists = True
                             # 存在する場合は確認OKなので、last_checkedを更新する
@@ -350,9 +350,9 @@ class GetAddr(JPNIC):
         # print("update_info_lists", len(update_info_lists))
         # print("date_update_info_only_lists", len(date_update_info_only_lists))
         if (
-                (not self.base.option_collection_no_filter)
-                and len(addr_lists) != 0
-                and len(date_update_info_only_lists) == 0
+            (not self.base.option_collection_no_filter)
+            and len(addr_lists) != 0
+            and len(date_update_info_only_lists) == 0
         ):
             return
 
@@ -756,6 +756,7 @@ class GetAddr(JPNIC):
         handle_info["recep_number"] = info["recept_no"]
         self.update_latest_data(handles=[].append(handle_info))
 
+    # ハンドル系の最新日付アップデート処理
     def update_latest_data(self, handles=None):
         last_handle = JPNICHandle.objects.filter(jpnic_id=self.base.id).order_by("-last_checked_at").first()
         base_handle_lists = []
@@ -769,7 +770,7 @@ class GetAddr(JPNIC):
             for base_handle in base_handle_lists:
                 is_exists = False
                 for input_handle in handles:
-                    if input_handle["jpnic_handle"] == base_handle.jpnic_handle:
+                    if check_handle(input_handle, base_handle.jpnic_handle):
                         is_exists = True
                         break
                 if not is_exists:
@@ -781,3 +782,10 @@ class GetAddr(JPNIC):
         for handle_update in handle_update_lists:
             handle_update.last_checked_at = self.now
         JPNICHandle.objects.bulk_update(handle_update_lists, fields=["last_checked_at"])
+
+
+def check_handle(target_handle, base_jpnic_handle):
+    if 'jpnic_handle' in target_handle:
+        return target_handle["jpnic_handle"] == base_jpnic_handle
+    else:
+        return target_handle["jpnic_hdl"] == base_jpnic_handle
