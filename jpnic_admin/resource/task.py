@@ -586,7 +586,9 @@ class GetAddr(JPNIC):
         return info
 
     def insert_jpnic_handle(self, jpnic_handles):
+        print("jpnic_handles",jpnic_handles)
         for jpnic_handle in jpnic_handles:
+            print(jpnic_handle)
             org_name = jpnic_handle.get("org")
             recep_number = jpnic_handle.get("recep_number", "")
             new_handle_model = JPNICHandle(
@@ -758,6 +760,7 @@ class GetAddr(JPNIC):
 
     # ハンドル系の最新日付アップデート処理
     def update_latest_data(self, handles=None):
+        # print("update_latest_data", handles)
         last_handle = JPNICHandle.objects.filter(jpnic_id=self.base.id).order_by("-last_checked_at").first()
         base_handle_lists = []
         if last_handle:
@@ -775,8 +778,7 @@ class GetAddr(JPNIC):
                         break
                 if not is_exists:
                     handle_update_lists.append(base_handle)
-            for handle in handles:
-                self.insert_jpnic_handle(handle)
+            self.insert_jpnic_handle(handles)
         else:
             handle_update_lists = base_handle_lists
         for handle_update in handle_update_lists:
