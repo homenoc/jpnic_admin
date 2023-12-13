@@ -28,6 +28,7 @@ FROM resource_addrlist AS t1
                  AND (resource_addrlist.org like %s OR resource_addrlist.org_en like %s)
                  AND resource_addrlist.resource_admin_short like %s
                  AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
+                 AND resource_addrlist.ip_address like %s
                  AND resource_addrlist.abuse like %s
                GROUP BY ip_address, admin_handle, assign_date, type, division
                # HAVING MAX(id)
@@ -66,6 +67,7 @@ WHERE NOT (resource_addrlist.last_checked_at <= %s OR %s <= resource_addrlist.cr
  AND (resource_addrlist.org like %s OR resource_addrlist.org_en like %s)
  AND resource_addrlist.resource_admin_short like %s
  AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
+ AND resource_addrlist.ip_address like %s
  AND resource_addrlist.abuse like %s
 GROUP BY  ip_address, division
     """
