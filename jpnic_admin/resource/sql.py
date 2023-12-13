@@ -1,4 +1,4 @@
-def sqlDateSelect(abuse_match=False):
+def sqlDateSelect():
     sql = """
 SELECT t1.id                                  AS ID,
        t1.jpnic_id                            AS JPNIC_ID,
@@ -25,14 +25,10 @@ FROM resource_addrlist AS t1
                WHERE NOT (resource_addrlist.last_checked_at <= %s OR %s <= resource_addrlist.created_at)
                  AND resource_addrlist.jpnic_id = %s
                  AND resource_addrlist.network_name like %s
+                 AND (resource_addrlist.org like %s OR resource_addrlist.org_en like %s)
+                 AND resource_addrlist.resource_admin_short like %s
                  AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
-    """
-    if abuse_match:
-        sql += " AND resource_addrlist.abuse = %s"
-    else:
-        sql += " AND resource_addrlist.abuse like %s"
-
-    sql += """
+                 AND resource_addrlist.abuse like %s
                GROUP BY ip_address, admin_handle, assign_date, type, division
                # HAVING MAX(id)
                ORDER BY ip_address
@@ -59,7 +55,7 @@ ORDER BY ip_address
     return sql
 
 
-def sqlDateSelectCount(abuse_match=False):
+def sqlDateSelectCount():
     sql = """
 SELECT resource_addrlist.ip_address   AS ip_address,
        resource_addrlist.division     AS division
@@ -67,15 +63,10 @@ FROM resource_addrlist
 WHERE NOT (resource_addrlist.last_checked_at <= %s OR %s <= resource_addrlist.created_at)
  AND resource_addrlist.jpnic_id = %s
  AND resource_addrlist.network_name like %s
+ AND (resource_addrlist.org like %s OR resource_addrlist.org_en like %s)
+ AND resource_addrlist.resource_admin_short like %s
  AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
- 
-"""
-    if abuse_match:
-        sql += " AND resource_addrlist.abuse = %s"
-    else:
-        sql += " AND resource_addrlist.abuse like %s"
-
-    sql += """
+ AND resource_addrlist.abuse like %s
 GROUP BY  ip_address, division
     """
     return sql

@@ -22,8 +22,23 @@ class SearchForm(forms.Form):
         required=False,
     )
 
+    org = forms.CharField(
+        label="org/org(English)(一部含む)",
+        required=False,
+    )
+
+    resource_admin_short = forms.CharField(
+        label="資源管理者略称(一部含む)",
+        required=False,
+    )
+
     address = forms.CharField(
         label="住所/住所(English)(一部含む)",
+        required=False,
+    )
+
+    ip_address = forms.CharField(
+        label="IPアドレス(一部含む)",
         required=False,
     )
 
@@ -40,12 +55,6 @@ class SearchForm(forms.Form):
         required=False,
     )
 
-    is_abuse_none = forms.BooleanField(
-        label='Abuse未登録',
-        required=False,
-        widget=forms.CheckboxInput(attrs={'class': 'check'}),
-    )
-
     def get_queryset(self, page=1):
         if not self.is_valid():
             return None
@@ -54,12 +63,12 @@ class SearchForm(forms.Form):
 
         jpnic_id = cleaned_data.get("jpnic_id")
         network_name = cleaned_data.get("network_name")
+        org = cleaned_data.get("org")
+        resource_admin_short = cleaned_data.get("resource_admin_short")
         address = cleaned_data.get("address")
+        ip_address = cleaned_data.get("ip_address")
         abuse = cleaned_data.get("abuse")
-        is_abuse_none = cleaned_data.get("is_abuse_none")
         select_date = cleaned_data.get("select_date")
-
-        abuse_match = False
 
         conditions = {}
         q = Q(**conditions)
@@ -74,22 +83,27 @@ class SearchForm(forms.Form):
         if network_name != "":
             q &= Q(network_name__contains=network_name)
 
+        # org
+        if org != "":
+            q &= Q(org__contains=org) | Q(org_en__contains=org)
+
+        # 管理者略称名(short) フィルタ
+        if resource_admin_short != "":
+            q &= Q(resource_admin_short__contains=resource_admin_short)
+
         # 住所/住所(English)一部含むフィルタ
         if address != "":
             q &= Q(address__contains=address) | Q(address_en__contains=address)
 
-        abuse_filter = ""
+        # IPアドレス一部含むフィルタ
+        if ip_address != "":
+            q &= Q(ip_address__contains=ip_address)
 
         # Abuse一部含むフィルタ
-        if is_abuse_none:
-            abuse_match = True
-            q &= Q(abuse='')
-        elif abuse:
-            abuse_filter = "%%%s%%" % abuse
-            if abuse != "":
-                q &= Q(abuse__contains=abuse)
+        if abuse != "":
+            q &= Q(abuse__contains=abuse)
 
-        sql = sqlDateSelect(abuse_match=abuse_match)
+        sql = sqlDateSelect()
         # 日付フィルタ
         # フィルタなし時現在の日付にする
         if select_date:
@@ -101,13 +115,16 @@ class SearchForm(forms.Form):
                 end_time,
                 jpnic_id.id,
                 "%%%s%%" % network_name,
+                "%%%s%%" % org,
+                "%%%s%%" % org,
+                "%%%s%%" % resource_admin_short,
                 "%%%s%%" % address,
                 "%%%s%%" % address,
-                "%%%s%%" % abuse_filter
+                "%%%s%%" % ip_address,
+                "%%%s%%" % abuse
             ]
             with connection.cursor() as cursor:
-                cursor.execute(
-                    sqlDateSelectCount(abuse_match=abuse_match), input_array)
+                cursor.execute(sqlDateSelectCount(), input_array)
                 count = len(cursor.fetchall())
 
             # 1つのpageあたりに入るリスト

@@ -39,12 +39,6 @@
                 </div>
                 <div class="row g-2">
                     <div class="col-4">
-                        <label for="{{ search_form.address.id_for_label }}">{{ search_form.address.label }}</label>
-                        <input type="text" autocomplete="off" list="agent_region" class="form-control"
-                               value="{{ search_form.address.value|default:"" }}"
-                               name="{{ search_form.address.name }}" id="{{ search_form.address.id_for_label }}">
-                    </div>
-                    <div class="col-4">
                         <label for="{{ search_form.network_name.id_for_label }}">{{ search_form.network_name.label }}</label>
                         <input type="text" autocomplete="off" list="agent_region" class="form-control"
                                value="{{ search_form.network_name.value|default:"" }}"
@@ -52,19 +46,39 @@
                                id="{{ search_form.network_name.id_for_label }}">
                     </div>
                     <div class="col-4">
+                        <label for="{{ search_form.org.id_for_label }}">{{ search_form.org.label }}</label>
+                        <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                               value="{{ search_form.org.value|default:"" }}"
+                               name="{{ search_form.org.name }}"
+                               id="{{ search_form.org.id_for_label }}">
+                    </div>
+                    <div class="col-4">
+                        <label for="{{ search_form.resource_admin_short.id_for_label }}">{{ search_form.resource_admin_short.label }}</label>
+                        <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                               value="{{ search_form.resource_admin_short.value|default:"" }}"
+                               name="{{ search_form.resource_admin_short.name }}"
+                               id="{{ search_form.resource_admin_short.id_for_label }}">
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <label for="{{ search_form.address.id_for_label }}">{{ search_form.address.label }}</label>
+                        <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                               value="{{ search_form.address.value|default:"" }}"
+                               name="{{ search_form.address.name }}" id="{{ search_form.address.id_for_label }}">
+                    </div>
+                    <div class="col-4">
+                        <label for="{{ search_form.ip_address.id_for_label }}">{{ search_form.ip_address.label }}</label>
+                        <input type="text" autocomplete="off" list="agent_region" class="form-control"
+                               value="{{ search_form.ip_address.value|default:"" }}"
+                               name="{{ search_form.ip_address.name }}" id="{{ search_form.ip_address.id_for_label }}">
+                    </div>
+                    <div class="col-4">
                         <label for="{{ search_form.abuse.id_for_label }}">{{ search_form.abuse.label }}</label>
                         <input type="text" autocomplete="off" list="agent_region" class="form-control"
                                value="{{ search_form.abuse.value|default:"" }}"
                                name="{{ search_form.abuse.name }}"
                                id="{{ search_form.abuse.id_for_label }}">
-                    </div>
-                </div>
-                <br/>
-                <div>
-                    <h6>filter</h6>
-                    <div class="col-2">
-                        {{ search_form.is_abuse_none }}
-                        {{ search_form.is_abuse_none.label }}
                     </div>
                 </div>
                 <br/>
