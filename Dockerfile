@@ -1,4 +1,4 @@
-FROM python:3.9 AS app
+FROM python:3.12 AS app
 
 RUN pip install --upgrade pip && pip install pipenv
 RUN apt-get update && \

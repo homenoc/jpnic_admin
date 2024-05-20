@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from jpnic_admin.resource.models import AddrList, JPNICHandle
+from .models import AddrList, JPNICHandle
 
 
 @admin.register(AddrList)

@@ -7,7 +7,7 @@ from django.conf import settings
 
 
 class Data(AppConfig):
-    name = "jpnic_admin.resource"
+    name = "jpnic_admin.info"
     verbose_name = "アドレス資源"
 
     def __init__(self, app_name, app_module):

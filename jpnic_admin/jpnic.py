@@ -75,8 +75,8 @@ def request_to_sjis(request={}):
         if value is None:
             value = ""
         req_data += (
-                parse.quote_plus(key, encoding="shift-jis") + "=" + parse.quote_plus(str(value),
-                                                                                     encoding="shift-jis") + "&"
+            parse.quote_plus(key, encoding="shift-jis") + "=" + parse.quote_plus(str(value),
+                                                                                 encoding="shift-jis") + "&"
         )
     req_data = req_data[:-1]
 
@@ -251,24 +251,24 @@ class JPNIC:
         self.url = self.base_url + "/" + menu_path
 
     def generate_req_contact(
-            self,
-            kind="group",
-            jpnic_handle="",
-            name="",
-            name_en="",
-            email="",
-            org="",
-            org_en="",
-            zipcode="",
-            address="",
-            address_en="",
-            division="",
-            division_en="",
-            title="",
-            title_en="",
-            tel="",
-            fax="",
-            notify_email="",
+        self,
+        kind="group",
+        jpnic_handle="",
+        name="",
+        name_en="",
+        email="",
+        org="",
+        org_en="",
+        zipcode="",
+        address="",
+        address_en="",
+        division="",
+        division_en="",
+        title="",
+        title_en="",
+        tel="",
+        fax="",
+        notify_email="",
     ):
         data = {
             "kind": kind,
@@ -293,26 +293,26 @@ class JPNIC:
         return data
 
     def generate_req_assignment(
-            self,
-            ip_address="",
-            network_name="",
-            infra_usr_kind=1,
-            org="",
-            org_en="",
-            zipcode="",
-            address="",
-            address_en="",
-            admin_handle="",
-            tech_handle="",
-            abuse="",
-            notify_email="",
-            plan_data="",
-            deli_no="",
-            return_date="",
-            apply_from_email="",
-            nameservers=[],
-            contacts=[],
-            **kwargs,
+        self,
+        ip_address="",
+        network_name="",
+        infra_usr_kind=1,
+        org="",
+        org_en="",
+        zipcode="",
+        address="",
+        address_en="",
+        admin_handle="",
+        tech_handle="",
+        abuse="",
+        notify_email="",
+        plan_data="",
+        deli_no="",
+        return_date="",
+        apply_from_email="",
+        nameservers=[],
+        contacts=[],
+        **kwargs,
     ):
         data = {
             "ipaddr": ip_address,

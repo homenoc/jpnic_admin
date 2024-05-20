@@ -19,14 +19,14 @@ from django.urls import path, include
 from django.conf.urls.static import static
 
 from jpnic_admin import views
-from jpnic_admin.resource import views as resource
+from jpnic_admin.info import views as resource
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", resource.ip_address, name="index"),
     path("login/", views.login, name="login"),
     path("logout/", views.logout, name="logout"),
-    path("info/", include("jpnic_admin.resource.urls")),
+    path("info/", include("jpnic_admin.info.urls")),
     path("log/", include("jpnic_admin.log.urls")),
     path("config/", include("jpnic_admin.config.urls")),
     path("assignment/", include("jpnic_admin.assignment.urls")),

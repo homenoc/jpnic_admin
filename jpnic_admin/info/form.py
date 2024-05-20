@@ -4,7 +4,7 @@ from django import forms
 from django.db import connection
 from django.db.models import Q
 
-from jpnic_admin.resource.models import ResourceList, ResourceAddressList
+from .models import ResourceList, ResourceAddressList
 from .sql import sqlDateSelect, sqlAddrListDateFilter, sqlDateSelectCount
 from jpnic_admin.models import JPNIC as JPNICModel
 from jpnic_admin.log.models import Task
@@ -236,7 +236,7 @@ class SearchResourceForm(forms.Form):
         q &= Q(jpnic_id=jpnic_id)
         if select_date:
             # 日付フィルタ
-            # created_at < select_date && select_date < last_checked_
+            # created_at < select_date && select_date < last_checked_at
             start_time = datetime.datetime.combine(select_date, datetime.time())
             end_time = datetime.datetime.combine(select_date, datetime.time(23, 59, 59))
             q &= ~Q(last_checked_at__lt=start_time)

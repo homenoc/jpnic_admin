@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import saml2
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from jpnic_admin.templatetags import extra
@@ -24,15 +25,19 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv("SECRET_KEY", "")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", False)
+DEBUG = os.environ.get('DEBUG', 'false').lower() == 'true'
 
-ALLOWED_HOSTS = [os.getenv("ALLOWED_HOST", "")]
+# ENABLE SAML
+ENABLE_SAML = os.environ.get('ENABLE_SAML', 'false').lower() == 'true'
 
-SITE_TITLE = "JPNIC管理システム"
-SITE_HEADER = "JPNIC管理システム"
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOST", "*").split(' ')
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:8000').split(' ')
+
+APP_NAME = 'JPNIC資源情報管理システム'
+SITE_TITLE = os.environ.get('SITE_TITLE', 'JPNIC資源情報管理システム')
+SITE_HEADER = os.environ.get('SITE_HEADER', 'JPNIC資源情報管理システム')
 
 # Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -40,15 +45,17 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "debug_toolbar",
+    'djangosaml2',
     "jpnic_admin",
     "jpnic_admin.log",
-    "jpnic_admin.resource",
+    "jpnic_admin.info",
     "jpnic_admin.config",
     "jpnic_admin.assignment",
     "jpnic_admin.person",
     "mathfilters",
     "widget_tweaks",
+    "debug_toolbar",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -59,10 +66,55 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
-ROOT_URLCONF = "jpnic_admin.urls"
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+# SAML
+if ENABLE_SAML:
+    MIDDLEWARE.append('djangosaml2.middleware.SamlSessionMiddleware')
+    AUTHENTICATION_BACKENDS.append("djangosaml2.backends.Saml2Backend")
+    SAML_SESSION_COOKIE_NAME = 'saml_session'
+    SAML_SESSION_COOKIE_SAMESITE = 'Lax'
+    SAML_IGNORE_LOGOUT_ERRORS = True
+    SAML_DJANGO_USER_MAIN_ATTRIBUTE = "username"
+    SAML_CREATE_UNKNOWN_USER = True
+    SAML_ATTRIBUTE_MAPPING = {
+        "name": ("username",),
+        "emailAddress": ("email",),
+        "givenName": ("first_name",),
+        "surname": ("last_name",),
+    }
+
+    SAML_CONFIG = {
+        "entityid": os.environ.get('SAML_ENTITY_ID', 'xxx'),
+        "service": {
+            "sp": {
+                "endpoints": {
+                    "assertion_consumer_service": [
+                        (os.environ.get('SAML_LOGIN_URL', 'xxx'),
+                         saml2.BINDING_HTTP_POST),
+                    ],
+                    "single_logout_service": [
+                        (os.environ.get('SAML_LOGOUT_URL', 'xxx'),
+                         saml2.BINDING_HTTP_POST),
+                    ],
+                },
+                "want_response_signed": os.environ.get('SAML_ENABLE_RESPONSE_SIGNED', 'true').lower() == 'true',
+                "allow_unsolicited": True
+            },
+        },
+        "metadata": {
+            "local": [
+                os.path.join(BASE_DIR, os.environ.get('SAML_METADATA_PATH', 'saml/develop.xml')),
+            ]
+        },
+        # "debug": 1,
+    }
+
+ROOT_URLCONF = 'jpnic_admin.urls'
 
 TEMPLATES = [
     {
@@ -92,7 +144,7 @@ DATABASES = {
     #     "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     # }
     "default": {
-        "ENGINE": "django.db.backends.mysql",
+        "ENGINE": "django_tidb" if os.environ.get('DATABASE_TIDB_MODE', 'false').lower() == 'true' else "django.db.backends.mysql",
         "NAME": os.getenv("DATABASE_NAME", "jpnic-admin"),
         "USER": os.getenv("DATABASE_USER", "jpnic-admin"),
         "PASSWORD": os.getenv("DATABASE_PASSWORD", ""),
@@ -104,12 +156,13 @@ DATABASES = {
     }
 }
 
+# Debug
 if DEBUG:
-    import os
     import socket
 
     hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-    INTERNAL_IPS = [ip[:-1] + "1" for ip in ips] + ["127.0.0.1"]
+    INTERNAL_IPS = [ip[: ip.rfind(".")] + ".1" for ip in ips] + ["127.0.0.1", ]
+    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -161,7 +214,7 @@ SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL", "")
 
 DOMAIN_URL = os.getenv("DOMAIN_URL", "http://localhost")
 
-ORG_FILTER = []
+ORG_FILTER = os.environ.get('ORGS_FILTER', '').split(' ')
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/"
 

@@ -4,6 +4,8 @@ from html import escape
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .form import (
     SearchForm,
@@ -27,14 +29,14 @@ def add(request):
     form = AddAssignment(request.POST, request.FILES)
     if request.method == "POST":
         if form.is_valid():
-            print(form.cleaned_data)
-            print(request.FILES)
+            # print(form.cleaned_data)
+            # print(request.FILES)
             if form.cleaned_data["file"]:
-                print(form.cleaned_data["file"])
+                # print(form.cleaned_data["file"])
                 input_data = json.loads(form.cleaned_data["file"].read().decode("utf-8"))
             else:
-                print(request.POST)
-                print(json.loads(request.POST["data"]))
+                # print(request.POST)
+                # print(json.loads(request.POST["data"]))
                 input_data = json.loads(request.POST["data"])
 
             context = {
@@ -251,3 +253,8 @@ def result(request):
         return render(request, "no_auth.html", {"name": "割当ツール(結果)"})
     context = request.GET.get("context")
     return render(request, "result.html", context=context)
+
+
+class AssignmentApiView(APIView):
+    def get(self, request, format=None):
+        return Response({"name": "DUMMY!"})

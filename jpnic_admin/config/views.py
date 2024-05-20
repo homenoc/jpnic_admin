@@ -14,8 +14,8 @@ from jpnic_admin.jpnic import (
     verify_expire_ca,
 )
 from jpnic_admin.models import JPNIC as JPNICModel
-from jpnic_admin.resource.notify import NoticeResource, NoticeCertExpired
-from jpnic_admin.resource.task import manual_task
+from jpnic_admin.info.notify import NoticeResource, NoticeCertExpired
+from jpnic_admin.info.task import manual_task
 
 
 @login_required

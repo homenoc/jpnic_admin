@@ -14,7 +14,7 @@ from jpnic_admin.jpnic import JPNIC, request_to_sjis, request_error, JPNICReqErr
 from jpnic_admin.models import JPNIC as JPNICModel
 from jpnic_admin.log.models import Task as TaskModel
 from jpnic_admin.log.models import TaskError as TaskErrorModel
-from jpnic_admin.resource.models import (
+from jpnic_admin.info.models import (
     AddrList,
     JPNICHandle,
     AddrListTechHandle,
@@ -55,9 +55,9 @@ def get_task(type1=None):
         if (not settings.DEBUG) and base.collection_interval == 0:
             continue
         if (not latest_log) or now > latest_log.last_checked_at + datetime.timedelta(minutes=base.collection_interval):
-            print(base.asn, type1, "START")
+            # print(base.asn, type1, "START")
             exec_task(type1, base, latest_log, now)
-            print(base.asn, "END")
+            # print(base.asn, "END")
         time.sleep(1)
 
 
@@ -71,6 +71,7 @@ def exec_task(type1, base, log, now):
         elif type1 == "資源情報":
             GetAddr(base=base_copied, log=log_copied, now=now).get_resource()
     except Exception as e:
+        print(e)
         exc = sys.exception()
         fail = {
             "type": str(type(e)),
@@ -135,7 +136,7 @@ class GetAddr(JPNIC):
         soup = BeautifulSoup(res.text, "html.parser")
         resource_info = soup.select("table > tr > td > table > tr > td > table > tr > td > table")
         if len(resource_info) != 2:
-            print("ERROR")
+            # print("ERROR")
             return
 
         latest_res_list = ResourceList.objects.filter(jpnic_id=self.base.id).order_by("-last_checked_at").first()
@@ -264,7 +265,6 @@ class GetAddr(JPNIC):
         res.encoding = "Shift_JIS"
         soup = BeautifulSoup(res.text, "html.parser")
         ipaddr = ""
-        addr_info = {}
         # 存在しない情報のアップデート
         update_info_lists = []
         # 日付のみのアップデート

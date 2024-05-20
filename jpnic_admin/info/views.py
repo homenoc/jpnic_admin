@@ -48,8 +48,8 @@ def resources(request):
         "data": events_page,
         "search_form": form,
     }
-    for test in events_page["rs_lists"]:
-        print(test.id)
+    # for test in events_page["rs_lists"]:
+    #     print(test.id)
     return render(request, "jpnic_admin/resource.html", context)
 
 

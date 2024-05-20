@@ -2,7 +2,7 @@ from django.urls import path, include
 
 from . import views
 
-app_name = "resource"
+app_name = "info"
 urlpatterns = [
     path("", views.ip_address, name="index"),
     path("resource/", views.resource, name="resource"),
