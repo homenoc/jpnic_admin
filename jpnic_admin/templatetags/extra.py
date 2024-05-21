@@ -7,6 +7,11 @@ register = template.Library()
 
 
 @register.simple_tag
+def get_title():
+    return settings.SITE_TITLE
+
+
+@register.simple_tag
 def url_replace(request, **kwargs):
     params = request.GET.copy()
     for k, v in kwargs.items():
@@ -58,6 +63,11 @@ def get_addr_count(ip_version, addr=None):
 def get_resource_notify():
     return str(settings.NOTICE_MINUTE) + " " + str(settings.NOTICE_HOUR) + " " + str(settings.NOTICE_DAY) + " " + str(
         settings.NOTICE_MONTH) + " *"
+
+
+@register.simple_tag
+def is_saml_mode():
+    return settings.ENABLE_SAML
 
 
 @register.simple_tag

@@ -34,7 +34,8 @@ urlpatterns = [
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-if settings.DEBUG:
-    import debug_toolbar
+if settings.ENABLE_SAML:
+    urlpatterns += [path('saml2/', include("djangosaml2.urls"))]
 
-    urlpatterns += [path('__debug__/', include(debug_toolbar.urls))]
+if settings.DEBUG:
+    urlpatterns += [path('__debug__/', include("debug_toolbar.urls"))]
