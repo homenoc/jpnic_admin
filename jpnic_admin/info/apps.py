@@ -6,12 +6,13 @@ from django.apps import AppConfig
 from django.conf import settings
 
 
-class Data(AppConfig):
+class Info(AppConfig):
     name = "jpnic_admin.info"
     verbose_name = "アドレス資源"
 
     def __init__(self, app_name, app_module):
         super().__init__(app_name, app_module)
+        self.scheduler = None
 
     def ready(self):
         try:
@@ -45,21 +46,21 @@ class Data(AppConfig):
     def get_addr_process(self):
         from .task import get_task
 
-        self.scheduler.pause_job("get_addr")
+        self.scheduler.get_job("get_addr").pause()
         try:
             get_task(type1="アドレス情報")
         except:
             print("ERROR: get_addr_process")
             pass
-        self.scheduler.resume_job("get_addr")
+        self.scheduler.get_job("get_addr").resume()
 
     def get_resource_process(self):
         from .task import get_task
 
-        self.scheduler.pause_job("get_resource")
+        self.scheduler.get_job("get_resource").pause()
         try:
             get_task(type1="資源情報")
         except:
             print("ERROR: get_resource_process")
             pass
-        self.scheduler.resume_job("get_resource")
+        self.scheduler.get_job("get_resource").resume()
