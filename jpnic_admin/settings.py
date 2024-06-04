@@ -156,6 +156,42 @@ DATABASES = {
     }
 }
 
+# Logging
+LOGGING = {
+    "version": 1,
+    "filters": {
+        "require_debug_true": {
+            "()": "django.utils.log.RequireDebugTrue",
+        },
+        "require_debug_false": {
+            "()": "django.utils.log.RequireDebugFalse",
+        },
+    },
+    "handlers": {
+        "slack_admins": {
+            "level": "ERROR",
+            "filters": ["require_debug_false"],
+            "class": "django_slack.log.SlackExceptionHandler",
+            'template': os.path.join(BASE_DIR, 'jpnic_admin/templates/slack/message.slack')
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["slack_admins"],
+            "propagate": True,
+            "level": "INFO",
+        },
+        "": {
+            "handlers": ["slack_admins"],
+            "level": "DEBUG",
+        },
+    },
+}
+
+SLACK_ENDPOINT_URL = (
+    os.getenv("SLACK_ENDPOINT_URL", "")
+)
+
 # Debug
 if DEBUG:
     import socket

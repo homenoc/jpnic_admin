@@ -1,0 +1,6 @@
+{% extends django_slack %}
+{% load django_slack %}
+{% block text %}
+{% if is_channel %}<!channel>{% endif %}
+{{ text }}
+{% endblock %}
