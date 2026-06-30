@@ -11,9 +11,15 @@ class JPNICHandle(models.Model):
             "jpnic_id",
             "id",
         )
-        index_together = [
-            ["created_at", "last_checked_at", "jpnic_handle", "jpnic_id"],
-            ["last_checked_at", "jpnic_handle", "jpnic_id"],
+        indexes = [
+            models.Index(
+                fields=["created_at", "last_checked_at", "jpnic_handle", "jpnic"],
+                name="handle_created_checked_idx",
+            ),
+            models.Index(
+                fields=["last_checked_at", "jpnic_handle", "jpnic"],
+                name="handle_checked_idx",
+            ),
         ]
 
     created_at = models.DateTimeField("取得開始時刻", db_index=True)
@@ -52,20 +58,29 @@ class AddrList(models.Model):
             "jpnic_id",
             "id",
         )
-        index_together = [
-            [
-                "jpnic_id",
-                "network_name",
-                "address",
-                "address_en",
-                "ip_address",
-                "admin_handle",
-                "assign_date",
-                "type",
-                "division",
-            ],
-            ["created_at", "last_checked_at", "jpnic_id", "network_name", "address", "address_en"],
-            ["last_checked_at", "jpnic_id", "network_name", "address", "address_en"],
+        indexes = [
+            models.Index(
+                fields=[
+                    "jpnic",
+                    "network_name",
+                    "address",
+                    "address_en",
+                    "ip_address",
+                    "admin_handle",
+                    "assign_date",
+                    "type",
+                    "division",
+                ],
+                name="addr_full_idx",
+            ),
+            models.Index(
+                fields=["created_at", "last_checked_at", "jpnic", "network_name", "address", "address_en"],
+                name="addr_created_checked_idx",
+            ),
+            models.Index(
+                fields=["last_checked_at", "jpnic", "network_name", "address", "address_en"],
+                name="addr_checked_idx",
+            ),
         ]
 
     TYPE_PA = "pa"
@@ -130,10 +145,15 @@ class ResourceList(models.Model):
             "-created_at",
             "jpnic_id",
         )
-        index_together = [
-            ["created_at", "last_checked_at", "jpnic_id"],
-            ["created_at", "last_checked_at", "jpnic_id"],
-            ["last_checked_at", "jpnic_id"],
+        indexes = [
+            models.Index(
+                fields=["created_at", "last_checked_at", "jpnic"],
+                name="res_created_checked_idx",
+            ),
+            models.Index(
+                fields=["last_checked_at", "jpnic"],
+                name="res_checked_idx",
+            ),
         ]
 
     created_at = models.DateTimeField("取得開始時刻", db_index=True)

@@ -14,7 +14,7 @@ RUN pip install gunicorn
 
 ENV PYTHONPATH=/opt/app/
 ADD requirements.txt /opt/app/requirements.txt
-RUN pip install -r requirements.txt
+RUN pipenv sync --system
 
 ADD manage.py /opt/app/
 ADD jpnic_admin/ /opt/app/jpnic_admin/

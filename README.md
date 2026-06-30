@@ -28,3 +28,10 @@ python3 -m venv ~/.venv/jpnic_admin
 source ~/.venv/jpnic_admin/bin/activate
 pip install -r requirements.txt
 ```
+
+### MAC install
+```
+brew install mysql-client pkg-config
+export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
+export PKG_CONFIG_PATH="/opt/homebrew/opt/mysql-client/lib/pkgconfig"
+```

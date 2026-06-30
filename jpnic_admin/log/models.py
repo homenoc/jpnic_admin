@@ -14,9 +14,15 @@ class SmallTextField(models.TextField):
 class Task(models.Model):
     class Meta:
         ordering = ("-last_checked_at",)
-        index_together = [
-            ["created_at", "last_checked_at", "type1", "jpnic_id"],
-            ["last_checked_at", "type1", "jpnic_id"],
+        indexes = [
+            models.Index(
+                fields=["created_at", "last_checked_at", "type1", "jpnic"],
+                name="task_created_checked_idx",
+            ),
+            models.Index(
+                fields=["last_checked_at", "type1", "jpnic"],
+                name="task_checked_idx",
+            ),
         ]
 
     RESOURCE = "資源情報"
@@ -38,8 +44,11 @@ class Task(models.Model):
 class TaskError(models.Model):
     class Meta:
         ordering = ("-created_at",)
-        index_together = [
-            ["created_at", "task_id"],
+        indexes = [
+            models.Index(
+                fields=["created_at", "task"],
+                name="taskerror_created_task_idx",
+            ),
         ]
 
     created_at = models.DateTimeField("取得時刻", db_index=True)

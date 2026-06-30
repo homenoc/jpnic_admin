@@ -197,8 +197,8 @@ class GetAddr(JPNIC):
             text = td.text.strip()
             # 総利用率
             if idx == 2:
-                info_resource_list["assigned_addr_count"] = int(re.findall("(?<=\().+?(?=\))", text)[0].split("/")[0])
-                info_resource_list["all_addr_count"] = int(re.findall("(?<=\().+?(?=\))", text)[0].split("/")[1])
+                info_resource_list["assigned_addr_count"] = int(re.findall(r"(?<=\().+?(?=\))", text)[0].split("/")[0])
+                info_resource_list["all_addr_count"] = int(re.findall(r"(?<=\().+?(?=\))", text)[0].split("/")[1])
             # AD ratio
             elif idx == 5:
                 info_resource_list["ad_ratio"] = float(text)
@@ -208,8 +208,8 @@ class GetAddr(JPNIC):
                 if idx % 3 == 1:
                     tmp_rs_addr_list["assign_date"] = convert_datetime(text=text)
                 if idx % 3 == 2:
-                    tmp_rs_addr_list["assigned_addr_count"] = int(re.findall("(?<=\().+?(?=\))", text)[0].split("/")[0])
-                    tmp_rs_addr_list["all_addr_count"] = int(re.findall("(?<=\().+?(?=\))", text)[0].split("/")[1])
+                    tmp_rs_addr_list["assigned_addr_count"] = int(re.findall(r"(?<=\().+?(?=\))", text)[0].split("/")[0])
+                    tmp_rs_addr_list["all_addr_count"] = int(re.findall(r"(?<=\().+?(?=\))", text)[0].split("/")[1])
                     res_addr_list.append(tmp_rs_addr_list)
                     tmp_rs_addr_list = {}
 
