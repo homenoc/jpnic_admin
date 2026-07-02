@@ -115,8 +115,14 @@ def update_task_log(type1, base, latest_log, now, fail):
 
 def convert_datetime(text, date_format="%Y/%m/%d"):
     try:
-        return timezone.datetime.strptime(text, date_format)
-    except:
+        dt = datetime.datetime.strptime(text, date_format)
+        try:
+            if settings.USE_TZ:
+                return timezone.make_aware(dt)
+        except Exception:
+            return dt
+        return dt
+    except Exception:
         return None
 
 
@@ -756,7 +762,8 @@ class GetAddr(JPNIC):
             return
 
         handle_info["recep_number"] = info["recept_no"]
-        self.update_latest_data(handles=[].append(handle_info))
+        # append returns None, so construct list properly
+        self.update_latest_data(handles=[handle_info])
 
     # ハンドル系の最新日付アップデート処理
     def update_latest_data(self, handles=None):

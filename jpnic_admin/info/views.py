@@ -36,6 +36,7 @@ def resource(request):
         "data": events_page,
         "search_form": form,
     }
+    print(context)
     return render(request, "jpnic_admin/resource.html", context)
 
 

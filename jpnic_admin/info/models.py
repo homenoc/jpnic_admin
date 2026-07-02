@@ -188,11 +188,7 @@ class ResourceList(models.Model):
 
 class ResourceAddressList(models.Model):
     class Meta:
-        ordering = (
-            "-last_checked_at",
-            "-created_at",
-            "jpnic_id",
-        )
+        ordering = ("-last_checked_at", "-created_at", "jpnic_id",)
 
     index_together = [
         ["created_at", "last_enabled_at", "jpnic_id"],

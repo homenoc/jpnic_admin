@@ -19,30 +19,30 @@ SELECT t1.id                                  AS ID,
        GROUP_CONCAT(tech_handle1.jpnic_handle) AS tech_handle,
        GROUP_CONCAT(tech_handle1.name)         AS tech_name,
        GROUP_CONCAT(tech_handle1.email)        AS tech_email
-FROM resource_addrlist AS t1
+FROM info_addrlist AS t1
          JOIN (SELECT MAX(id) AS id, admin_handle
-               FROM resource_addrlist
-               WHERE NOT (resource_addrlist.last_checked_at <= %s OR %s <= resource_addrlist.created_at)
-                 AND resource_addrlist.jpnic_id = %s
-                 AND resource_addrlist.network_name like %s
-                 AND (resource_addrlist.org like %s OR resource_addrlist.org_en like %s)
-                 AND resource_addrlist.resource_admin_short like %s
-                 AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
-                 AND resource_addrlist.ip_address like %s
-                 AND resource_addrlist.abuse like %s
+               FROM info_addrlist
+               WHERE NOT (info_addrlist.last_checked_at <= %s OR %s <= info_addrlist.created_at)
+                 AND info_addrlist.jpnic_id = %s
+                 AND info_addrlist.network_name like %s
+                 AND (info_addrlist.org like %s OR info_addrlist.org_en like %s)
+                 AND info_addrlist.resource_admin_short like %s
+                 AND (info_addrlist.address like %s OR info_addrlist.address_en like %s)
+                 AND info_addrlist.ip_address like %s
+                 AND info_addrlist.abuse like %s
                GROUP BY ip_address, admin_handle, assign_date, type, division
                # HAVING MAX(id)
                ORDER BY ip_address
                LIMIT %s OFFSET %s) AS t2 ON t1.id = t2.id
-         JOIN resource_addrlisttechhandle ON t1.id = resource_addrlisttechhandle.addr_list_id
-         JOIN resource_jpnichandle AS tech_handle1
+         JOIN info_addrlisttechhandle ON t1.id = info_addrlisttechhandle.addr_list_id
+         JOIN info_jpnichandle AS tech_handle1
               ON (t1.admin_handle = tech_handle1.jpnic_handle AND tech_handle1.jpnic_id = %s)
-         LEFT JOIN resource_jpnichandle AS tech_handle2
+         LEFT JOIN info_jpnichandle AS tech_handle2
                    ON (t1.admin_handle = tech_handle2.jpnic_handle AND tech_handle2.jpnic_id = tech_handle1.jpnic_id AND
                        (tech_handle1.last_checked_at < tech_handle2.last_checked_at))
-         JOIN resource_jpnichandle AS tb_admin_handle1
+         JOIN info_jpnichandle AS tb_admin_handle1
               ON (t1.admin_handle = tb_admin_handle1.jpnic_handle AND tb_admin_handle1.jpnic_id = %s)
-         LEFT JOIN resource_jpnichandle AS tb_admin_handle2
+         LEFT JOIN info_jpnichandle AS tb_admin_handle2
                    ON (t1.admin_handle = tb_admin_handle2.jpnic_handle AND
                        tb_admin_handle2.jpnic_id = tb_admin_handle1.jpnic_id AND
                        (tb_admin_handle1.last_checked_at < tb_admin_handle2.last_checked_at))
@@ -58,17 +58,17 @@ ORDER BY ip_address
 
 def sqlDateSelectCount():
     sql = """
-SELECT resource_addrlist.ip_address   AS ip_address,
-       resource_addrlist.division     AS division
-FROM resource_addrlist 
-WHERE NOT (resource_addrlist.last_checked_at <= %s OR %s <= resource_addrlist.created_at)
- AND resource_addrlist.jpnic_id = %s
- AND resource_addrlist.network_name like %s
- AND (resource_addrlist.org like %s OR resource_addrlist.org_en like %s)
- AND resource_addrlist.resource_admin_short like %s
- AND (resource_addrlist.address like %s OR resource_addrlist.address_en like %s)
- AND resource_addrlist.ip_address like %s
- AND resource_addrlist.abuse like %s
+SELECT info_addrlist.ip_address   AS ip_address,
+       info_addrlist.division     AS division
+FROM info_addrlist 
+WHERE NOT (info_addrlist.last_checked_at <= %s OR %s <= info_addrlist.created_at)
+ AND info_addrlist.jpnic_id = %s
+ AND info_addrlist.network_name like %s
+ AND (info_addrlist.org like %s OR info_addrlist.org_en like %s)
+ AND info_addrlist.resource_admin_short like %s
+ AND (info_addrlist.address like %s OR info_addrlist.address_en like %s)
+ AND info_addrlist.ip_address like %s
+ AND info_addrlist.abuse like %s
 GROUP BY  ip_address, division
     """
     return sql
@@ -76,7 +76,7 @@ GROUP BY  ip_address, division
 
 sqlAddrListDateFilter = """
 WITH rs_addrlist AS (SELECT *
-                     FROM resource_resourceaddresslist T1
+                     FROM info_resourceaddresslist T1
                      WHERE T1.`jpnic_id` = %(id)s
                        AND NOT (T1.`last_checked_at` < %(start_time)s)
                        AND NOT (T1.`created_at` > %(end_time)s))
