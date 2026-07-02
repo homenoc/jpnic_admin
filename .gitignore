@@ -7,3 +7,4 @@ conf/*
 jpnic_admin/templates/*test*.html
 jpnic_admin/*_settings.py
 **/__pycache__/**
+*.cer

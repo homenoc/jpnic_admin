@@ -254,6 +254,8 @@ ORG_FILTER = os.environ.get('ORGS_FILTER', '').split(' ')
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/"
 
+ENABLE_SAML = os.getenv("ENABLE_SAML", False)
+
 # Slack通知
 NOTICE_MONTH = "*"
 NOTICE_DAY = 1

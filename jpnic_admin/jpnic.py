@@ -123,10 +123,24 @@ def str_to_timedate(date_array=None, time_str=""):
 def get_expire_type(expire_date):
     # 0: 有効, 1: 失効まで90日前, 2: 失効中
     expire_type = 0
-    now = datetime.datetime.utcnow()
-    if expire_date < now:
+    # Use timezone-aware UTC datetimes to avoid comparisons between naive and aware datetimes.
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if expire_date is None:
+        return expire_type
+
+    # If the certificate datetime is naive, treat it as UTC (historic behaviour of cryptography).
+    try:
+        if getattr(expire_date, "tzinfo", None) is None:
+            expire_dt = expire_date.replace(tzinfo=datetime.timezone.utc)
+        else:
+            expire_dt = expire_date.astimezone(datetime.timezone.utc)
+    except Exception:
+        # Fallback: if expire_date is not a datetime, leave as-is and try comparison (will likely fail)
+        expire_dt = expire_date
+
+    if expire_dt < now:
         expire_type = 2
-    elif expire_date < now + datetime.timedelta(days=90):
+    elif expire_dt < now + datetime.timedelta(days=90):
         expire_type = 1
     return expire_type
 
@@ -157,10 +171,14 @@ def verify_expire_p12_file(p12_base64="", p12_pass=""):
     p12 = base64.b64decode(p12_base64)
     p12_pass_bytes = bytes(p12_pass, "utf-8")
     pk, cert, option_cert = load_key_and_certificates(p12, p12_pass_bytes)
+    # cryptography >= 40 exposes timezone-aware properties not_valid_before_utc / not_valid_after_utc
+    # fall back to legacy not_valid_before / not_valid_after when not available.
+    before = getattr(cert, "not_valid_before_utc", getattr(cert, "not_valid_before", None))
+    after = getattr(cert, "not_valid_after_utc", getattr(cert, "not_valid_after", None))
     return {
-        "before": cert.not_valid_before,
-        "after": cert.not_valid_after,
-        "expire": get_expire_type(expire_date=cert.not_valid_after)
+        "before": before,
+        "after": after,
+        "expire": get_expire_type(expire_date=after),
     }
 
 
